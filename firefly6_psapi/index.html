@@ -1,0 +1,187 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Park Shark Amsterdam - API</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Park Shark Amsterdam - API">
+    <meta name="author" content="Glimworm It BV">
+
+    <!-- Le styles -->
+    <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
+    <style type="text/css">
+      body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+    </style>
+    <link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le fav and touch icons -->
+    <link rel="shortcut icon" href="bootstrap/ico/favicon.ico">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="bootstrap/ico/apple-touch-icon-144-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="bootstrap/ico/apple-touch-icon-114-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="bootstrap/ico/apple-touch-icon-72-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" href="bootstrap/ico/apple-touch-icon-57-precomposed.png">
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">Park Shark Amsterdam API</a>
+          <div class="nav-collapse">
+            <ul class="nav">
+              <li class="active"><a href="index.html">Home</a></li>
+              <li><a href="getbutton.html">Get the button</a></li>
+              <li><a href="jsonapi.html">Developers</a></li>
+              <li><a href="examples.html">Examples</a></li>
+              <!-- 
+              <li><a href="#about">About</a></li>
+              <li><a href="#contact">Contact</a></li>
+              -->
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <!-- Main hero unit for a primary marketing message or call to action -->
+      <div class="hero-unit">
+        <h1>Park Shark Amsterdam - API</h1>
+        <p>Park Shark Amsterdam is an initiative of Glimworm IT.  The API is based on the same data as the ParkShark Amsterdam iPhone APP but allows independent developers to calculate parking charges over time and duration</p>
+        <p>The response is JSON, for example :</p>
+        <p><pre>http://api.parkshark.nl/psapi/api.jsp?day=5&hr=8&min=30&duration=3&lat=52.377&lon=4.9104&methods=cash,pin</pre></p>
+        <p>Will return costs for all the meters starting on day 5 (Friday) starting at 8:30 and for 3 hrs.</p>
+      </div>
+
+      <!-- Example row of columns -->
+      <div class="row">
+        <div class="span4">
+          <h2>JSON API docs</h2>
+          <p> The following json queries are available
+          <ul>
+	       <li>Basic query </li>
+	       <li>Get details of one (or several) meter(s)</li>
+	       <li>Get list of GebCodes</li>
+	       <li>Get list of Costs</li>
+          </ul>
+       </p>
+          <p><a class="btn" href="jsonapi.html">View details &raquo;</a></p>
+          <p>&nbsp;</p>
+          <p>&nbsp;</p>
+          
+          <h2>Watch the movie</h2>
+<a href="#myModal" role="button" class="btn" data-toggle="modal"><img src='http://api.parkshark.nl/images/movie2.png' border='0' width='99%'></a>
+ 
+<!-- Modal -->
+<div id="myModal" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="myModalLabel"></h3>
+  </div>
+  <div class="modal-body">
+		<p>
+<iframe src="http://player.vimeo.com/video/44516471?badge=0" width="500" height="281" frameborder="0" webkitAllowFullScreen mozallowfullscreen allowFullScreen></iframe> <p><a href="http://vimeo.com/44516471">Apps for Amsterdam</a> from <a href="http://vimeo.com/waag">Waag Society</a> on <a href="http://vimeo.com">Vimeo</a>.</p>		
+		</p>
+  </div>
+  <div class="modal-footer">
+  </div>
+</div>
+          
+
+          
+          
+        </div>
+        <div class="span4">
+          <h2>Get the button!</h2>
+           <p>Click on the button bellow to see how to implement it on your website</p>
+          <p><a class="btn" href="getbutton.html">View details &raquo;</a></p>
+          <h2>Try it out</h2>
+          <p>
+           <LINK REL="stylesheet" TYPE="text/css" HREF="http://api.parkshark.nl/button/psapi_frame_client.css">
+<script type="text/javascript" src="http://api.parkshark.nl/button/psapi_frame_client.js"> </script>
+<a href="javascript:parksharkapi.pop(52.359523,4.889753);"><img src='http://api.parkshark.nl/button/images/parkshark_trigger.png' border='0'></a>
+			</p>
+
+<!-- Button to trigger modal -->
+          <p>&nbsp;</p>
+          <p>&nbsp;</p>
+<!-- Button to trigger modal -->
+          <h2>Watch the movie</h2>
+<a href="#myModal2" role="button" class="btn" data-toggle="modal"><img src='http://api.parkshark.nl/images/movie1.png' border='0' width='99%'></a>
+ 
+<!-- Modal -->
+<div id="myModal2" class="modal hide fade" tabindex="-1" role="dialog" aria-labelledby="myModalLabel" aria-hidden="true">
+  <div class="modal-header">
+    <button type="button" class="close" data-dismiss="modal" aria-hidden="true">×</button>
+    <h3 id="myModalLabel"></h3>
+  </div>
+  <div class="modal-body">
+          <p><iframe width="420" height="315" src="http://www.youtube.com/embed/u9ABKzz92z0?rel=0" frameborder="0" allowfullscreen></iframe></p>
+  </div>
+  <div class="modal-footer">
+  </div>
+</div>
+
+
+
+       </div>
+        <div class="span4">
+          <h2>iPhone App</h2>
+          <p>The App is available in the Apple AppStore for iPhone</p>
+          <p><img src='images/iphone.jpg'></p>
+          <p><a href='http://itunes.apple.com/us/app/park-shark-amsterdam/id510032256?l=nl&ls=1&mt=8'><img width='200' src='http://t2.gstatic.com/images?q=tbn:ANd9GcQOAg3r7wjX13IMeh5ywqUOFPxor9r-g50-gjavkmfKCehsexb1'></a></p>
+          <!-- 
+          <p><a class="btn" href="#">View details &raquo;</a></p>
+          -->
+        </div>
+      </div>
+
+      <hr>
+      <footer>
+        <p>&copy; <a href="http://www.glimworm.com" target="_blank">Glimworm IT B.V.</a> 2012</p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="http://code.jquery.com/jquery-1.7.2.min.js"></script>
+    <script src="bootstrap/js/bootstrap-transition.js"></script>
+    <script src="bootstrap/js/bootstrap-alert.js"></script>
+    <script src="bootstrap/js/bootstrap-modal.js"></script>
+    <script src="bootstrap/js/bootstrap-dropdown.js"></script>
+    <script src="bootstrap/js/bootstrap-scrollspy.js"></script>
+    <script src="bootstrap/js/bootstrap-tab.js"></script>
+    <script src="bootstrap/js/bootstrap-tooltip.js"></script>
+    <script src="bootstrap/js/bootstrap-popover.js"></script>
+    <script src="bootstrap/js/bootstrap-button.js"></script>
+    <script src="bootstrap/js/bootstrap-collapse.js"></script>
+    <script src="bootstrap/js/bootstrap-carousel.js"></script>
+    <script src="bootstrap/js/bootstrap-typeahead.js"></script>
+	<script type="text/javascript">
+	  var uvOptions = {};
+	  (function() {
+	    var uv = document.createElement('script'); uv.type = 'text/javascript'; uv.async = true;
+	    uv.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'widget.uservoice.com/5x6t5wFdftcJRRjAMWb5Tw.js';
+	    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(uv, s);
+	  })();
+	</script>		
+
+  </body>
+</html>

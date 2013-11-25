@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+  <head>
+    <meta charset="utf-8">
+    <title>Park Shark Amsterdam - API</title>
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta name="description" content="Park Shark Amsterdam - API">
+    <meta name="author" content="Glimworm It BV">
+
+    <!-- Le styles -->
+    <link href="bootstrap/css/bootstrap.css" rel="stylesheet">
+    <style type="text/css">
+      body {
+        padding-top: 60px;
+        padding-bottom: 40px;
+      }
+    </style>
+    <link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+
+    <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+    <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+    <![endif]-->
+
+    <!-- Le fav and touch icons -->
+    <link rel="shortcut icon" href="bootstrap/ico/favicon.ico">
+    <link rel="apple-touch-icon-precomposed" sizes="144x144" href="bootstrap/ico/apple-touch-icon-144-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="114x114" href="bootstrap/ico/apple-touch-icon-114-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" sizes="72x72" href="bootstrap/ico/apple-touch-icon-72-precomposed.png">
+    <link rel="apple-touch-icon-precomposed" href="bootstrap/ico/apple-touch-icon-57-precomposed.png">
+  </head>
+
+  <body>
+
+    <div class="navbar navbar-fixed-top">
+      <div class="navbar-inner">
+        <div class="container">
+          <a class="btn btn-navbar" data-toggle="collapse" data-target=".nav-collapse">
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+            <span class="icon-bar"></span>
+          </a>
+          <a class="brand" href="#">Park Shark Amsterdam API</a>
+          <div class="nav-collapse">
+            <ul class="nav">
+              <li><a href="index.html">Home</a></li>
+              <li><a href="getbutton.html">Get the button</a></li>
+              <li><a href="getbutton-antwerp.html">Antwerp</a></li>
+              <li class="active"><a href="jsonapi.html">Developers</a></li>
+              <li><a href="examples.html">Examples</a></li>
+              <!-- 
+              <li><a href="#about">About</a></li>
+              <li><a href="#contact">Contact</a></li>
+              -->
+            </ul>
+          </div><!--/.nav-collapse -->
+        </div>
+      </div>
+    </div>
+
+    <div class="container">
+
+      <!-- Main hero unit for a primary marketing message or call to action -->
+      <div class="hero-unit">
+        <h1>Developers (json api)</h1>
+        <p>Park Shark Amsterdam is an initiative of Glimworm IT.  The API is based on the same data as the ParkShark Amsterdam iPhone APP but allows independent developers to calculate parking charges over time and duration</p>
+		
+        <h2>Basic query </h2>
+        <p><pre>http://api.parkshark.nl/psapi/api.jsp?day=5&hr=8&min=30&duration=3&lat=52.377&lon=4.9104&methods=cash,pin</pre> </p>
+        <p>Will return costs for all the meters starting on day 5 (Friday) starting at 8:30 and for 3 hrs.</p>
+        <p>It will use 51.5 x 4.9 as your geolocation and look only for machines accepting cash and pin</p>
+        <p><pre>
+{
+	"params":{
+		"fmt":0
+	},
+	"results":[
+		
+		/* Array of :
+			[ meternumber, price in euro, distance in meters, matches the payment methods (1=yes),id] 
+		*/
+		
+		["10668",8.0,4497,1,265],
+		["10841",8.0,4926,1,320],
+		 ...... , 
+		["10853",8.0,5099,1,329]
+	],
+	"advice":[
+
+		/* Array of :
+			[ meternumber, price in euro, address, latitide, longitude, order, 0] 
+		*/
+
+		["10668",8.0,4497,"Oosterdok 39",52.3724709,4.90942,0,0],
+		["10612",10.0,5444,"Prins Hendrikkade 137",52.3736496,4.9059,1,0],
+		["11328",6.0,5943,"Dijksgracht 6",52.3762589,4.9164801,2,0],
+		["16538",4.0,23664,"Celebesstraat 6",52.3654289,4.93187,3,0],
+		["19540",2.0,27168,"Loenermark 81",52.3977585,4.9291902,4,0],
+		["15815",0.0,35813,"Korte Ouderkerkerdijk 16",52.3409309,4.91822,5,0]
+	]
+}
+
+        </pre></p>
+        <p>&nbsp;</p>
+
+
+        <h2>Find meters in a geographic area</h2>
+        <p><pre>http://api.parkshark.nl/psapi/api.jsp?action=get_meters_in_box&north=52.3724709&south=52.2724709&east=4.90042&west=4.90962</pre> </p>
+        <p>Will return the meters in a geographic square</p>
+        <p><pre>
+
+		{"items":[
+			["10103",0,0,"",52.3649406,4.90095,0,0],
+			["10106",0,0,"",52.363781,4.9014001,1,0],
+			["10107",0,0,"",52.3631096,4.9018998,2,0]
+			]
+		}
+        </pre></p>
+        <p>&nbsp;</p>
+
+
+
+        <h2>Find nearest meter to top up payment at</h2>
+        <p><pre>http://api.parkshark.nl/psapi/api.jsp?action=find_nearest&lat=52.377&lon=4.9104&rate=3.0</pre> </p>
+        <p>Will return the nearest meter (from lat,lon) at which you can top up your parking at a rate of at least 3.00 / hr.</p>
+        <p><pre>
+{
+	"id":265,
+	"meterlat":52.3724709,
+	"meterlon":4.90942,
+	"meternum":10668,
+	"dist":4497.0
+}        
+        </pre></p>
+        <p>&nbsp;</p>
+        <h2>Get details of one (or several) meter(s)</h2>
+        <p><pre>http://api.parkshark.nl/psapi/api.jsp?action=get_meters&meternumbers=10667,10567</pre> </p>
+        <p>Will return the details of meters 10667 and 10567.</p>
+        <p><pre>
+
+
+{"items": [
+  {
+    "i": 264,
+    "match": 0,
+    "dist": 0.0,
+    "dist2": 0.0,
+    "onmap": false,
+    "lat": 52.3766708,		/* latitude */
+    "lon": 4.9010301,		/* longitude */
+    "cost": 0.0,
+    "totalcost": 0.0,
+    "max": 0.0,
+    "isInNorth": false,		/* is in Amsterdam North */
+    "dbg": "",
+    "bw": {	
+      "cash": false,		/* accepts cash */
+      "creditcard": true,	/* accepts creditcard */
+      "pin": true,		/* accepts pin */
+      "chip": true		/* acepts chipknip */
+    },
+    "costs": {
+      "geb_code": "G1",		/* Payment charging code */
+      "days": [			/* start end end of hours in which you have to pay starting with Sunday as element [0] */
+        {
+          "start": 12,
+          "end": 24
+        },
+        {
+          "start": 9,
+          "end": 24
+        },
+        {
+          "start": 9,
+          "end": 24
+        },
+        {
+          "start": 9,
+          "end": 24
+        },
+        {
+          "start": 9,
+          "end": 24
+        },
+        {
+          "start": 9,
+          "end": 24
+        },
+        {
+          "start": 9,
+          "end": 24
+        }
+      ],
+      "t_code": "TZ11",		/* link to Paymen table */
+      "first": {
+      				/* 	there are payment combinations
+      					if the comaination is "Y" then the price
+      					specified is good for the first number of
+      					hours specified in "hrs" 
+      				*/
+        "combination": "n",
+        "price": 0.0,
+        "hrs": 0
+      },
+      "cost": 5.0,			/* cost per hour */
+      "max": 0.0			/* if there is a maximum stay */
+    },
+    "entityid": "667",			/* internal id */
+    "stadsdeel": "Centrum",		/* city area */
+    "belnummer": "10667",		/* meter number */
+    "adres": "Prins Hendrikkade 76",	/* address */
+    "postcode": "1012 AE",		/* postcode */
+    "woonplaats": "Amsterdam",		/* city */
+    "typeautomaat": "CWO",		/* Type of mater */
+    "betaalwijze": "5",
+    "status": "OP",
+    "tariefcode": "1"			/* link to tarrif codes */
+  },
+  {}
+]}
+
+
+
+
+
+        </pre></p>
+        <p>&nbsp;</p>
+        <h2>Get list of GebCodes</h2>
+       	<p><pre>http://api.parkshark.nl/psapi/api.jsp?action=get_gebcodes</pre> </p>
+        <p>Will return a list of gebcodes.</p>
+        <p><pre>
+{"items": [
+  {
+    "t_code": "1",
+    "geb_code": "G1",
+    "price_code": "TZ11",
+    "max": 0,
+    "oms": "zonder 0,10"
+  },, ....]
+ } 
+
+
+        </pre></p>
+        <p>&nbsp;</p>
+        <h2>Get list of Costs</h2>
+       	<p><pre>http://api.parkshark.nl/api.jsp?action=get_costs</pre> </p>
+        <p>Will return a list of costs.</p>
+        <p><pre>
+{"items": [
+  {
+    "t_code": "TZ81",			/* tarrif code */
+    "first": {
+
+    				/* 	there are payment combinations
+      					if the comaination is "Y" then the price
+      					specified is good for the first number of
+      					hours specified in "hrs" 
+      				*/
+ 
+      "combination": "n",
+      "price": 0.0,
+      "hrs": 0
+    },
+    "cost": 1.1,		/* cost per hour */
+    "max": 0.0			/* if there is a maximum stay */
+  }, ....]
+ }        
+        
+        
+        </pre></p>
+        
+        
+      </div>
+
+      <!-- Example row of columns -->
+      <hr>
+
+      <footer>
+        <p>&copy; <a href="http://www.glimworm.com" target="_blank">Glimworm IT B.V.</a> 2012</p>
+      </footer>
+
+    </div> <!-- /container -->
+
+    <!-- Le javascript
+    ================================================== -->
+    <!-- Placed at the end of the document so the pages load faster -->
+    <script src="bootstrap/js/jquery.js"></script>
+    <script src="bootstrap/js/bootstrap-transition.js"></script>
+    <script src="bootstrap/js/bootstrap-alert.js"></script>
+    <script src="bootstrap/js/bootstrap-modal.js"></script>
+    <script src="bootstrap/js/bootstrap-dropdown.js"></script>
+    <script src="bootstrap/js/bootstrap-scrollspy.js"></script>
+    <script src="bootstrap/js/bootstrap-tab.js"></script>
+    <script src="bootstrap/js/bootstrap-tooltip.js"></script>
+    <script src="bootstrap/js/bootstrap-popover.js"></script>
+    <script src="bootstrap/js/bootstrap-button.js"></script>
+    <script src="bootstrap/js/bootstrap-collapse.js"></script>
+    <script src="bootstrap/js/bootstrap-carousel.js"></script>
+    <script src="bootstrap/js/bootstrap-typeahead.js"></script>
+	<script type="text/javascript">
+	  var uvOptions = {};
+	  (function() {
+	    var uv = document.createElement('script'); uv.type = 'text/javascript'; uv.async = true;
+	    uv.src = ('https:' == document.location.protocol ? 'https://' : 'http://') + 'widget.uservoice.com/5x6t5wFdftcJRRjAMWb5Tw.js';
+	    var s = document.getElementsByTagName('script')[0]; s.parentNode.insertBefore(uv, s);
+	  })();
+	</script>		
+
+  </body>
+</html>

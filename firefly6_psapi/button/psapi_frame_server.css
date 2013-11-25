@@ -1,0 +1,206 @@
+			.position_relative {
+			  position: relative;
+			}
+			
+			.position_absolute {
+			  position: absolute;
+			}
+			* {
+				font-family:Arial, Helvetica, sans-serif;
+				color:#666666;
+				font-size:12px;
+				
+			}	
+			#psapi_top {
+			  height: 136px;
+			}
+
+			#icon_available {
+ 				top: 48px;
+				left: 364px;
+				border: 0;
+			}
+			
+			#psapiClose{
+				left:532px;
+				top:-8px;
+			}
+			
+			#psapiLocPoweredby {
+                height:25px;
+                width:100%;
+                /*border-bottom:#264ae9 1px solid;*/
+				position:relative;
+				font-size:11px;
+				/*background-color:#ffffff;*/
+				text-align: center;
+				color: #87888b;
+			}
+
+			
+			#psapiDurPref{
+				height:83px;
+				width: 403px;
+				/*border-bottom:#264ae9 1px solid;
+				position:relative;*/
+				clear: both;
+				/*margin: 0 0 0 20px;*/
+				left: 84px;
+				top: 41px;
+			}
+			
+			#QRCode{
+				top:0px;
+				right:5px;
+				position:absolute;
+			}
+            
+            .psapiPrefText, .psapiDurText {
+                color:#888888;
+                font-size:12px;
+                font-family:Arial, Geneva, sans-serif;
+                font-weight:bold;
+                margin:0;
+                width: 70px;
+				padding: 10px 0 0 0;
+                float:left;
+            }
+            .psapiDurText {
+                width: 70px;
+            }
+            .psapiPrefInput {
+                float:left;
+                width:250px;
+                height:13px;
+            }
+            #psapiDurTodayDay, #psapiDurTodayHour, #psapiDurTodayMin, #psapiDurNextText, #psapiDurNextHour, #psapiDurNextMin {
+                width:100%;
+                height:33px;
+			}
+			#psapilogo{
+				position:absolute;
+				left: 14px;
+				top: 11px;
+			}
+			
+			#psapiParkTextBig{
+				position:absolute;
+				left: 85px;
+				top: 11px;	
+			}
+			
+			#psapiParkTextSmall{
+				position:absolute;
+				left:50px;
+				top:33px;
+			}
+			
+			#psapiDurTodayDaySelect, #psapiDurTodayHourSelect, #psapiDurTodayMinSelect, #psapiDurNextHourSelect{
+				height:29px;	
+			}
+			
+			#psapiDurTodayDaySelect, #psapiDurNextHourSelect{
+				width: 180px;	
+			}
+			
+			#psapiDurTodayHourSelect, #psapiDurTodayMinSelect{
+				width:60px;	
+			}
+			
+			#psapiDurNextButton{
+				width: 123px;
+				height: 33px;
+				background-image: url('http://api.parkshark.nl/button/images/btn_parkeeradvies.gif');
+				background-repeat: no-repeat;
+				border: 0;
+				padding: 0;
+				margin: -3px 0 0 30px;
+				cursor: pointer;
+			}
+			
+			#psapiMapPart th {
+				color:#264ae9;
+				font-size: 12px;
+				text-transform: uppercase;
+				padding: 0 0 0 10px;
+			}
+			
+			.zed{
+				z-index:9;
+				
+			}
+			
+			
+			#psapiMapPart {
+			  padding: 20px;
+			  text-align: center;
+			}
+			
+			#plansearchsave {
+			  margin: 30px 0 0 0;
+			}
+			
+			#sponsors {
+			  width: 510px;
+			  text-align: center;
+			  margin: 41px 0 0 0;
+			  border-top: 1px solid #e8e8e8;
+			  padding: 13px 0 0 0;
+			}
+			
+			#logo_cition {
+			  margin: 13px 69px 0 48px;
+			}
+			
+			#sponsors img {
+			  float: left;
+			}
+			
+			#sponsors_td {
+			  width: 175px;
+			}
+			
+			#pradvice {
+				padding:0;
+				padding-left: 14px;
+				padding-right: 14px;
+			}
+			#pradvice * {
+				font-size:14px;
+			}
+
+
+			.psapi_rowtype_0, .psapi_rowtype_1 {
+			  font-size: 12px;
+			}
+			
+			.psapi_rowtype_0 td, .psapi_rowtype_1 td {
+			  padding: 10px;
+			  font-weight: bold;
+			  text-align: left;
+			}
+			
+			.psapi_rowtype_0 {
+			  background-color: #e7e7e7;
+			}
+			
+			.psapi_rowtype_1 {
+			  background-color: #f5f5f5;
+			}
+			
+			
+			.td_meter {
+			  width: 55px;
+			}
+			
+			.td_price {
+			  width: 51px;
+			}
+			
+			.td_afstand {
+			  width: 66px;
+			}
+			
+			.td_adres {
+			  width: 302px;
+			}
