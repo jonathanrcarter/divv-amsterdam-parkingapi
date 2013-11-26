@@ -19,6 +19,7 @@ public class _test {
 		System.out.println(res1);
 		
 		Place pl = GeoCodeByMapQuest.geocode("eerste weteringplantsoen 8 , Amsterdam, Netherlands");
+//		Place pl = GeoCodeByMapQuest.geocode("london");
 		System.out.println(pl);
 
 	}

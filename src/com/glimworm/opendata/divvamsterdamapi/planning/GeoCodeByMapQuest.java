@@ -4,7 +4,13 @@ import com.glimworm.opendata.divvamsterdamapi.planning.xsd.Place;
 
 public class GeoCodeByMapQuest extends GeoCode {
 
-	public static Place geocode(String S) {
+	public static Place geocode(String address) {
+		
+		String URL = "http://open.mapquestapi.com/geocoding/v1/address";
+		String PARAMS = "location=" + java.net.URLEncoder.encode(address);
+		com.glimworm.opendata.divvamsterdamapi.planning.net.xsd.curlResponse cr =  com.glimworm.opendata.divvamsterdamapi.planning.net.CurlUtils.getCURL(URL, PARAMS, null, null, null, null, null);
+		
+		System.out.println(cr.text);
 		
 		
 		Place retval = new Place();
