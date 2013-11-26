@@ -1,6 +1,6 @@
 package com.glimworm.opendata.divvamsterdamapi.planning.xsd;
 
-public class StopName {
+public class StopName  extends Place {
 	
 	public String stopname = "";
 	public MMdatetime scheduled_time_at_stop = null;

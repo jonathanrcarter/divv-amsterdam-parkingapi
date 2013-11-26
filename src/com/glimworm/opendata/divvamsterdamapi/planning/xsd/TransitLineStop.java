@@ -1,6 +1,6 @@
 package com.glimworm.opendata.divvamsterdamapi.planning.xsd;
 
-public class TransitLineStop {
+public class TransitLineStop  extends Place {
 	
 
     // The ID of the stop, taken from stopId->id, e.g. CXX|57225182 - this maps to a TimingPointCode
