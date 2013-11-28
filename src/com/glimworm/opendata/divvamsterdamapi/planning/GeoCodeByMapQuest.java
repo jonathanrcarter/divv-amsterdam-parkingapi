@@ -1,10 +1,13 @@
 package com.glimworm.opendata.divvamsterdamapi.planning;
 
+import java.util.ArrayList;
+
 import com.glimworm.opendata.divvamsterdamapi.planning.xsd.Place;
+import com.glimworm.opendata.utils.jsonUtils;
 
 public class GeoCodeByMapQuest extends GeoCode {
 
-	public static Place geocode(String address) {
+	public static ArrayList<Place> geocode(String address) {
 		
 		String URL = "http://open.mapquestapi.com/geocoding/v1/address";
 		String PARAMS = "location=" + java.net.URLEncoder.encode(address);
@@ -12,8 +15,33 @@ public class GeoCodeByMapQuest extends GeoCode {
 		
 		System.out.println(cr.text);
 		
+		org.json.JSONObject jsob = jsonUtils.string2json(cr.text);
+		org.json.JSONArray results = jsob.optJSONArray("results");
 		
-		Place retval = new Place();
+		ArrayList<Place> retval = new ArrayList<Place>();
+		
+		
+		for (int i=0; i<results.length(); i++) {
+			org.json.JSONArray locations = results.optJSONObject(i).optJSONArray("locations");
+			
+			for (int j=0; j<locations.length(); j++) {
+				org.json.JSONObject item = locations.optJSONObject(j);
+			
+				Place location = new Place();
+				location.name = "";
+				location.lat = item.optJSONObject("latLng").optDouble("lat");
+				location.lon = item.optJSONObject("latLng").optDouble("lng");
+				location.street = item.optString("street");
+				location.postcode = item.optString("postalCode");
+				location.url = item.optString("mapUrl");
+				location.type = item.optString("type");
+				location.rawdata = item.toString();
+				location.data = item;
+				retval.add(location);
+			}
+		}
+		
+		
 		return retval;
 	}
 	
@@ -39,7 +67,7 @@ public class GeoCodeByMapQuest extends GeoCode {
                 $ad->postcode = $loc->postalCode;
                 $ad->url = $loc->mapUrl;
                 $ad->type = $loc->type;
-                $ad->data = $loc;
+                $ad->data = $loc; //textstring? json2string
                 array_push($retval , $ad);
         }
         

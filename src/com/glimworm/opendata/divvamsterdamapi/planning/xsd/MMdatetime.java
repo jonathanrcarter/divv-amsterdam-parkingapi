@@ -8,4 +8,13 @@ public class MMdatetime {
 		return "format(DateTime::ISO8601)";		
 	}
 
+	public MMdatetime addMinutes(int minutes) {
+		return this;
+	}
+	
+	public MMdatetime addSeconds(int minutes) {
+		return this;
+	}
+	
+	
 }

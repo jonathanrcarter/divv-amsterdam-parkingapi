@@ -1,5 +1,15 @@
 package com.glimworm.opendata.divvamsterdamapi.planning;
 
+import java.util.ArrayList;
+
+import com.glimworm.opendata.divvamsterdamapi.planning.transit.xsd.TransitInfo;
+import com.glimworm.opendata.divvamsterdamapi.planning.transit.xsd.TransitInfoBase;
+import com.glimworm.opendata.divvamsterdamapi.planning.transit.xsd.TransitInfoCar;
+import com.glimworm.opendata.divvamsterdamapi.planning.xsd.Leg;
+import com.glimworm.opendata.divvamsterdamapi.planning.xsd.MMdatetime;
+import com.glimworm.opendata.divvamsterdamapi.planning.xsd.Place;
+import com.glimworm.opendata.utils.jsonUtils;
+
 public class PlanOtp extends Plan {
 
 	public static PlanResponse plan(PlanRequest request) {
@@ -7,9 +17,55 @@ public class PlanOtp extends Plan {
 		/*
 		 * code here
 		 */
+		Place from = request.from;
+		Place to = request.to;
 		
+		String URL = "http://opentripplanner.nl/opentripplanner-api-webapp/ws/plan";
+		String PARAMS = "maxTransfers="+request.options.maxTransfers;
+		PARAMS += "&_dc=1358423838102";
+		PARAMS += "&from=";
+		PARAMS += "&to=";
+		PARAMS += "&arriveBy="+request.options.arriveBy;
+		PARAMS += "&mode="+request.options.mode;
+		PARAMS += "&optimize="+request.options.optimize;
+		PARAMS += "&maxWalkDistance="+request.options.maxWalkDistance;
+		PARAMS += "&walkSpeed="+request.options.walkSpeed;
+		PARAMS += "&hst="+request.options.hst;
+		PARAMS += "&date="+request.options._date;
+		PARAMS += "&time="+request.options._time;
+		PARAMS += "&toPlace="+to.lat+","+to.lon;
+		PARAMS += "&fromPlace="+from.lat+","+from.lon;
+		System.out.println("--- otp api call ---");
+		System.out.println(URL+"?"+PARAMS);
 		
+		com.glimworm.opendata.divvamsterdamapi.planning.net.xsd.curlResponse cr =  com.glimworm.opendata.divvamsterdamapi.planning.net.CurlUtils.getCURL(URL, PARAMS, null, null, null, null, null);
+		
+		System.out.println("--- start otp api response ---");
+		System.out.println(cr.text);
+		System.out.println("--- end otp api response ---");
+
+		org.json.JSONObject jsob = jsonUtils.string2json(cr.text);
+		org.json.JSONObject plan = jsob.optJSONObject("plan");
+		org.json.JSONArray itineraries = plan.optJSONArray("itineraries");
+
 		PlanResponse response = new PlanResponse();
+		response.distance = 0; //plan.optLong("distance");
+		response.duration = itineraries.optJSONObject(0).optInt("duration")/1000;
+		response.startAddress = new Place();
+		response.startAddress.lon = plan.optJSONObject("from").optDouble("lon");
+		response.startAddress.lat = plan.optJSONObject("from").optDouble("lat");
+		response.startAddress.name = plan.optJSONObject("from").optString("name");
+		response.endAddress = new Place();
+		response.endAddress.lon = plan.optJSONObject("to").optDouble("lon");
+		response.endAddress.lat = plan.optJSONObject("to").optDouble("lat");
+		response.endAddress.name = plan.optJSONObject("to").optString("name");
+		response.legs = new ArrayList<Leg>();
+		response.startTime = null; //itineraries.optJSONObject(0).optString("startTime");
+		response.endTime = null;//itineraries.optJSONObject(0).optString("endTime");;
+		response.rawdata = plan.toString();
+		response.data = plan;
+		
+		
 		return response;
 		
 	}

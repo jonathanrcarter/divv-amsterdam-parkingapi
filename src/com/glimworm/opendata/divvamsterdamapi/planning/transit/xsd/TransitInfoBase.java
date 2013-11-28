@@ -6,7 +6,7 @@ public class TransitInfoBase {
 	
 	
 
-	public String agency, line, lineId, headsign = "";
+	public String agency = "", line = "", lineId = "", headsign = "", polyline = "";
 	public Place from, to = null;
 	
 	public TransitInfoBase() {

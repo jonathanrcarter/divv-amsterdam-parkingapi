@@ -1,10 +1,12 @@
 package com.glimworm.opendata.divvamsterdamapi.planning.xsd;
 
+
 public class Place {
 
 	public double lat,lon = 0;
 	public String name = "";
-	public String street = "", postcode = "", url = "", type = "", data = "";
+	public String street = "", postcode = "", url = "", type = "", rawdata = "";
+	public org.json.JSONObject data = null;
 	
 	
 	public Place() {

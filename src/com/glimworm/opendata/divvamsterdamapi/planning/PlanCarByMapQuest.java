@@ -1,5 +1,15 @@
 package com.glimworm.opendata.divvamsterdamapi.planning;
 
+import java.util.ArrayList;
+
+import com.glimworm.opendata.divvamsterdamapi.planning.transit.xsd.TransitInfo;
+import com.glimworm.opendata.divvamsterdamapi.planning.transit.xsd.TransitInfoBase;
+import com.glimworm.opendata.divvamsterdamapi.planning.transit.xsd.TransitInfoCar;
+import com.glimworm.opendata.divvamsterdamapi.planning.xsd.Leg;
+import com.glimworm.opendata.divvamsterdamapi.planning.xsd.MMdatetime;
+import com.glimworm.opendata.divvamsterdamapi.planning.xsd.Place;
+import com.glimworm.opendata.utils.jsonUtils;
+
 public class PlanCarByMapQuest extends PlanCar {
 
 	public static PlanResponse plan(PlanRequest request) {
@@ -7,9 +17,51 @@ public class PlanCarByMapQuest extends PlanCar {
 		/*
 		 * code here
 		 */
+		Place from = request.from;
+		Place to = request.to;
 		
+		String URL = "http://open.mapquestapi.com/directions/v1/route";
+		String PARAMS = "outFormat=json&from="+from.lat+","+from.lon+"&to="+to.lat+","+to.lon+"&unit=k&routeType=fastest&shapeFormat=raw&narrativeType=text&generalize=200";
+		com.glimworm.opendata.divvamsterdamapi.planning.net.xsd.curlResponse cr =  com.glimworm.opendata.divvamsterdamapi.planning.net.CurlUtils.getCURL(URL, PARAMS, null, null, null, null, null);
+		
+//		System.out.println("--- start route api response ---");
+//		System.out.println(cr.text);
+//		System.out.println("--- end route api response ---");
+		
+		org.json.JSONObject jsob = jsonUtils.string2json(cr.text);
+		org.json.JSONObject route = jsob.optJSONObject("route");
 		
 		PlanResponse response = new PlanResponse();
+		response.distance = route.optLong("distance");
+		response.duration = route.optInt("time");
+		response.startAddress = from;
+		response.endAddress = to;
+		response.legs = new ArrayList<Leg>();
+		response.startTime = request.options._datetime;
+		response.endTime = request.options._datetime.addSeconds(route.optInt("duration"));
+		response.rawdata = route.toString();
+		response.data = route;
+		
+		org.json.JSONArray legs = route.optJSONArray("legs");
+		for (int i=0; i<legs.length(); i++) {
+			org.json.JSONObject responseleg = legs.optJSONObject(i);
+			Leg leg = new Leg();
+			leg.from = from;
+			leg.to = to;
+			leg.mode = TransitInfo.LEG_TYPE_DRIVING;
+			leg.startTime = request.options._datetime;
+			leg.endTime = request.options._datetime.addSeconds(route.optInt("duration"));
+			leg.transitinfo = new TransitInfoCar();
+			leg.transitinfo.from = from;
+			leg.transitinfo.to = to;
+			leg.type = "leg";
+			
+			response.legs.add(leg);
+		}
+		
+	
+		
+		
 		return response;
 		
 	}
