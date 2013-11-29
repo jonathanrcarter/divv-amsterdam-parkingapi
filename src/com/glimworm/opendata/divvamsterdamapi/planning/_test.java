@@ -20,7 +20,7 @@ public class _test {
 		PlanRequest req = new PlanRequest();
 		req.from = pl.get(0);
 		req.to = pl2.get(0);
-		req.options._date = "2013-11-28";
+		req.options._date = "2013-12-28";
 		req.options._time = "18:00";
 		PlanResponse res = PlanCarByMapQuest.plan(req);
 		System.out.println(res.toString());
