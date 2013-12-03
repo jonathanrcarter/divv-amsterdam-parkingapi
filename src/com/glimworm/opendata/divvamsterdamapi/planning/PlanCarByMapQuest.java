@@ -24,9 +24,9 @@ public class PlanCarByMapQuest extends PlanCar {
 		String PARAMS = "outFormat=json&from="+from.lat+","+from.lon+"&to="+to.lat+","+to.lon+"&unit=k&routeType=fastest&shapeFormat=raw&narrativeType=text&generalize=200";
 		com.glimworm.opendata.divvamsterdamapi.planning.net.xsd.curlResponse cr =  com.glimworm.opendata.divvamsterdamapi.planning.net.CurlUtils.getCURL(URL, PARAMS, null, null, null, null, null);
 		
-//		System.out.println("--- start route api response ---");
-//		System.out.println(cr.text);
-//		System.out.println("--- end route api response ---");
+		System.out.println("--- start route api response ---");
+		System.out.println(cr.text);
+		System.out.println("--- end route api response ---");
 		
 		org.json.JSONObject jsob = jsonUtils.string2json(cr.text);
 		org.json.JSONObject route = jsob.optJSONObject("route");

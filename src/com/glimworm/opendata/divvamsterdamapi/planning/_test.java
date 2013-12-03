@@ -25,9 +25,8 @@ public class _test {
 		PlanResponse res = PlanCarByMapQuest.plan(req);
 		System.out.println(res.toString());
 
-		PlanRequest req1 = new PlanRequest();
-		PlanResponse res1 = PlanOtp.plan(req);
-		System.out.println(res1.toString());
+		PlanResponse res2 = PlanOtp.plan(req);
+		System.out.println(res2.toString());
 
 	}
 

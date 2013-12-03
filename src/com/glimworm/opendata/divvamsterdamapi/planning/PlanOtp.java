@@ -40,13 +40,13 @@ public class PlanOtp extends Plan {
 			PARAMS += "&time="+request.options._time;
 			PARAMS += "&toPlace="+to.lat+","+to.lon;
 			PARAMS += "&fromPlace="+from.lat+","+from.lon;
-			System.out.println("--- otp api call ---");
-			System.out.println(URL+"?"+PARAMS);
+			//System.out.println("--- otp api call ---");
+			//System.out.println(URL+"?"+PARAMS);
 			
 			com.glimworm.opendata.divvamsterdamapi.planning.net.xsd.curlResponse cr =  com.glimworm.opendata.divvamsterdamapi.planning.net.CurlUtils.getCURL(URL, PARAMS, null, null, null, null, null);
 			
 			//System.out.println("--- start otp api response ---");
-			System.out.println(cr.text);
+			//System.out.println(cr.text);
 			//System.out.println("--- end otp api response ---");
 	
 			org.json.JSONObject jsob = jsonUtils.string2json(cr.text);

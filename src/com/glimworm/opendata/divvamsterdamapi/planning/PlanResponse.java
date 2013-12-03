@@ -39,4 +39,9 @@ public class PlanResponse {
     $retval->endTime = $lg->endTime;*/
 //    $retval->legs = $legs;
 	
+	
+	public String toString() {
+		return this.distance+" dates: "+this.startTime.dt.toString()+" - "+this.endTime.dt.toString() +" // "+this.startAddress.toString()+ " // "+this.endAddress.toString();
+	}
+	
 }
