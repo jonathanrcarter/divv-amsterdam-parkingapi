@@ -27,9 +27,7 @@ public class _test {
 
 		PlanRequest req1 = new PlanRequest();
 		PlanResponse res1 = PlanOtp.plan(req);
-		System.out.println(res1);
-		
-
+		System.out.println(res1.toString());
 
 	}
 
