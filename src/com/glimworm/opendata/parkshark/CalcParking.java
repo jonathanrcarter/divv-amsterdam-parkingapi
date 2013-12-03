@@ -1,5 +1,6 @@
 package com.glimworm.opendata.parkshark;
 
+import java.sql.SQLException;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
@@ -275,7 +276,8 @@ public class CalcParking {
 	public static Meter[] smeters = null;
 	public static void populate_meters() {
 		String sql = "select a.*,p.cash,p.creditcard,p.pin,p.chip from _site1493_dbsynch_automats a left join _site1493_dbsynch_paymethods p on (a.typeautomaat = p.type) ";
-		com.glimworm.common.database.xsd.DataSet automats = com.glimworm.common.database.gwDataUtils.getArray(com.glimworm.common.database.GWDBBean.sqlStatic(sql),false);
+		java.sql.ResultSet rs = com.glimworm.common.database.GWDBBean.sqlStatic(sql);
+		com.glimworm.common.database.xsd.DataSet automats = com.glimworm.common.database.gwDataUtils.getArray(rs,false);
 		smeters = new Meter[automats.rows()];
 		for (int i=0; i < automats.rows(); i++) {
 			smeters[i] = new Meter();
@@ -299,6 +301,7 @@ public class CalcParking {
 			smeters[i].bw.chip = automats.getString(i, "chip").equalsIgnoreCase("Y");
 			
 			smeters[i].costs = getcosts(smeters[i]);
+			smeters[i].type = "on-street-meter";
 			try {
 				smeters[i].isInNorth = isInNorth(smeters[i].lat,smeters[i].lon);
 			} catch (Exception E) {
@@ -315,7 +318,7 @@ public class CalcParking {
 //				meters[i].bw.pin = paymethods.getString(0, "pin").equalsIgnoreCase("Y");
 //				meters[i].bw.chip = paymethods.getString(0, "chip").equalsIgnoreCase("Y");
 //			}
-			System.out.println("meter"+i+": "+smeters[i].belnummer + " ::" + smeters[i].adres);
+//			System.out.println("meter"+i+": "+smeters[i].belnummer + " ::" + smeters[i].adres);
 			
 		}		
 	}
@@ -445,6 +448,10 @@ public class CalcParking {
 	}
 	
 	public static String calc(int _day, int hrs, int mins, double duration, double from_lat, double from_lon, String _paymethods,int fmt) {
+		ParkSharkCalcReturn obj = calcv2(_day, hrs, mins, duration, from_lat, from_lon,_paymethods, fmt);
+		return obj.text;
+	}
+	public static ParkSharkCalcReturn calcv2(int _day, int hrs, int mins, double duration, double from_lat, double from_lon, String _paymethods,int fmt) {
 //		var day = $ef.currentdata.date_start.dt.getDay();		// 0 = sunday
 //		var duration = $ef.currentdata.duration;
 //		var hrs = $ef.currentdata.date_start.dt.getHours();
@@ -528,6 +535,7 @@ public class CalcParking {
 		boolean DBG = false;
 		if (fmt == 3) DBG = true;
 		
+		javolution.util.FastMap<String, Double> costsmap = new javolution.util.FastMap<String,Double>();
 		
 		for (int i=0; i < meters.length; i++) {
 			
@@ -536,6 +544,7 @@ public class CalcParking {
 			meters[i].lon = smeters[i].lon;
 			meters[i].bw = smeters[i].bw;
 			meters[i].i = i;
+			meters[i].type = smeters[i].type;
 			
 			Meter meter = meters[i];
 //			if (meter.match == 0) continue;
@@ -551,6 +560,15 @@ public class CalcParking {
 				continue;
 			}
 			meters[i].max = costs.max;
+			
+			String sig = costs.getSignature();
+			if (costsmap.containsKey(sig)) {
+				double val = costsmap.get(sig).doubleValue();
+				meters[i].cost = val;
+				meters[i].totalcost = val;
+				meters[i].dbg = "sig "+sig;
+				continue;
+			}
 
 			double val = 0;
 			String dbg = "";
@@ -644,6 +662,7 @@ public class CalcParking {
 			meters[i].totalcost = val;
 			meters[i].dbg = dbg;
 			
+			costsmap.put(sig, new Double(val));
 
 //			String sql2 = "select * from _site1493_dbsynch_paymethods where type='"+meters[i].typeautomaat+"'";
 //			com.glimworm.common.database.xsd.DataSet paymethods = com.glimworm.common.database.gwDataUtils.getArray(com.glimworm.common.database.GWDBBean.sqlStatic(sql2),false);
@@ -705,16 +724,7 @@ public class CalcParking {
 		
 		String retval = "";
 
-		class a {
-			public double dist = 0;
-			public double cost = 0;
-			public String belnummer = "";
-			public String address = "";
-			public double lat = 0;
-			public double lon = 0;
-			public int i = 0;
-		}
-		ArrayList<a> al = new ArrayList<a>();
+		ArrayList<ParkSharkCalcReturnShortMeterData> al = new ArrayList<ParkSharkCalcReturnShortMeterData>();
 		
 		
 		for (int i=0; i < meters.length; i++) {
@@ -743,18 +753,20 @@ public class CalcParking {
 						al.get(j).lat = smeters[I].lat;
 						al.get(j).lon = smeters[I].lon;
 						al.get(j).i = meters[i].i;
+						al.get(j).type = meters[i].type;
 						break J;
 					}
 				}
 			}
 			if (fnd == false) {
-				a newa = new a();
+				ParkSharkCalcReturnShortMeterData newa = new ParkSharkCalcReturnShortMeterData();
 				newa.belnummer = smeters[I].belnummer;
 				newa.dist = meters[i].dist;
 				newa.cost = meters[i].cost;
 				newa.address = smeters[I].adres;
 				newa.lat = smeters[I].lat;
 				newa.lon = smeters[I].lon;
+				newa.type = smeters[I].type;
 				al.add(newa);
 			}
 		}
@@ -769,8 +781,13 @@ public class CalcParking {
 		
 		System.out.println("START CHEAPEST");
 		System.out.println("TS4 " + (new Date().getTime() - start));
-				
-		return retval;
+		
+		ParkSharkCalcReturn ret = new ParkSharkCalcReturn();
+		ret.text = retval;
+		ret.meters = meters;
+		ret.reccommendations = al;
+		ret.costsmap = costsmap;
+		return ret;
 		
 				
 	}

@@ -6,4 +6,13 @@ public class First {
 	public int hrs = 0;
 	public double price2 = 0;
 	public int hrs2 = 0;
+	public String getSignature() {
+		return combination + "|" +
+			price + "|" +
+			hrs + "|" +
+			price2 + "|" +
+			hrs2;
+		
+	}
+
 }

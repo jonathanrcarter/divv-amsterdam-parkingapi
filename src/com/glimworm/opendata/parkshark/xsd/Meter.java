@@ -44,6 +44,9 @@ public class Meter implements Cloneable {
 	public String betaalwijze = "";
 	public String status = "";
 	public String tariefcode = "";
+	
+	public String type = "meter";
+	
 
     public Object clone() {
         try {
