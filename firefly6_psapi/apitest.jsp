@@ -49,6 +49,12 @@
 	com.thoughtworks.xstream.XStream xstream = new com.thoughtworks.xstream.XStream(new com.thoughtworks.xstream.io.json.JsonHierarchicalStreamDriver());
 	xstream.setMode(com.thoughtworks.xstream.XStream.NO_REFERENCES);
 
+	out.println("start");
+	for (int i=0; i < pl_destination.size(); i++) {
+		out.println(xstream.toXML(pl_destination.get(i)));
+	}
+	out.println("end ");
+
 	
 	for (int i=0; i < prv.reccommendations.size(); i++) {
 		System.out.print(prv.reccommendations.get(i).cost);
@@ -76,7 +82,7 @@
 		System.out.println(xstream.toXML(res1));
 		
 		out.println(xstream.toXML(prv.reccommendations.get(i)));
-		out.println(xstream.toXML(res1));
+		out.println(xstream.toXML(res1.toString()));
 		
 	}
 

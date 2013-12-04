@@ -43,6 +43,8 @@ public class _testapi {
 		xstream.setMode(com.thoughtworks.xstream.XStream.NO_REFERENCES);
 
 		
+		
+		
 		for (int i=0; i < prv.reccommendations.size(); i++) {
 			System.out.print(prv.reccommendations.get(i).cost);
 			System.out.print("\t");
@@ -64,11 +66,13 @@ public class _testapi {
 			req.options._date = ymd;
 			req.options._time = hm;
 			PlanResponse res1 = PlanOtp.plan(req);
-			System.out.println(res1);
-			System.out.println(xstream.toXML(res1));
+			System.out.println(res1.toString());
+			System.out.println(xstream.toXML(res1.toString()));
 			
 			
 		}
+		System.out.println("NOW IN PARALLEL");
+		com.glimworm.opendata.divvamsterdamapi.planning.ParallelPlan.plan(pl_destination.get(0), ymd, hm, prv.reccommendations);
 
 		
 		String URL = "http://api.parkshark.nl/psapi/api.jsp";
