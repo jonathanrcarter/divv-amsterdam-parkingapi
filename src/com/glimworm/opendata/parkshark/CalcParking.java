@@ -724,7 +724,7 @@ public class CalcParking {
 		
 		String retval = "";
 
-		ArrayList<ParkSharkCalcReturnShortMeterData> al = new ArrayList<ParkSharkCalcReturnShortMeterData>();
+		ArrayList<ParkSharkCalcReturnReccommendation> al = new ArrayList<ParkSharkCalcReturnReccommendation>();
 		
 		
 		for (int i=0; i < meters.length; i++) {
@@ -759,7 +759,7 @@ public class CalcParking {
 				}
 			}
 			if (fnd == false) {
-				ParkSharkCalcReturnShortMeterData newa = new ParkSharkCalcReturnShortMeterData();
+				ParkSharkCalcReturnReccommendation newa = new ParkSharkCalcReturnReccommendation();
 				newa.belnummer = smeters[I].belnummer;
 				newa.dist = meters[i].dist;
 				newa.cost = meters[i].cost;
