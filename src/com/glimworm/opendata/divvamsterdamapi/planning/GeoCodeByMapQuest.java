@@ -13,7 +13,7 @@ public class GeoCodeByMapQuest extends GeoCode {
 		String PARAMS = "key=Fmjtd%7Cluubn16829%2Cbw%3Do5-90asgw&location=" + java.net.URLEncoder.encode(address);
 		com.glimworm.opendata.divvamsterdamapi.planning.net.xsd.curlResponse cr =  com.glimworm.opendata.divvamsterdamapi.planning.net.CurlUtils.getCURL(URL, PARAMS, null, null, null, null, null);
 		
-		System.out.println(cr.text);
+		//System.out.println(cr.text);
 		
 		org.json.JSONObject jsob = jsonUtils.string2json(cr.text);
 		org.json.JSONArray results = jsob.optJSONArray("results");
