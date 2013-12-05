@@ -36,8 +36,8 @@ public class PlanOtp extends Plan {
 			PARAMS += "&maxWalkDistance="+request.options.maxWalkDistance;
 			PARAMS += "&walkSpeed="+request.options.walkSpeed;
 			PARAMS += "&hst="+request.options.hst;
-			PARAMS += "&date="+request.options._date;
-			PARAMS += "&time="+request.options._time;
+			PARAMS += "&date="+request.options._datetime.getDate();
+			PARAMS += "&time="+request.options._datetime.getTime();
 			PARAMS += "&toPlace="+to.lat+","+to.lon;
 			PARAMS += "&fromPlace="+from.lat+","+from.lon;
 			//System.out.println("--- otp api call ---");

@@ -9,7 +9,7 @@ import com.glimworm.opendata.divvamsterdamapi.planning.xsd.MMdatetime;
 public class PlanResponse {
 	public int status = 0;
 	public String realtime_journey_id = "";
-	public long distance = 0;
+	public long distance = 0; //In Meters
 	public int duration = 0; 
 	public Place startAddress = null;
 	public Place endAddress = null;

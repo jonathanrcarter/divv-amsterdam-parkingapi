@@ -32,7 +32,7 @@ public class PlanCarByMapQuest extends PlanCar {
 		org.json.JSONObject route = jsob.optJSONObject("route");
 		
 		PlanResponse response = new PlanResponse();
-		response.distance = route.optLong("distance");
+		response.distance = (long) (route.optDouble("distance")*1000);
 		response.duration = route.optInt("time");
 		response.startAddress = from;
 		response.endAddress = to;

@@ -11,8 +11,19 @@ public class MMdatetime {
 	public MMdatetime setTimeFromISO8601(long ISOtime) {
 		
 		//DateTimeZone zone = new DateTimeZone("Europe/Amsterdam");
+		DateTimeZone zone = DateTimeZone.forID("Europe/Amsterdam");
 		DateTime dt = new DateTime(ISOtime);
 		this.dt =dt;
+		this.year = this.dt.getYear();
+		this.month = this.dt.getMonthOfYear();
+		this.day = this.dt.getDayOfMonth();
+		this.hour = this.dt.getHourOfDay();
+		this.minute = this.dt.getMinuteOfHour();
+		return this;
+	}
+	
+	public MMdatetime setDateTime(int year, int monthOfYear, int dayOfMonth, int hourOfDay, int minuteOfHour) {
+		this.dt = new DateTime(year, monthOfYear, dayOfMonth, hourOfDay, minuteOfHour, 0, 0);
 		this.year = this.dt.getYear();
 		this.month = this.dt.getMonthOfYear();
 		this.day = this.dt.getDayOfMonth();
@@ -26,6 +37,15 @@ public class MMdatetime {
 		return "format(DateTime::ISO8601)";		
 	}
 
+	
+	public String getDate() {
+		return this.dt.toString("yyyy-MM-dd");
+	}
+	
+	public String getTime() {
+		return this.dt.toString("HH:mm");
+	}
+	
 	public MMdatetime addMinutes(int minutes) {
 		DateTime result = this.dt.plusMinutes(minutes);
 		this.dt = result;

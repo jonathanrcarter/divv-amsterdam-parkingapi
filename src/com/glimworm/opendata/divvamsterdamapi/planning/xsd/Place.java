@@ -21,6 +21,6 @@ public class Place {
 	}
 	
 	public String toString() {
-		return lat+","+lon+"/"+name+" "+street+" "+postcode+" "+url+" "+type+" - "+data; 
+		return lat+","+lon+"/"+name+" "+street+" "+postcode+" "+url+" "+type; 
 	}
 }
