@@ -2,6 +2,7 @@ package com.glimworm.opendata.divvamsterdamapi.planning;
 
 import java.util.ArrayList;
 
+import com.glimworm.opendata.divvamsterdamapi.planning.xsd.ParallelPlanRequest;
 import com.glimworm.opendata.divvamsterdamapi.planning.xsd.Place;
 
 public class _testapi {
@@ -44,35 +45,52 @@ public class _testapi {
 
 		
 		
-		
-		for (int i=0; i < prv.reccommendations.size(); i++) {
-			System.out.print(prv.reccommendations.get(i).cost);
-			System.out.print("\t");
-			System.out.print(prv.reccommendations.get(i).type);
-			System.out.print("\t");
-			System.out.print(prv.reccommendations.get(i).address);
-			System.out.print("\t");
-			System.out.println("");
-			
-			Place parkingLocation = new Place();
-			parkingLocation.lat = prv.reccommendations.get(i).lat;
-			parkingLocation.lon = prv.reccommendations.get(i).lon;
-			parkingLocation.name = prv.reccommendations.get(i).belnummer;
-			parkingLocation.type = prv.reccommendations.get(i).type;
-
-			PlanRequest req = new PlanRequest();
-			req.from = parkingLocation;
-			req.to = pl_destination.get(0);
-			req.options._date = ymd;
-			req.options._time = hm;
-			PlanResponse res1 = PlanOtp.plan(req);
-			System.out.println(res1.toString());
-			System.out.println(xstream.toXML(res1.toString()));
-			
-			
-		}
+//		
+//		for (int i=0; i < prv.reccommendations.size(); i++) {
+//			System.out.print(prv.reccommendations.get(i).cost);
+//			System.out.print("\t");
+//			System.out.print(prv.reccommendations.get(i).type);
+//			System.out.print("\t");
+//			System.out.print(prv.reccommendations.get(i).address);
+//			System.out.print("\t");
+//			System.out.println("");
+//			
+//			Place parkingLocation = new Place();
+//			parkingLocation.lat = prv.reccommendations.get(i).lat;
+//			parkingLocation.lon = prv.reccommendations.get(i).lon;
+//			parkingLocation.name = prv.reccommendations.get(i).belnummer;
+//			parkingLocation.type = prv.reccommendations.get(i).type;
+//
+//			PlanRequest req = new PlanRequest();
+//			req.from = parkingLocation;
+//			req.to = pl_destination.get(0);
+//			req.options._date = ymd;
+//			req.options._time = hm;
+//			PlanResponse res1 = PlanOtp.plan(req);
+//			System.out.println(res1.toString());
+//			System.out.println(xstream.toXML(res1.toString()));
+//			
+//			
+//		}
 		System.out.println("NOW IN PARALLEL");
-		com.glimworm.opendata.divvamsterdamapi.planning.ParallelPlan.plan(pl_destination.get(0), ymd, hm, prv.reccommendations);
+		ParallelPlanRequest ppr = new ParallelPlanRequest();
+		ppr.pl_destination = pl_destination.get(0);
+		ppr.ymd = ymd;
+		ppr.hm = hm;
+		
+		com.glimworm.opendata.divvamsterdamapi.planning.ParallelPlan.plan(ppr, prv.reccommendations);
+		System.out.println("NOW IN PARALLEL - DONE");
+
+		for (int i=0; i < prv.reccommendations.size(); i++) {
+			System.out.print("** ");
+			System.out.print(i);
+			System.out.print(" : ");
+			System.out.print(prv.reccommendations.get(i).belnummer);
+			System.out.print(" : ");
+			System.out.print(prv.reccommendations.get(i).reccommended_pt_route);
+			System.out.println("");
+		}
+		
 
 		
 		String URL = "http://api.parkshark.nl/psapi/api.jsp";

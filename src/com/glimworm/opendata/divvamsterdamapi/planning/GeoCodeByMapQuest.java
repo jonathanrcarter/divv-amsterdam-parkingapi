@@ -10,7 +10,7 @@ public class GeoCodeByMapQuest extends GeoCode {
 	public static ArrayList<Place> geocode(String address) {
 		
 		String URL = "http://open.mapquestapi.com/geocoding/v1/address";
-		String PARAMS = "location=" + java.net.URLEncoder.encode(address);
+		String PARAMS = "key=Fmjtd%7Cluubn16829%2Cbw%3Do5-90asgw&location=" + java.net.URLEncoder.encode(address);
 		com.glimworm.opendata.divvamsterdamapi.planning.net.xsd.curlResponse cr =  com.glimworm.opendata.divvamsterdamapi.planning.net.CurlUtils.getCURL(URL, PARAMS, null, null, null, null, null);
 		
 		System.out.println(cr.text);

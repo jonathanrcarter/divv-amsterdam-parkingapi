@@ -55,7 +55,7 @@
 	}
 	out.println("end ");
 
-	
+	/*
 	for (int i=0; i < prv.reccommendations.size(); i++) {
 		System.out.print(prv.reccommendations.get(i).cost);
 		System.out.print("\t");
@@ -85,7 +85,20 @@
 		out.println(xstream.toXML(res1.toString()));
 		
 	}
+	*/
 
+	System.out.println("NOW IN PARALLEL");
+	ParallelPlanRequest ppr = new ParallelPlanRequest();
+	ppr.pl_destination = pl_destination.get(0);
+	ppr.ymd = ymd;
+	ppr.hm = hm;
+	
+	com.glimworm.opendata.divvamsterdamapi.planning.ParallelPlan.plan(ppr, prv.reccommendations);
+	System.out.println("NOW IN PARALLEL - DONE");
+	
+	out.println(xstream.toXML(prv.reccommendations));
+	
+	
 	
 	String URL = "http://api.parkshark.nl/psapi/api.jsp";
 	String PARAMS = "day=5&hr=8&min=30&duration=3&lat=52.377&lon=4.9104&methods=cash,pin=";
