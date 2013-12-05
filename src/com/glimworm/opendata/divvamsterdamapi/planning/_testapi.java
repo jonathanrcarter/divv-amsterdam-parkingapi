@@ -28,7 +28,7 @@ public class _testapi {
 		int day = 5;
 		int hr = 12;
 		int min = 15;
-		int duration = 180;
+		double duration = 4;
 		double lat = pl_destination.get(0).lat;
 		double lon = pl_destination.get(0).lon;
 		String methods = "pin";
@@ -44,6 +44,7 @@ public class _testapi {
 		xstream.setMode(com.thoughtworks.xstream.XStream.NO_REFERENCES);
 
 		
+		System.out.println(xstream.toXML(prv.reccommendations));
 		
 //		
 //		for (int i=0; i < prv.reccommendations.size(); i++) {
@@ -87,7 +88,11 @@ public class _testapi {
 			System.out.print(" : ");
 			System.out.print(prv.reccommendations.get(i).belnummer);
 			System.out.print(" : ");
+			System.out.print(prv.reccommendations.get(i).cost);
+			System.out.print(" : ");
 			System.out.print(prv.reccommendations.get(i).reccommended_pt_route);
+			System.out.println("");
+			System.out.print(prv.reccommendations.get(i).dbg);
 			System.out.println("");
 		}
 		
