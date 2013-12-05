@@ -9,6 +9,6 @@ public class ParkSharkCalcReturnReccommendation {
 	public double lon = 0;
 	public int i = 0;
 	public String type = "";
-	public String reccommended_pt_route = "";
+	public ParkSharkCalcReturnReccommendation_ptroute reccommended_pt_route = new ParkSharkCalcReturnReccommendation_ptroute();
 
 }

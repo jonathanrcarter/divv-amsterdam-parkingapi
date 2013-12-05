@@ -31,7 +31,8 @@ public class ParallelPlanCallable implements Callable<PlanResponse>{
 			req.options._time = ppr.hm;
 			PlanResponse pr = PlanOtp.plan(req);
 			
-			rec.reccommended_pt_route = pr.toString();
+			/* here is the population of the route */
+			rec.reccommended_pt_route.summaryasstring = pr.toString();
 			return pr;
 			
 		}
