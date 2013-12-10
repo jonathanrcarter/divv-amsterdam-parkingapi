@@ -5,9 +5,11 @@ import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Date;
 import java.util.List;
+import java.util.Vector;
 
 import com.glimworm.opendata.divvamsterdamapi.planning.ParallelPlanCallable;
 import com.glimworm.opendata.divvamsterdamapi.planning.PlanResponse;
+import com.glimworm.opendata.divvamsterdamapi.planning.xsd.PlaceParkingGarage;
 import com.glimworm.opendata.parkshark.xsd.*;
 import com.glimworm.opendata.xsd.*;
 import java.util.Comparator;
@@ -287,37 +289,71 @@ public class CalcParking {
 		String sql = "select a.*,p.cash,p.creditcard,p.pin,p.chip from _site1493_dbsynch_automats a left join _site1493_dbsynch_paymethods p on (a.typeautomaat = p.type) ";
 		java.sql.ResultSet rs = com.glimworm.common.database.GWDBBean.sqlStatic(sql);
 		com.glimworm.common.database.xsd.DataSet automats = com.glimworm.common.database.gwDataUtils.getArray(rs,false);
+
+		Vector<Meter> vect = new Vector<Meter>();
+		
 		smeters = new Meter[automats.rows()];
+		int cnt = 0;
 		for (int i=0; i < automats.rows(); i++) {
-			smeters[i] = new Meter();
-			smeters[i].i = i;
-			smeters[i].entityid = automats.getString(i, "entityid");
-			smeters[i].stadsdeel = automats.getString(i, "stadsdeel");
-			smeters[i].belnummer = automats.getString(i, "belnummer");
-			smeters[i].adres = automats.getString(i, "adres");
-			smeters[i].postcode = automats.getString(i, "postcode");
-			smeters[i].woonplaats = automats.getString(i, "woonplaats");
-			smeters[i].typeautomaat = automats.getString(i, "typeautomaat");
-			smeters[i].betaalwijze = automats.getString(i, "betaalwijze");
-			smeters[i].tariefcode = automats.getString(i, "tariefcode");
-			smeters[i].status = automats.getString(i, "status");
-			smeters[i].lat = automats.getDouble(i, "lon",0);
-			smeters[i].lon = automats.getDouble(i, "lat",0);
+//			smeters[i] = new Meter();
+//			smeters[i].i = i;
+//			smeters[i].entityid = automats.getString(i, "entityid");
+//			smeters[i].stadsdeel = automats.getString(i, "stadsdeel");
+//			smeters[i].belnummer = automats.getString(i, "belnummer");
+//			smeters[i].adres = automats.getString(i, "adres");
+//			smeters[i].postcode = automats.getString(i, "postcode");
+//			smeters[i].woonplaats = automats.getString(i, "woonplaats");
+//			smeters[i].typeautomaat = automats.getString(i, "typeautomaat");
+//			smeters[i].betaalwijze = automats.getString(i, "betaalwijze");
+//			smeters[i].tariefcode = automats.getString(i, "tariefcode");
+//			smeters[i].status = automats.getString(i, "status");
+//			smeters[i].lat = automats.getDouble(i, "lon",0);
+//			smeters[i].lon = automats.getDouble(i, "lat",0);
+//
+//			smeters[i].bw.cash = automats.getString(i, "cash").equalsIgnoreCase("Y");
+//			smeters[i].bw.creditcard = automats.getString(i, "creditcard").equalsIgnoreCase("Y");
+//			smeters[i].bw.pin = automats.getString(i, "pin").equalsIgnoreCase("Y");
+//			smeters[i].bw.chip = automats.getString(i, "chip").equalsIgnoreCase("Y");
+//			
+//			smeters[i].costs = getcosts(smeters[i]);
+//			smeters[i].type = "on-street-meter";
+//			try {
+//				smeters[i].isInNorth = isInNorth(smeters[i].lat,smeters[i].lon);
+//			} catch (Exception E) {
+//				smeters[i].isInNorth = false;
+//			}
 
-			smeters[i].bw.cash = automats.getString(i, "cash").equalsIgnoreCase("Y");
-			smeters[i].bw.creditcard = automats.getString(i, "creditcard").equalsIgnoreCase("Y");
-			smeters[i].bw.pin = automats.getString(i, "pin").equalsIgnoreCase("Y");
-			smeters[i].bw.chip = automats.getString(i, "chip").equalsIgnoreCase("Y");
+			Meter _meter = new Meter();
+			_meter.i = i;
+			_meter.entityid = automats.getString(i, "entityid");
+			_meter.stadsdeel = automats.getString(i, "stadsdeel");
+			_meter.belnummer = automats.getString(i, "belnummer");
+			_meter.adres = automats.getString(i, "adres");
+			_meter.postcode = automats.getString(i, "postcode");
+			_meter.woonplaats = automats.getString(i, "woonplaats");
+			_meter.typeautomaat = automats.getString(i, "typeautomaat");
+			_meter.betaalwijze = automats.getString(i, "betaalwijze");
+			_meter.tariefcode = automats.getString(i, "tariefcode");
+			_meter.status = automats.getString(i, "status");
+			_meter.lat = automats.getDouble(i, "lon",0);
+			_meter.lon = automats.getDouble(i, "lat",0);
+
+			_meter.bw.cash = automats.getString(i, "cash").equalsIgnoreCase("Y");
+			_meter.bw.creditcard = automats.getString(i, "creditcard").equalsIgnoreCase("Y");
+			_meter.bw.pin = automats.getString(i, "pin").equalsIgnoreCase("Y");
+			_meter.bw.chip = automats.getString(i, "chip").equalsIgnoreCase("Y");
 			
-			smeters[i].costs = getcosts(smeters[i]);
-			smeters[i].type = "on-street-meter";
+			_meter.costs = getcosts(_meter);
+			_meter.type = "on-street-meter";
 			try {
-				smeters[i].isInNorth = isInNorth(smeters[i].lat,smeters[i].lon);
+				_meter.isInNorth = isInNorth(_meter.lat,_meter.lon);
 			} catch (Exception E) {
-				smeters[i].isInNorth = false;
-			}
-
+				_meter.isInNorth = false;
+			}			
 			
+			vect.add(_meter);
+			
+			cnt++;
 			
 //			String sql2 = "select * from _site1493_dbsynch_paymethods where type='"+meters[i].typeautomaat+"'";
 //			com.glimworm.common.database.xsd.DataSet paymethods = com.glimworm.common.database.gwDataUtils.getArray(com.glimworm.common.database.GWDBBean.sqlStatic(sql2),false);
@@ -329,7 +365,45 @@ public class CalcParking {
 //			}
 //			System.out.println("meter"+i+": "+smeters[i].belnummer + " ::" + smeters[i].adres);
 			
-		}		
+		}
+		
+		PlaceParkingGarage[] garages = com.glimworm.opendata.parkshark.importdata.citySDK.Amsterdam.getGarages();
+		for (int i=0; i < garages.length; i++) {
+			Meter _meter = new Meter();
+			_meter.i = cnt;
+			_meter.entityid = garages[i].cdk_id;
+			_meter.stadsdeel = "";
+			_meter.belnummer = garages[i].cdk_id;
+			_meter.adres = garages[i].street;
+			_meter.postcode = garages[i].postcode;
+			_meter.woonplaats = "";
+			_meter.typeautomaat = "";
+			_meter.betaalwijze = "";
+			_meter.tariefcode = "";
+			_meter.status = "";
+			_meter.lat = garages[i].lat;
+			_meter.lon = garages[i].lon;
+
+			_meter.bw.cash = true;
+			_meter.bw.creditcard = true;
+			_meter.bw.pin = true;
+			_meter.bw.chip = true;
+			
+			_meter.costs = null;
+			_meter.type = "garage";
+			try {
+				_meter.isInNorth = isInNorth(_meter.lat,_meter.lon);
+			} catch (Exception E) {
+				_meter.isInNorth = false;
+			}			
+			
+			vect.add(_meter);
+			cnt++;
+		}
+		
+		Object result[] = new Meter[vect.size()];
+		vect.copyInto(result);
+		smeters = (Meter[])result;
 	}
 	
 	public static String find_nearest(double lat, double lon, double rate) {
@@ -465,9 +539,11 @@ public class CalcParking {
 	public static boolean costsmap_loaded = false;
 	public static void populate_costmap() {
 		for (int i=0; i < smeters.length; i++) {
-			String sig = smeters[i].costs.getSignature();
-			if (costsmap.containsKey(sig) == false) {
-				costsmap.put(sig, new Integer(i));
+			if (smeters[i].costs != null) {
+				String sig = smeters[i].costs.getSignature();
+				if (costsmap.containsKey(sig) == false) {
+					costsmap.put(sig, new Integer(i));
+				}
 			}
 		}
 	}
@@ -795,6 +871,12 @@ public class CalcParking {
 			meters[i].dist = d;
 			meters[i].dist2 = d;
 			
+			if (smeters[i].costs == null) {
+				meters[i].cost = -1;
+				meters[i].totalcost = -1;
+				continue;
+			}
+			
 			PayTimes costs = smeters[i].costs;
 
 			if (costs.cost < 0) {
@@ -804,7 +886,8 @@ public class CalcParking {
 			meters[i].max = costs.max;
 			
 			String sig = costs.getSignature();
-			if (costsmap.containsKey(sig)) {
+			System.out.println(sig);
+			if (costsmap.containsKey(sig) && costmap.get(sig) != null) {
 				double val = costmap.get(sig).doubleValue();
 				String _dbg = dbgmap.get(sig);
 				meters[i].cost = val;

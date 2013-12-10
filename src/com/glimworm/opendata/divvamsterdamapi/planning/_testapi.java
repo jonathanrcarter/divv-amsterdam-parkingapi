@@ -90,7 +90,7 @@ public class _testapi {
 			System.out.print(" : ");
 			System.out.print(prv.reccommendations.get(i).cost);
 			System.out.print(" : ");
-			System.out.print(prv.reccommendations.get(i).reccommended_pt_route);
+			System.out.print(prv.reccommendations.get(i).reccommended_pt_route.summaryasstring);
 			System.out.println("");
 			System.out.print(prv.reccommendations.get(i).dbg);
 			System.out.println("");

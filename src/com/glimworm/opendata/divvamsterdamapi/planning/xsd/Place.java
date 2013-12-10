@@ -5,8 +5,9 @@ public class Place {
 
 	public double lat,lon = 0;
 	public String name = "";
-	public String street = "", postcode = "", url = "", type = "", rawdata = "";
+	public String street = "", postcode = "", url = "", type = "", rawdata = "",cdk_id = "";
 	public org.json.JSONObject data = null;
+	
 	
 	
 	public Place() {
@@ -21,6 +22,6 @@ public class Place {
 	}
 	
 	public String toString() {
-		return lat+","+lon+"/"+name+" "+street+" "+postcode+" "+url+" "+type; 
+		return lat+","+lon+"/"+name+" "+street+" "+postcode+" "+url+" "+type+" "+cdk_id; 
 	}
 }

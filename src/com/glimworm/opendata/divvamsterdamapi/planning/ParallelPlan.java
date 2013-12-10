@@ -64,7 +64,7 @@ public class ParallelPlan {
 				System.out.print(" : ");
 				System.out.print(reccommendations.get(i).belnummer);
 				System.out.print(" : ");
-				System.out.print(reccommendations.get(i).reccommended_pt_route);
+				System.out.print(reccommendations.get(i).reccommended_pt_route.summaryasstring);
 				System.out.println("");
 			}
 		    

@@ -1,3 +1,4 @@
+package com.glimworm.opendata.parkshark.importdata.citySDK;
 import java.util.ArrayList;
 import java.util.List;
 

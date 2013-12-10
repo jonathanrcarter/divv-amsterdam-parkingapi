@@ -4,6 +4,9 @@
 	autoFlush="true"
 	isThreadSafe="true"
 	contentType="text/html;charset=UTF-8"%><%
+
+	com.thoughtworks.xstream.XStream xstream = new com.thoughtworks.xstream.XStream(new com.thoughtworks.xstream.io.json.JsonHierarchicalStreamDriver());
+	xstream.setMode(com.thoughtworks.xstream.XStream.NO_REFERENCES);
 	
 	String action = gwdb.gwUtils.get(request,"action","");
 	String sid = gwdb.gwUtils.get(request,"sid","");
@@ -21,8 +24,8 @@
 	
 	ArrayList<Place> pl_home = GeoCodeByMapQuest.geocode("eerste weteringplantsoen 8 , Amsterdam, Netherlands");
 	ArrayList<Place> pl_destination = GeoCodeByMapQuest.geocode("Marco Polostraat 107 , Amsterdam, Netherlands");
-	out.println(pl_home);
-	out.println(pl_destination);
+//	out.println(pl_home);
+//	out.println(pl_destination);
 	
 	String dd = "28";
 	String mm = "12";
@@ -46,45 +49,13 @@
 	
 	com.glimworm.opendata.parkshark.xsd.ParkSharkCalcReturn prv = com.glimworm.opendata.parkshark.CalcParking.calcv2(day, hr, min ,  duration, lat, lon, methods,fmt);
 
-	com.thoughtworks.xstream.XStream xstream = new com.thoughtworks.xstream.XStream(new com.thoughtworks.xstream.io.json.JsonHierarchicalStreamDriver());
-	xstream.setMode(com.thoughtworks.xstream.XStream.NO_REFERENCES);
 
+	/*
 	out.println("start");
 	for (int i=0; i < pl_destination.size(); i++) {
 		out.println(xstream.toXML(pl_destination.get(i)));
 	}
 	out.println("end ");
-
-	/*
-	for (int i=0; i < prv.reccommendations.size(); i++) {
-		System.out.print(prv.reccommendations.get(i).cost);
-		System.out.print("\t");
-		System.out.print(prv.reccommendations.get(i).type);
-		System.out.print("\t");
-		System.out.print(prv.reccommendations.get(i).address);
-		System.out.print("\t");
-		System.out.println("");
-		
-		
-		Place parkingLocation = new Place();
-		parkingLocation.lat = prv.reccommendations.get(i).lat;
-		parkingLocation.lon = prv.reccommendations.get(i).lon;
-		parkingLocation.name = prv.reccommendations.get(i).belnummer;
-		parkingLocation.type = prv.reccommendations.get(i).type;
-
-		PlanRequest req = new PlanRequest();
-		req.from = parkingLocation;
-		req.to = pl_destination.get(0);
-		req.options._date = ymd;
-		req.options._time = hm;
-		PlanResponse res1 = PlanOtp.plan(req);
-		System.out.println(res1); 
-		System.out.println(xstream.toXML(res1));
-		
-		out.println(xstream.toXML(prv.reccommendations.get(i)));
-		out.println(xstream.toXML(res1.toString()));
-		
-	}
 	*/
 
 	System.out.println("NOW IN PARALLEL");
@@ -95,19 +66,19 @@
 	
 	com.glimworm.opendata.divvamsterdamapi.planning.ParallelPlan.plan(ppr, prv.reccommendations);
 	System.out.println("NOW IN PARALLEL - DONE");
-	
+
 	out.println(xstream.toXML(prv.reccommendations));
 	
 	
 	
-	String URL = "http://api.parkshark.nl/psapi/api.jsp";
-	String PARAMS = "day=5&hr=8&min=30&duration=3&lat=52.377&lon=4.9104&methods=cash,pin=";
-	com.glimworm.opendata.divvamsterdamapi.planning.net.xsd.curlResponse cr =  com.glimworm.opendata.divvamsterdamapi.planning.net.CurlUtils.getCURL(URL, PARAMS, null, null, null, null, null);
+//	String URL = "http://api.parkshark.nl/psapi/api.jsp";
+//	String PARAMS = "day=5&hr=8&min=30&duration=3&lat=52.377&lon=4.9104&methods=cash,pin=";
+//	com.glimworm.opendata.divvamsterdamapi.planning.net.xsd.curlResponse cr =  com.glimworm.opendata.divvamsterdamapi.planning.net.CurlUtils.getCURL(URL, PARAMS, null, null, null, null, null);
 	
 //	System.out.println(cr.text);
 
-	String rv = cr.text;
-	System.out.println(rv);
-	System.out.println("parkshark::done all");
+//	String rv = cr.text;
+//	System.out.println(rv);
+//	System.out.println("parkshark::done all");
 	
 %>
