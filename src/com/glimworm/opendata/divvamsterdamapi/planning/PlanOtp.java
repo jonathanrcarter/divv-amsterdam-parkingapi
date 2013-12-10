@@ -5,6 +5,7 @@ import java.util.ArrayList;
 import com.glimworm.opendata.divvamsterdamapi.planning.transit.xsd.TransitInfo;
 import com.glimworm.opendata.divvamsterdamapi.planning.transit.xsd.TransitInfoBase;
 import com.glimworm.opendata.divvamsterdamapi.planning.transit.xsd.TransitInfoBus;
+import com.glimworm.opendata.divvamsterdamapi.planning.transit.xsd.TransitInfoFerry;
 import com.glimworm.opendata.divvamsterdamapi.planning.transit.xsd.TransitInfoSubway;
 import com.glimworm.opendata.divvamsterdamapi.planning.transit.xsd.TransitInfoTrain;
 import com.glimworm.opendata.divvamsterdamapi.planning.transit.xsd.TransitInfoTram;
@@ -91,6 +92,18 @@ public class PlanOtp extends Plan {
 					leg.mode = TransitInfo.LEG_TYPE_BUS;
 					
 	                leg.transitinfo = new TransitInfoBus();
+	                leg.transitinfo.polyline = responseleg.optString("legGeometry");
+	                leg.transitinfo.agency = responseleg.optString("agencyName");
+	                leg.transitinfo.line = responseleg.optString("route");
+	                leg.transitinfo.lineId = responseleg.optString("routeId");
+	                leg.transitinfo.headsign = responseleg.optString("headsign");
+	                leg.transitinfo.from = leg.from;
+	                leg.transitinfo.to = leg.to;
+	                
+				} else if (legMode.equalsIgnoreCase("FERRY")) {
+					leg.mode = TransitInfo.LEG_TYPE_FERRY;
+					
+	                leg.transitinfo = new TransitInfoFerry();
 	                leg.transitinfo.polyline = responseleg.optString("legGeometry");
 	                leg.transitinfo.agency = responseleg.optString("agencyName");
 	                leg.transitinfo.line = responseleg.optString("route");
