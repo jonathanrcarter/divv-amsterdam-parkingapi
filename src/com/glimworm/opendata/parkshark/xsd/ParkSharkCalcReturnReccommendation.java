@@ -10,6 +10,12 @@ public class ParkSharkCalcReturnReccommendation {
 	public int i = 0;
 	public String type = "";
 	public String dbg = "";
+	public String parking_chance = "";
+	public String chance_weekday = "";
+	public String chance_sat = "";
+	public String chance_sun = "";
+	
+
 	public ParkSharkCalcReturnReccommendation_ptroute reccommended_pt_route = new ParkSharkCalcReturnReccommendation_ptroute();
 
 }

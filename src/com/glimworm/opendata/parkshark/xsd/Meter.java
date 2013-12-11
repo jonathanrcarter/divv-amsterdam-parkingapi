@@ -18,6 +18,14 @@ public class Meter implements Cloneable {
 	public BetWijze bw = new BetWijze();	// payment types
 	public PayTimes costs = new PayTimes();	
 	
+	public String csdkid = "";
+	public String csdkzone = "";
+	public String chance_weekday = "";
+	public String chance_sat = "";
+	public String chance_sun = "";
+	public String parking_chance = "";
+	
+	
 	/*
 	 * DATABASE
 	   entityid: 101

@@ -6,7 +6,7 @@ import org.joda.time.DateTimeZone;
 public class MMdatetime {
 
 	public int day = 0,month = 0,year = 0,hour = 0,minute = 0;
-	public DateTime dt = new DateTime();
+	private DateTime dt = new DateTime();
 	
 	public MMdatetime setTimeFromISO8601(long ISOtime) {
 		
@@ -66,6 +66,10 @@ public class MMdatetime {
 		this.hour = this.dt.getHourOfDay();
 		this.minute = this.dt.getMinuteOfHour();
 		return this;
+	}
+	
+	public String toString() {
+		return this.dt.toString();
 	}
 	
 	

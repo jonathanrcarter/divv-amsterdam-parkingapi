@@ -11,6 +11,7 @@ import com.glimworm.opendata.divvamsterdamapi.planning.ParallelPlanCallable;
 import com.glimworm.opendata.divvamsterdamapi.planning.PlanResponse;
 import com.glimworm.opendata.divvamsterdamapi.planning.xsd.PlaceParkingGarage;
 import com.glimworm.opendata.parkshark.xsd.*;
+import com.glimworm.opendata.utils.jsonUtils;
 import com.glimworm.opendata.xsd.*;
 import java.util.Comparator;
 import java.util.concurrent.Callable;
@@ -285,6 +286,10 @@ public class CalcParking {
 	}
 	
 	public static Meter[] smeters = null;
+	public static javolution.util.FastMap<String, String> chance_day = new javolution.util.FastMap<String,String>();
+	public static javolution.util.FastMap<String, String> chance_sat = new javolution.util.FastMap<String,String>();
+	public static javolution.util.FastMap<String, String> chance_sun = new javolution.util.FastMap<String,String>();
+
 	public static void populate_meters() {
 		String sql = "select a.*,p.cash,p.creditcard,p.pin,p.chip from _site1493_dbsynch_automats a left join _site1493_dbsynch_paymethods p on (a.typeautomaat = p.type) ";
 		java.sql.ResultSet rs = com.glimworm.common.database.GWDBBean.sqlStatic(sql);
@@ -337,6 +342,10 @@ public class CalcParking {
 			_meter.status = automats.getString(i, "status");
 			_meter.lat = automats.getDouble(i, "lon",0);
 			_meter.lon = automats.getDouble(i, "lat",0);
+			_meter.csdkzone = automats.getString(i, "csdkzone");
+			_meter.chance_weekday = automats.getString(i, "chance_day");
+			_meter.chance_sat = automats.getString(i, "chance_sat");
+			_meter.chance_sun = automats.getString(i, "chance_sun");
 
 			_meter.bw.cash = automats.getString(i, "cash").equalsIgnoreCase("Y");
 			_meter.bw.creditcard = automats.getString(i, "creditcard").equalsIgnoreCase("Y");
@@ -366,6 +375,7 @@ public class CalcParking {
 //			System.out.println("meter"+i+": "+smeters[i].belnummer + " ::" + smeters[i].adres);
 			
 		}
+		int cnt_meters = cnt;
 		
 		PlaceParkingGarage[] garages = com.glimworm.opendata.parkshark.importdata.citySDK.Amsterdam.getGarages();
 		for (int i=0; i < garages.length; i++) {
@@ -404,6 +414,84 @@ public class CalcParking {
 		Object result[] = new Meter[vect.size()];
 		vect.copyInto(result);
 		smeters = (Meter[])result;
+
+		
+//		class add_zone implements Callable<Integer>{
+//			private Meter meter;
+//			
+//			@Override
+//			public Integer call() throws Exception {
+//				String _URL = "http://test-api.citysdk.waag.org/nodes";
+//				String _PARAMS = "lon="+this.meter.lon+"&lat="+this.meter.lat+"&layer=test.divv.parking.zone&radius=10&per_page=1";
+//				com.glimworm.opendata.divvamsterdamapi.planning.net.xsd.curlResponse cr =  com.glimworm.opendata.divvamsterdamapi.planning.net.CurlUtils.getCURL(_URL, _PARAMS, null, null, null, null, null);
+//				try {
+//					org.json.JSONObject jsob = jsonUtils.string2json(cr.text);
+//					org.json.JSONArray results = jsob.optJSONArray("results");
+//					org.json.JSONObject layers = results.getJSONObject(0).optJSONObject("layers");
+//					String cdkid = results.getJSONObject(0).optString("cdk_id","");
+//					this.meter.csdkzone = cdkid;
+//					if (cdkid.length() > 0) {
+//						if (chance_day.containsKey(cdkid)) {
+//							this.meter.chance_weekday = chance_day.get(cdkid);
+//							this.meter.chance_sat = chance_sat.get(cdkid);
+//							this.meter.chance_sun = chance_sun.get(cdkid);
+//						}
+//						_URL = "http://test-api.citysdk.waag.org/"+cdkid;
+//						_PARAMS = "layer=test.divv.parking.zone.chance";
+//						com.glimworm.opendata.divvamsterdamapi.planning.net.xsd.curlResponse cr1 =  com.glimworm.opendata.divvamsterdamapi.planning.net.CurlUtils.getCURL(_URL, _PARAMS, null, null, null, null, null);
+//						org.json.JSONObject jsob1 = jsonUtils.string2json(cr1.text);
+//						org.json.JSONArray results1 = jsob1.optJSONArray("results");
+//						if (results1 != null) {
+//							org.json.JSONObject layers1 = results1.getJSONObject(0).optJSONObject("layers");
+//							org.json.JSONObject chances = layers1.optJSONObject("test.divv.parking.zone.chance");
+//							
+//							this.meter.chance_weekday = chances.optString("gemiddelde werkdag");
+//							this.meter.chance_sat = chances.optString("gemiddelde zaterdag");
+//							this.meter.chance_sun = chances.optString("gemiddelde zondag");
+//							chance_day.put(cdkid, chances.optString("gemiddelde werkdag"));
+//							chance_sat.put(cdkid, chances.optString("gemiddelde zaterdag"));
+//							chance_sun.put(cdkid, chances.optString("gemiddelde zondag"));
+//						} else {
+//							System.out.println(this.meter.i+" ) not found for "+cdkid+"\n"+cr1.text+"\n"+cr.text+"\n\n");
+//							chance_day.put(cdkid, "");
+//							chance_sat.put(cdkid, "");
+//							chance_sun.put(cdkid, "");
+//						}
+//					}
+//					
+//				} catch (Exception E) {
+//					E.printStackTrace(System.out);
+//				}				
+//				return new Integer(0);
+//			}
+//			
+//			public add_zone(Meter METER) {
+//				this.meter = METER;
+//			}
+//		}
+//
+//		ExecutorService executor = Executors.newFixedThreadPool(50);
+//	    List<Future<Integer>> list = new ArrayList<Future<Integer>>();
+//	    for (int i=0 ; i < cnt_meters; i ++) {
+//	    	Callable<Integer> worker = (Callable<Integer>) new add_zone(smeters[i]);
+//	    	Future<Integer> submit = executor.submit(worker);
+//	    	list.add(submit);
+//		}
+//	    executor.shutdown();
+//	    
+//	    try {
+//	    	executor.awaitTermination(60, java.util.concurrent.TimeUnit.SECONDS);
+//		    System.out.println("Finished all threads");
+//		} catch (InterruptedException e) {
+//			// TODO Auto-generated catch block
+//		    System.out.println("Interrupted");
+//			e.printStackTrace();
+//		}
+	    System.out.println("FINSHED!!!");
+	    for (int i=0 ; i < cnt_meters; i ++) {
+	    	System.out.println(smeters[i].belnummer + " / " + smeters[i].csdkzone + "/" + smeters[i].chance_weekday);
+	    }
+		
 	}
 	
 	public static String find_nearest(double lat, double lon, double rate) {
@@ -548,6 +636,12 @@ public class CalcParking {
 		}
 	}
 
+	public static String getChance(String chance, int hr) {
+		if (chance == null || chance.trim().length() == 0) return "";
+		String[] ch = chance.split("[;]");
+		if (hr < ch.length) return ch[hr].split("[:]")[1];
+		return "";
+	}
 	
 	public static ParkSharkCalcReturn calcv2(int _day, int hrs, int mins, double duration, double from_lat, double from_lon, String _paymethods,int fmt) {
 //		var day = $ef.currentdata.date_start.dt.getDay();		// 0 = sunday
@@ -555,6 +649,8 @@ public class CalcParking {
 //		var hrs = $ef.currentdata.date_start.dt.getHours();
 //		var mins = $ef.currentdata.date_start.dt.getMinutes();
 		
+		long _exdt = new Date().getTime();
+		ParkSharkCalcReturn ret = new ParkSharkCalcReturn();
 		
 		// make a table in the format
 		//
@@ -693,6 +789,8 @@ public class CalcParking {
 		xstream.setMode(com.thoughtworks.xstream.XStream.NO_REFERENCES);
 		System.out.println(xstream.toXML(days));
 
+		ret.timings.add("calc : after days " + new Long(new Date().getTime() - _exdt));
+		
 		/*
 		   entityid: 101
 		   stadsdeel: Centrum
@@ -752,6 +850,8 @@ public class CalcParking {
 			e.printStackTrace();
 		}
 		System.out.println(xstream.toXML(costmap));
+
+		ret.timings.add("calc : after costs " + new Long(new Date().getTime() - _exdt));
 
 			
 //		for (FastMap.Entry<String, Integer> e = costsmap.head(), end = costsmap.tail(); (e = e.getNext()) != end;) {
@@ -847,6 +947,10 @@ public class CalcParking {
 			meters[i].i = i;
 			meters[i].type = smeters[i].type;
 			
+			if (_day < 5) meters[i].parking_chance = getChance(smeters[i].chance_weekday,_day);
+			if (_day == 5) meters[i].parking_chance = getChance(smeters[i].chance_sat,_day);
+			if (_day == 6) meters[i].parking_chance = getChance(smeters[i].chance_sun,_day);
+			
 			Meter meter = meters[i];
 //			if (meter.match == 0) continue;
 			
@@ -886,7 +990,7 @@ public class CalcParking {
 			meters[i].max = costs.max;
 			
 			String sig = costs.getSignature();
-			System.out.println(sig);
+			meters[i].costsignature = sig;
 			if (costsmap.containsKey(sig) && costmap.get(sig) != null) {
 				double val = costmap.get(sig).doubleValue();
 				String _dbg = dbgmap.get(sig);
@@ -896,6 +1000,8 @@ public class CalcParking {
 			}
 			
 		}
+
+		ret.timings.add("calc : after matching " + new Long(new Date().getTime() - _exdt));
 
 		System.out.println("TS1 " + (new Date().getTime() - start));
 		System.out.println("END CALC");
@@ -915,48 +1021,71 @@ public class CalcParking {
 		Comparator<Meter> MeterByDistance = new DistanceSort();
 		Arrays.sort(meters, MeterByDistance);
 
+		ret.timings.add("calc : after sort " + new Long(new Date().getTime() - _exdt));
+		
 		System.out.println("END SORT");
 		System.out.println("TS3 " + (new Date().getTime() - start));
 		
 		String retval = "";
 
 		ArrayList<ParkSharkCalcReturnReccommendation> al = new ArrayList<ParkSharkCalcReturnReccommendation>();
+		ArrayList<String> found_signatures = new ArrayList<String>();
 		
+		StringBuffer retvalsb = new StringBuffer(); 
 		
 		for (int i=0; i < meters.length; i++) {
 //			System.out.println("d:"+meters[i].dist + "c:"+meters[i].cost + "a:"+meters[i].adres+" \n"+meters[i].dbg+"\n");
 			int I = meters[i].i;
-			if (i > 0) retval += ",";
+			if (i > 0) retvalsb.append(",");
 			if (fmt == 3) {
-				retval += "["+Q(smeters[I].belnummer)+","+meters[i].cost+","+asint(meters[i].dist)+","+meters[i].match+","+meters[i].i+","+meters[i].lat+","+meters[i].lon+","+Q(smeters[I].adres)+","+Q(meters[I].dbg.replace('\n', '|'))+"]";
+				retvalsb.append("["+Q(smeters[I].belnummer)+","+meters[i].cost+","+asint(meters[i].dist)+","+meters[i].match+","+meters[i].i+","+meters[i].lat+","+meters[i].lon+","+Q(smeters[I].adres)+","+Q(meters[I].dbg.replace('\n', '|'))+"]");
 			} else if (fmt == 2) {
-				retval += "["+Q(smeters[I].belnummer)+","+meters[i].cost+","+asint(meters[i].dist)+","+meters[i].match+","+meters[i].i+","+meters[i].lat+","+meters[i].lon+","+Q(smeters[I].adres)+"]";
+				retvalsb.append("["+Q(smeters[I].belnummer)+","+meters[i].cost+","+asint(meters[i].dist)+","+meters[i].match+","+meters[i].i+","+meters[i].lat+","+meters[i].lon+","+Q(smeters[I].adres)+"]");
 			} else if (fmt == 1) {
-				retval += "["+Q(smeters[I].belnummer)+","+meters[i].cost+","+asint(meters[i].dist)+","+meters[i].match+","+meters[i].i+","+meters[i].lat+","+meters[i].lon+"]";
+				retvalsb.append("["+Q(smeters[I].belnummer)+","+meters[i].cost+","+asint(meters[i].dist)+","+meters[i].match+","+meters[i].i+","+meters[i].lat+","+meters[i].lon+"]");
 			} else  {
-				retval += "["+Q(smeters[I].belnummer)+","+meters[i].cost+","+asint(meters[i].dist)+","+meters[i].match+","+meters[i].i+"]";
+				retvalsb.append("["+Q(smeters[I].belnummer)+","+meters[i].cost+","+asint(meters[i].dist)+","+meters[i].match+","+meters[i].i+"]");
 			} 
 			
 			boolean fnd = false;
-			J:
-			for (int j=0; j < al.size(); j++) {
-				if (al.get(j).cost == meters[i].cost) {
-					fnd = true;
-					if (al.get(j).dist > meters[i].dist) {
-						al.get(j).belnummer = smeters[I].belnummer;
-						al.get(j).dist = meters[i].dist;
-						al.get(j).address = smeters[I].adres;
-						al.get(j).lat = smeters[I].lat;
-						al.get(j).lon = smeters[I].lon;
-						al.get(j).i = meters[i].i;
-						al.get(j).type = meters[i].type;
-						break J;
-					}
+//			J:
+//			for (int j=0; j < al.size(); j++) {
+//				if (al.get(j).cost == meters[i].cost) {
+//					fnd = true;
+//					if (al.get(j).dist > meters[i].dist) {
+//						al.get(j).belnummer = smeters[I].belnummer;
+//						al.get(j).dist = meters[i].dist;
+//						al.get(j).address = smeters[I].adres;
+//						al.get(j).lat = smeters[I].lat;
+//						al.get(j).lon = smeters[I].lon;
+//						al.get(j).i = meters[i].i;
+//						al.get(j).type = meters[i].type;
+//						break J;
+//					}
+//				}
+//			}
+			
+			if (meters[i].type.equalsIgnoreCase("on-street-meter")) {
+				if (found_signatures.contains(meters[i].costsignature) == false) {
+					ParkSharkCalcReturnReccommendation newa = new ParkSharkCalcReturnReccommendation();
+					newa.belnummer = smeters[I].belnummer;
+					newa.dist = meters[i].dist;
+					newa.cost = meters[i].cost;
+					newa.address = smeters[I].adres;
+					newa.lat = smeters[I].lat;
+					newa.lon = smeters[I].lon;
+					newa.type = smeters[I].type;
+					newa.dbg = meters[i].dbg;
+					newa.chance_weekday = smeters[I].chance_weekday;
+					newa.chance_sat = smeters[I].chance_sat;
+					newa.chance_sun = smeters[I].chance_sun;
+					newa.parking_chance = meters[i].parking_chance;
+					al.add(newa);
+					ret.timings.add("calc : reccommendations found : " +i+" ("+meters[i].type+") : "+ new Long(new Date().getTime() - _exdt));
+					found_signatures.add(meters[i].costsignature);
 				}
-			}
-			if (fnd == false) {
+			} else {
 				ParkSharkCalcReturnReccommendation newa = new ParkSharkCalcReturnReccommendation();
-				newa.belnummer = smeters[I].belnummer;
 				newa.dist = meters[i].dist;
 				newa.cost = meters[i].cost;
 				newa.address = smeters[I].adres;
@@ -964,22 +1093,36 @@ public class CalcParking {
 				newa.lon = smeters[I].lon;
 				newa.type = smeters[I].type;
 				newa.dbg = meters[i].dbg;
+				newa.chance_weekday = smeters[I].chance_weekday;
+				newa.chance_sat = smeters[I].chance_sat;
+				newa.chance_sun = smeters[I].chance_sun;
+				newa.parking_chance = meters[i].parking_chance;
 				al.add(newa);
+				ret.timings.add("calc : reccommendations found : " +i+" ("+meters[i].type+") : "+ new Long(new Date().getTime() - _exdt));
+				
 			}
 		}
+		retval = retvalsb.toString();
+		ret.timings.add("calc : after reccommendations " + new Long(new Date().getTime() - _exdt));
+
 		
-		String retval2 = "";
+		StringBuffer retvalsb2 = new StringBuffer(); 
 		for (int j=0; j < al.size(); j++) {
-			if (j > 0) retval2 += ",";
-			retval2 += "["+Q(al.get(j).belnummer)+","+al.get(j).cost+","+asint(al.get(j).dist)+","+Q(al.get(j).address)+","+al.get(j).lat+","+al.get(j).lon+","+j+","+al.get(j).i+"]";
+			if (j > 0) retvalsb2.append(",");
+			retvalsb2.append("["+Q(al.get(j).belnummer)+","+al.get(j).cost+","+asint(al.get(j).dist)+","+Q(al.get(j).address)+","+al.get(j).lat+","+al.get(j).lon+","+j+","+al.get(j).i+"]");
 		}
+		ret.timings.add("calc : after 2nd stringbuffer " + new Long(new Date().getTime() - _exdt));
 		
-		retval = "{"+Q("params")+":{"+Q("fmt")+":"+fmt+"},"+Q("results")+":["+retval+"],"+Q("advice")+":["+retval2+"]}";
+
+		retval = "{"+Q("params")+":{"+Q("fmt")+":"+fmt+"},"+Q("results")+":["+retval+"],"+Q("advice")+":["+retvalsb2.toString()+"]}";
+
+		ret.timings.add("calc : end  - after add together string " + new Long(new Date().getTime() - _exdt));
 		
 		System.out.println("START CHEAPEST");
 		System.out.println("TS4 " + (new Date().getTime() - start));
+
+		ret.timings.add("calc : end " + new Long(new Date().getTime() - _exdt));
 		
-		ParkSharkCalcReturn ret = new ParkSharkCalcReturn();
 		ret.text = retval;
 		ret.meters = meters;
 		ret.reccommendations = al;

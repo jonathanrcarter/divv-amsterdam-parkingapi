@@ -58,7 +58,7 @@ public class CurlUtils {
 			String rb = new String(responseBody);
 			method.releaseConnection();
 			
-			System.out.println("statusCode ["+retval.status+"]");
+//			System.out.println("statusCode ["+retval.status+"]");
 			retval.text = rb;
 			
 		} catch (Exception E) {
