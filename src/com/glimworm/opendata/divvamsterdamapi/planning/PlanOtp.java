@@ -46,9 +46,9 @@ public class PlanOtp extends Plan {
 			
 			com.glimworm.opendata.divvamsterdamapi.planning.net.xsd.curlResponse cr =  com.glimworm.opendata.divvamsterdamapi.planning.net.CurlUtils.getCURL(URL, PARAMS, null, null, null, null, null);
 			
-			//System.out.println("--- start otp api response ---");
-			//System.out.println(cr.text);
-			//System.out.println("--- end otp api response ---");
+			System.out.println("--- start otp api response ---");
+			System.out.println(cr.text);
+			System.out.println("--- end otp api response ---");
 	
 			org.json.JSONObject jsob = jsonUtils.string2json(cr.text);
 			org.json.JSONObject plan = jsob.optJSONObject("plan");
@@ -81,6 +81,9 @@ public class PlanOtp extends Plan {
 				leg.from.lat = responseleg.optJSONObject("from").optDouble("lat");
 				leg.from.name = responseleg.optJSONObject("from").optString("name");
 				leg.to = new Place();
+				leg.to.lon = responseleg.optJSONObject("to").optDouble("lon");
+				leg.to.lat = responseleg.optJSONObject("to").optDouble("lat");
+				leg.to.name = responseleg.optJSONObject("to").optString("name");
 				leg.mode = "";
 				leg.startTime = new MMdatetime().setTimeFromISO8601(responseleg.optLong("startTime"));
 				leg.endTime = new MMdatetime().setTimeFromISO8601(responseleg.optLong("endTime"));
