@@ -5,6 +5,7 @@ import com.glimworm.opendata.divvamsterdamapi.planning.transit.xsd.TransitInfoBa
 public class Leg {
 
 	public Place from, to = null;
+	public long distance = 0; //In Meters
 	public String mode = "";
 	public TransitInfoBase transitinfo = null;
 	public MMdatetime startTime, endTime = null;

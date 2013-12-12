@@ -84,6 +84,7 @@ public class PlanOtp extends Plan {
 				leg.to.lon = responseleg.optJSONObject("to").optDouble("lon");
 				leg.to.lat = responseleg.optJSONObject("to").optDouble("lat");
 				leg.to.name = responseleg.optJSONObject("to").optString("name");
+				leg.distance = responseleg.optLong("distance");
 				leg.mode = "";
 				leg.startTime = new MMdatetime().setTimeFromISO8601(responseleg.optLong("startTime"));
 				leg.endTime = new MMdatetime().setTimeFromISO8601(responseleg.optLong("endTime"));
