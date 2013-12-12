@@ -22,32 +22,10 @@ public class ParallelPlan {
 
 		    List<Future<PlanResponse>> list = new ArrayList<Future<PlanResponse>>();
 			for (int i=0; i < reccommendations.size(); i++) {
-				
-//				Place parkingLocation = new Place();
-//				parkingLocation.lat = reccommendations.get(i).lat;
-//				parkingLocation.lon = reccommendations.get(i).lon;
-//				parkingLocation.name = reccommendations.get(i).belnummer;
-//				parkingLocation.type = reccommendations.get(i).type;
-
-//				PlanRequest req = new PlanRequest();
-//				req.from = parkingLocation;
-//				req.to = pl_destination;
-//				req.options._date = ymd;
-//				req.options._time = hm;
-
 		    	Callable<PlanResponse> worker = (Callable<PlanResponse>) new ParallelPlanCallable(ppr, reccommendations.get(i));
 		    	Future<PlanResponse> submit = executor.submit(worker);
 		    	list.add(submit);
 			}
-//		    System.out.println(list.size());
-//		    for (Future<PlanResponse> future : list) {
-//		    	try {
-//		    		System.out.println("getting return");
-//		    		System.out.println(future.toString());
-//	    		} catch (Exception e) {
-//					e.printStackTrace();
-//    			}
-//		    }
 		    executor.shutdown();
 		    
 		    try {
@@ -57,15 +35,6 @@ public class ParallelPlan {
 				// TODO Auto-generated catch block
 			    System.out.println("Interrupted");
 				e.printStackTrace();
-			}
-		    
-			for (int i=0; i < reccommendations.size(); i++) {
-				System.out.print(i);
-				System.out.print(" : ");
-				System.out.print(reccommendations.get(i).belnummer);
-				System.out.print(" : ");
-				System.out.print(reccommendations.get(i).reccommended_pt_route.summaryasstring);
-				System.out.println("");
 			}
 		    
 	  }

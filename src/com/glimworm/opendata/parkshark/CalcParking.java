@@ -644,6 +644,29 @@ public class CalcParking {
 	}
 	
 	public static ParkSharkCalcReturn calcv2(int _day, int hrs, int mins, double duration, double from_lat, double from_lon, String _paymethods,int fmt) {
+		ParkSharkCalcRequest req = new ParkSharkCalcRequest();
+		req._day = _day;
+		req.hrs = hrs;
+		req.mins = mins;
+		req.duration = duration;
+		req.from_lat = from_lat;
+		req.from_lon = from_lon;
+		req._paymethods = _paymethods;
+		req.fmt = fmt;
+		return calcv2(req);
+		
+	}
+	public static ParkSharkCalcReturn calcv2(ParkSharkCalcRequest req) {
+		int _day = req._day;
+		int hrs = req.hrs;
+		int mins = req.mins;
+		double duration = req.duration;
+		double from_lat = req.from_lat;
+		double from_lon = req.from_lon;
+		String _paymethods = req._paymethods;
+		int fmt = req.fmt;
+		
+		
 //		var day = $ef.currentdata.date_start.dt.getDay();		// 0 = sunday
 //		var duration = $ef.currentdata.duration;
 //		var hrs = $ef.currentdata.date_start.dt.getHours();
