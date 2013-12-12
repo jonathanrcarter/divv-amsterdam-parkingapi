@@ -24,6 +24,8 @@ public class PlanCarByMapQuest extends PlanCar {
 		String PARAMS = "key=Fmjtd%7Cluubn16829%2Cbw%3Do5-90asgw&outFormat=json&from="+from.lat+","+from.lon+"&to="+to.lat+","+to.lon+"&unit=k&routeType=fastest&shapeFormat=raw&narrativeType=text&generalize=200";
 		com.glimworm.opendata.divvamsterdamapi.planning.net.xsd.curlResponse cr =  com.glimworm.opendata.divvamsterdamapi.planning.net.CurlUtils.getCURL(URL, PARAMS, null, null, null, null, null);
 		
+		//System.out.println("--- car api call ---");
+		//System.out.println(URL+"?"+PARAMS);
 		//System.out.println("--- start route api response ---");
 		//System.out.println(cr.text);
 		//System.out.println("--- end route api response ---");
@@ -38,22 +40,23 @@ public class PlanCarByMapQuest extends PlanCar {
 		response.endAddress = to;
 		response.legs = new ArrayList<Leg>();
 		response.startTime = request.options._datetime;
-		response.endTime = request.options._datetime.addSeconds(route.optInt("duration"));
+		response.endTime = request.options._datetime.addSeconds(route.optInt("time"));
 		response.rawdata = route.toString();
 		response.data = route;
-		
+
 		org.json.JSONArray legs = route.optJSONArray("legs");
 		for (int i=0; i<legs.length(); i++) {
 			org.json.JSONObject responseleg = legs.optJSONObject(i);
 			Leg leg = new Leg();
-			leg.from = from;
-			leg.to = to;
+			leg.from = from; //car drive only has 1 leg
+			leg.to = to; //car drive only has 1 leg
 			leg.mode = TransitInfo.LEG_TYPE_DRIVING;
 			leg.startTime = request.options._datetime;
-			leg.endTime = request.options._datetime.addSeconds(route.optInt("duration"));
+			leg.endTime = request.options._datetime.addSeconds(route.optInt("time"));
 			leg.transitinfo = new TransitInfoCar();
-			leg.transitinfo.from = from;
-			leg.transitinfo.to = to;
+			leg.transitinfo.from = from; //car drive only has 1 leg
+			leg.transitinfo.to = to; //car drive only has 1 leg
+			leg.distance = response.distance; //car drive only has 1 leg
 			leg.type = "leg";
 			
 			response.legs.add(leg);
