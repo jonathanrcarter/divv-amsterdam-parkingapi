@@ -56,7 +56,7 @@ public class ParallelPlanCallable implements Callable<PlanResponse>{
 			rec.reccommended_pt_route.type = pr.type;
 			rec.reccommended_pt_route.startTime = pr.startTime.toString();
 			rec.reccommended_pt_route.endTime = pr.endTime.toString();
-			int kms = 0;
+			int mms = 0;
 			PRICE1:
 			for (int i=0; i < pr.legs.size(); i++) {
 				if (pr.legs.get(i).mode.equalsIgnoreCase(TransitInfo.LEG_TYPE_TRAIN)) {
@@ -64,14 +64,18 @@ public class ParallelPlanCallable implements Callable<PlanResponse>{
 					break PRICE1;
 				} else if (pr.legs.get(i).mode.equalsIgnoreCase(TransitInfo.LEG_TYPE_TRAM)) {
 					// add distance
+					mms += pr.legs.get(i).distance;
 				} else if (pr.legs.get(i).mode.equalsIgnoreCase(TransitInfo.LEG_TYPE_BUS)) {
 					// add distance
+					mms += pr.legs.get(i).distance;
 				} else if (pr.legs.get(i).mode.equalsIgnoreCase(TransitInfo.LEG_TYPE_SUBWAY)) {
 					// add distance
+					mms += pr.legs.get(i).distance;
 				}
 			}
-			if (rec.reccommended_pt_route.cost == 0 && kms > 0) {
-				rec.reccommended_pt_route.cost = (0.148 * kms) + 0.87;
+			if (rec.reccommended_pt_route.cost == 0 && mms > 0) {
+				rec.reccommended_pt_route.cost = ((0.148 * mms) / 1000) + 0.87;
+				rec.reccommended_pt_route.ovdistance = mms;
 			}
 			
 			
@@ -96,7 +100,7 @@ public class ParallelPlanCallable implements Callable<PlanResponse>{
 				rec.reccommended_pt_route_return.startTime = pr.startTime.toString();
 				rec.reccommended_pt_route_return.endTime = pr.endTime.toString();
 				rec.reccommended_pt_route_return.cost = 0;
-				kms = 0;
+				mms = 0;
 				PRICE:
 				for (int i=0; i < pr.legs.size(); i++) {
 					if (pr.legs.get(i).mode.equalsIgnoreCase(TransitInfo.LEG_TYPE_TRAIN)) {
@@ -104,14 +108,18 @@ public class ParallelPlanCallable implements Callable<PlanResponse>{
 						break PRICE;
 					} else if (pr.legs.get(i).mode.equalsIgnoreCase(TransitInfo.LEG_TYPE_TRAM)) {
 						// add distance
+						mms += pr.legs.get(i).distance;
 					} else if (pr.legs.get(i).mode.equalsIgnoreCase(TransitInfo.LEG_TYPE_BUS)) {
 						// add distance
+						mms += pr.legs.get(i).distance;
 					} else if (pr.legs.get(i).mode.equalsIgnoreCase(TransitInfo.LEG_TYPE_SUBWAY)) {
 						// add distance
+						mms += pr.legs.get(i).distance;
 					}
 				}
-				if (rec.reccommended_pt_route_return.cost == 0 && kms > 0) {
-					rec.reccommended_pt_route_return.cost = (0.148 * kms) + 0.87;
+				if (rec.reccommended_pt_route_return.cost == 0 && mms > 0) {
+					rec.reccommended_pt_route_return.cost = ((0.148 * mms) / 1000) + 0.87;
+					rec.reccommended_pt_route.ovdistance = mms;
 				}
 				
 				
