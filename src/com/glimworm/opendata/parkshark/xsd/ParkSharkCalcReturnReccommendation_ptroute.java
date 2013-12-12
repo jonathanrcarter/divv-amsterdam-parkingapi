@@ -13,6 +13,7 @@ public class ParkSharkCalcReturnReccommendation_ptroute {
 	public int status = 0;
 	public long distance = 0; //In Meters
 	public int duration = 0; 
+	public double cost = 0;
 	public String src = "";
 	public String url = "";
 	public ArrayList<Leg> legs = null;

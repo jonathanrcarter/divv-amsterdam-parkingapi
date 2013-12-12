@@ -4,6 +4,7 @@ import java.util.ArrayList;
 import java.util.Date;
 import java.util.concurrent.Callable;
 
+import com.glimworm.opendata.divvamsterdamapi.planning.transit.xsd.TransitInfo;
 import com.glimworm.opendata.divvamsterdamapi.planning.xsd.Leg;
 import com.glimworm.opendata.divvamsterdamapi.planning.xsd.MMdatetime;
 import com.glimworm.opendata.divvamsterdamapi.planning.xsd.ParallelPlanRequest;
@@ -55,7 +56,66 @@ public class ParallelPlanCallable implements Callable<PlanResponse>{
 			rec.reccommended_pt_route.type = pr.type;
 			rec.reccommended_pt_route.startTime = pr.startTime.toString();
 			rec.reccommended_pt_route.endTime = pr.endTime.toString();
+			int kms = 0;
+			PRICE1:
+			for (int i=0; i < pr.legs.size(); i++) {
+				if (pr.legs.get(i).mode.equalsIgnoreCase(TransitInfo.LEG_TYPE_TRAIN)) {
+					rec.reccommended_pt_route.cost = -1;
+					break PRICE1;
+				} else if (pr.legs.get(i).mode.equalsIgnoreCase(TransitInfo.LEG_TYPE_TRAM)) {
+					// add distance
+				} else if (pr.legs.get(i).mode.equalsIgnoreCase(TransitInfo.LEG_TYPE_BUS)) {
+					// add distance
+				} else if (pr.legs.get(i).mode.equalsIgnoreCase(TransitInfo.LEG_TYPE_SUBWAY)) {
+					// add distance
+				}
+			}
+			if (rec.reccommended_pt_route.cost == 0 && kms > 0) {
+				rec.reccommended_pt_route.cost = (0.148 * kms) + 0.87;
+			}
 			
+			
+			if (ppr.plan_return_also == true) {
+
+				req = new PlanRequest();
+				req.to = parkingLocation;
+				req.from = ppr.pl_destination;
+				req.options._date = ppr.ret_ymd;
+				req.options._time = ppr.ret_hm;
+				pr = PlanOtp.plan(req);
+				
+				/* here is the population of the route */
+				rec.reccommended_pt_route_return.summaryasstring = pr.toString();
+				
+				rec.reccommended_pt_route_return.distance = pr.distance;
+				rec.reccommended_pt_route_return.duration = pr.duration;
+				rec.reccommended_pt_route_return.src = pr.src;
+				rec.reccommended_pt_route_return.url = pr.url;
+				rec.reccommended_pt_route_return.legs = pr.legs;
+				rec.reccommended_pt_route_return.type = pr.type;
+				rec.reccommended_pt_route_return.startTime = pr.startTime.toString();
+				rec.reccommended_pt_route_return.endTime = pr.endTime.toString();
+				rec.reccommended_pt_route_return.cost = 0;
+				kms = 0;
+				PRICE:
+				for (int i=0; i < pr.legs.size(); i++) {
+					if (pr.legs.get(i).mode.equalsIgnoreCase(TransitInfo.LEG_TYPE_TRAIN)) {
+						rec.reccommended_pt_route_return.cost = -1;
+						break PRICE;
+					} else if (pr.legs.get(i).mode.equalsIgnoreCase(TransitInfo.LEG_TYPE_TRAM)) {
+						// add distance
+					} else if (pr.legs.get(i).mode.equalsIgnoreCase(TransitInfo.LEG_TYPE_BUS)) {
+						// add distance
+					} else if (pr.legs.get(i).mode.equalsIgnoreCase(TransitInfo.LEG_TYPE_SUBWAY)) {
+						// add distance
+					}
+				}
+				if (rec.reccommended_pt_route_return.cost == 0 && kms > 0) {
+					rec.reccommended_pt_route_return.cost = (0.148 * kms) + 0.87;
+				}
+				
+				
+			}
 			rec.reccommended_pt_route._executiontime = new Date().getTime() - _exdt;
 			
 			return pr;

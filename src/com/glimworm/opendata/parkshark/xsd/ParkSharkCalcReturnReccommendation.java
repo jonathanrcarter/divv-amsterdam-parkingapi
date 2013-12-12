@@ -17,5 +17,6 @@ public class ParkSharkCalcReturnReccommendation {
 	
 
 	public ParkSharkCalcReturnReccommendation_ptroute reccommended_pt_route = new ParkSharkCalcReturnReccommendation_ptroute();
+	public ParkSharkCalcReturnReccommendation_ptroute reccommended_pt_route_return = new ParkSharkCalcReturnReccommendation_ptroute();
 
 }
