@@ -74,7 +74,7 @@ public class testsdk {
 			
 			JSONObject data = ar.optJSONObject(i).optJSONObject("layers").optJSONObject("divv.parking.buildings").optJSONObject("data");
 
-			PlaceParkingGarage pl = com.glimworm.opendata.parkshark.importdata.citySDK.utils.garageFromJson(data, cdk_id, coords);
+			PlaceParkingGarage pl = com.glimworm.opendata.parkshark.importdata.citySDK.utils.garageFromJson(ar.optJSONObject(i),data, cdk_id, coords);
 			pl.places = data.optInt("aantal");
 			
 			System.out.println(pl);

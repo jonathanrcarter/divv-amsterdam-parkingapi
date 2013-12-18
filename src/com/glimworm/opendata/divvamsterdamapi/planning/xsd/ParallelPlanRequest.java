@@ -7,4 +7,5 @@ public class ParallelPlanRequest {
 	public boolean plan_return_also = false;
 	public String ret_ymd = "";
 	public String ret_hm = "";
+	public double plan_rad = 10000;	// 10km
 }

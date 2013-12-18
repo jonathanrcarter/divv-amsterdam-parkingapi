@@ -21,6 +21,9 @@ public class ParallelPlanCallable implements Callable<PlanResponse>{
 	
 	@Override
 	public PlanResponse call() throws Exception {
+		if (rec.dist_in_meters > ppr.plan_rad){
+			return null;
+		}
 		if (req != null) {
 			PlanResponse pr = PlanOtp.plan(req);
 			return pr;
@@ -30,7 +33,7 @@ public class ParallelPlanCallable implements Callable<PlanResponse>{
 			Place parkingLocation = new Place();
 			parkingLocation.lat = rec.lat;
 			parkingLocation.lon = rec.lon;
-			parkingLocation.name = rec.belnummer;
+			parkingLocation.name = rec.automat_number;
 			parkingLocation.type = rec.type;
 
 			PlanRequest req = new PlanRequest();

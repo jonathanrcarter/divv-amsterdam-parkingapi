@@ -627,7 +627,6 @@ public class CalcParkingAntwerp extends CalcParking {
 			
 			double d = distance(loc, new location(meter.lat, meter.lon));
 			meters[i].dist = d;
-			meters[i].dist2 = d;
 			
 			PayTimes costs = smeters[i].costs;
 

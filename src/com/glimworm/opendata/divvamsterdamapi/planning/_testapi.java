@@ -42,6 +42,35 @@ public class _testapi {
 
 		com.thoughtworks.xstream.XStream xstream = new com.thoughtworks.xstream.XStream(new com.thoughtworks.xstream.io.json.JsonHierarchicalStreamDriver());
 		xstream.setMode(com.thoughtworks.xstream.XStream.NO_REFERENCES);
+		
+		System.out.println("GARAGES LENGTH :"+com.glimworm.opendata.parkshark.CalcParking.sgarages.length);
+		if (com.glimworm.opendata.parkshark.CalcParking.sgarages.length > 0) {
+			for (int i=0; i < com.glimworm.opendata.parkshark.CalcParking.sgarages.length; i++) {
+				System.out.print(com.glimworm.opendata.parkshark.CalcParking.sgarages[i].name);
+				System.out.print("\t");
+				System.out.print(com.glimworm.opendata.parkshark.CalcParking.sgarages[i].cdk_id);
+				System.out.print("\t");
+				System.out.print(com.glimworm.opendata.parkshark.CalcParking.sgarages[i].owner);
+				System.out.print("\t");
+				System.out.print(com.glimworm.opendata.parkshark.CalcParking.sgarages[i].service_open_in);
+				System.out.print(",");
+				System.out.print(com.glimworm.opendata.parkshark.CalcParking.sgarages[i].service_close_in);
+				System.out.print(",");
+				System.out.print(com.glimworm.opendata.parkshark.CalcParking.sgarages[i].service_open_out);
+				System.out.print(",");
+				System.out.print(com.glimworm.opendata.parkshark.CalcParking.sgarages[i].service_close_out);
+				System.out.print("\t");
+				System.out.print(com.glimworm.opendata.parkshark.CalcParking.sgarages[i].price_day);
+				System.out.print("\t");
+				System.out.print(com.glimworm.opendata.parkshark.CalcParking.sgarages[i].price_per_time_unit);
+				System.out.print("\t");
+				System.out.print(com.glimworm.opendata.parkshark.CalcParking.sgarages[i].time_unit_minutes);
+				System.out.println("");
+				
+			}
+			return;
+		}
+
 
 		
 		System.out.println(xstream.toXML(prv.reccommendations));
@@ -86,7 +115,7 @@ public class _testapi {
 			System.out.print("** ");
 			System.out.print(i);
 			System.out.print(" : ");
-			System.out.print(prv.reccommendations.get(i).belnummer);
+			System.out.print(prv.reccommendations.get(i).automat_number);
 			System.out.print(" : ");
 			System.out.print(prv.reccommendations.get(i).cost);
 			System.out.print(" : ");

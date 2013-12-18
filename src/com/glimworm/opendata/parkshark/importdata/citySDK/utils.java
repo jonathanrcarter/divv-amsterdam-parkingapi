@@ -31,21 +31,28 @@ public class utils {
 		return retval;
 	}
 	
-	public static PlaceParkingGarage garageFromJson(org.json.JSONObject ob, String cdk_id, geom coordinates) {
+	public static PlaceParkingGarage garageFromJson(org.json.JSONObject nameob,org.json.JSONObject ob, String cdk_id, geom coordinates) {
 		
 		PlaceParkingGarage retval = new PlaceParkingGarage();
 		try {
-			retval.name = ob.optString("title");
+			retval.name = nameob.optString("name");
 			retval.postcode = ob.optString("postcode");
 			retval.street = ob.optString("adres");
 			retval.url = ob.optString("url");
 			retval.cdk_id = cdk_id;
-			retval.type = "parking-garage";
+			
 			retval.places = ob.optInt("antaal", 0);
 			if (coordinates != null) {
 				retval.lat = coordinates.lat;
 				retval.lon = coordinates.lon;
 			}
+			if (ob.optString("type","").equalsIgnoreCase("Parkeergarage")) retval.type = "parking-garage";
+			else if (ob.optString("type","").equalsIgnoreCase("P+R")) retval.type = "park-and-ride";
+			else retval.type = "parking-garage";
+			
+			retval.url = ob.optString("info_url","");
+
+		
 		} catch (Exception E) {
 		}
 		

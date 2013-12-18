@@ -37,6 +37,8 @@
 	String opt_routes = gwdb.gwUtils.get(request,"opt_routes","y");
 	String opt_routes_ret = gwdb.gwUtils.get(request,"opt_routes_ret","n");
 	String opt_rec = gwdb.gwUtils.get(request,"opt_rec","y");
+	String tim = gwdb.gwUtils.get(request,"tim","n");
+	String plan_radius = gwdb.gwUtils.get(request,"plan_radius","2000");
 	
 	
 	
@@ -67,6 +69,8 @@
 		out.println("include meters <input name='opt_am' value='"+opt_am+"'>");
 		out.println("<br>");
 		out.println("include reccommendations <input name='opt_rec' value='"+opt_rec+"'>");
+		out.println("<br>");
+		out.println("plan routes if distance less than <input name='plan_radius' value='"+plan_radius+"'>");
 		out.println("<br>");
 		out.println("<input type='submit' value='plan'>");
 		out.println("Notes");
@@ -102,6 +106,8 @@
 
 	String ret_ymd = yy+"-"+mm+"-"+dd;
 	String ret_hm = (hr+duration)+":"+m;
+	
+	double plan_rad = Double.parseDouble(plan_radius);
 
 	
 
@@ -120,9 +126,11 @@
 	
 	com.glimworm.opendata.parkshark.xsd.ParkSharkCalcReturn prv = com.glimworm.opendata.parkshark.CalcParking.calcv2(req);
 
-//	for (int i=0; i < prv.timings.size(); i++) {
-//		ar.timings.add(prv.timings.get(i));
-//	}
+	if (tim.equalsIgnoreCase("y")) {
+		for (int i=0; i < prv.timings.size(); i++) {
+			ar.timings.add(prv.timings.get(i));
+		}
+	}
 	ar.timings.add("after prv : " + new Long(new Date().getTime() - _exdt));
 
 
@@ -143,6 +151,7 @@
 		ppr.plan_return_also = (opt_routes_ret.equalsIgnoreCase("y"));
 		ppr.ret_ymd = ret_ymd;
 		ppr.ret_hm = ret_hm;
+		ppr.plan_rad = plan_rad;
 	
 		com.glimworm.opendata.divvamsterdamapi.planning.ParallelPlan.plan(ppr, prv.reccommendations);
 		System.out.println("NOW IN PARALLEL - DONE");

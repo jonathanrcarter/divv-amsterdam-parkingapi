@@ -53,7 +53,7 @@ public class CalcParking {
 		
 //		System.out.println("dist ["+Math.round(d/2)+"] LAT ["+loc1.latitude+"/"+loc2.latitude+"] LON ["+loc1.longitude+"/"+loc2.longitude+"]");
 		
-	    return Math.round(d/2);
+	    return Math.round(d/20);
 	};
 	
 	public static double getNorthLatFromLng(double lng) {
@@ -286,6 +286,8 @@ public class CalcParking {
 	}
 	
 	public static Meter[] smeters = null;
+	public static PlaceParkingGarage[] sgarages = null;
+
 	public static javolution.util.FastMap<String, String> chance_day = new javolution.util.FastMap<String,String>();
 	public static javolution.util.FastMap<String, String> chance_sat = new javolution.util.FastMap<String,String>();
 	public static javolution.util.FastMap<String, String> chance_sun = new javolution.util.FastMap<String,String>();
@@ -391,6 +393,7 @@ public class CalcParking {
 			_meter.betaalwijze = "";
 			_meter.tariefcode = "";
 			_meter.status = "";
+			_meter.name = garages[i].name;
 			_meter.lat = garages[i].lat;
 			_meter.lon = garages[i].lon;
 
@@ -406,14 +409,17 @@ public class CalcParking {
 			} catch (Exception E) {
 				_meter.isInNorth = false;
 			}			
+			_meter.garageid = i;
 			
 			vect.add(_meter);
 			cnt++;
 		}
 		
+		
 		Object result[] = new Meter[vect.size()];
 		vect.copyInto(result);
 		smeters = (Meter[])result;
+		sgarages = garages;
 
 		
 //		class add_zone implements Callable<Integer>{
@@ -488,9 +494,10 @@ public class CalcParking {
 //			e.printStackTrace();
 //		}
 	    System.out.println("FINSHED!!!");
-	    for (int i=0 ; i < cnt_meters; i ++) {
-	    	System.out.println(smeters[i].belnummer + " / " + smeters[i].csdkzone + "/" + smeters[i].chance_weekday);
-	    }
+
+//	    for (int i=0 ; i < cnt_meters; i ++) {
+//	    	System.out.println(smeters[i].belnummer + " / " + smeters[i].csdkzone + "/" + smeters[i].chance_weekday);
+//	    }
 		
 	}
 	
@@ -633,6 +640,13 @@ public class CalcParking {
 					costsmap.put(sig, new Integer(i));
 				}
 			}
+			if (smeters[i].garageid != -1) {
+				String sig = "garage-"+smeters[i].garageid;
+				if (costsmap.containsKey(sig) == false) {
+					costsmap.put(sig, new Integer(i));
+				}
+			}
+
 		}
 	}
 
@@ -690,6 +704,27 @@ public class CalcParking {
 			
 			@Override
 			public Integer call() throws Exception {
+				if (smeters[i].garageid > -1) {
+					if (sgarages[smeters[i].garageid].time_unit_minutes > -1 && sgarages[smeters[i].garageid].price_per_time_unit > -1) {
+						double val = 0;
+						String dbg = "";
+						for (int j=0; j < days.size(); j++) {
+	
+							// we have to clone the array
+							Days day = new Days();
+							day.day = days.get(j).day;
+							day.start = days.get(j).start;
+							day.end = days.get(j).end;
+							double dayhours = (day.end - day.start);
+							double daycost = ((dayhours * 60) / sgarages[smeters[i].garageid].time_unit_minutes) * sgarages[smeters[i].garageid].price_per_time_unit;
+							if (sgarages[smeters[i].garageid].price_day > -1 && sgarages[smeters[i].garageid].price_day < daycost) daycost = sgarages[smeters[i].garageid].price_day;
+							val += daycost;
+						}
+						costmap.put(sig, new Double(val));
+						dbgmap.put(sig, dbg);
+					} 
+					return new Integer(0);
+				}
 
 				PayTimes costs = smeters[i].costs;
 
@@ -970,9 +1005,9 @@ public class CalcParking {
 			meters[i].i = i;
 			meters[i].type = smeters[i].type;
 			
-			if (_day < 5) meters[i].parking_chance = getChance(smeters[i].chance_weekday,_day);
-			if (_day == 5) meters[i].parking_chance = getChance(smeters[i].chance_sat,_day);
-			if (_day == 6) meters[i].parking_chance = getChance(smeters[i].chance_sun,_day);
+			if (_day < 5) meters[i].expected_occupancy = getChance(smeters[i].chance_weekday,_day);
+			if (_day == 5) meters[i].expected_occupancy = getChance(smeters[i].chance_sat,_day);
+			if (_day == 6) meters[i].expected_occupancy = getChance(smeters[i].chance_sun,_day);
 			
 			Meter meter = meters[i];
 //			if (meter.match == 0) continue;
@@ -996,7 +1031,19 @@ public class CalcParking {
 			
 			double d = distance(loc, new location(meter.lat, meter.lon));
 			meters[i].dist = d;
-			meters[i].dist2 = d;
+			
+			if (smeters[i].garageid > -1) {
+				String sig = "garage-"+smeters[i].garageid;
+				if (costsmap.containsKey(sig) && costmap.get(sig) != null) {
+					double val = costmap.get(sig).doubleValue();
+					String _dbg = dbgmap.get(sig);
+					meters[i].cost = val;
+					meters[i].totalcost = val;
+					meters[i].dbg = "sig "+sig + _dbg;
+				}
+				continue;
+			}
+			
 			
 			if (smeters[i].costs == null) {
 				meters[i].cost = -1;
@@ -1091,8 +1138,8 @@ public class CalcParking {
 			if (meters[i].type.equalsIgnoreCase("on-street-meter")) {
 				if (found_signatures.contains(meters[i].costsignature) == false) {
 					ParkSharkCalcReturnReccommendation newa = new ParkSharkCalcReturnReccommendation();
-					newa.belnummer = smeters[I].belnummer;
-					newa.dist = meters[i].dist;
+					newa.automat_number = smeters[I].belnummer;
+					newa.dist_in_meters = meters[i].dist;
 					newa.cost = meters[i].cost;
 					newa.address = smeters[I].adres;
 					newa.lat = smeters[I].lat;
@@ -1102,14 +1149,15 @@ public class CalcParking {
 					newa.chance_weekday = smeters[I].chance_weekday;
 					newa.chance_sat = smeters[I].chance_sat;
 					newa.chance_sun = smeters[I].chance_sun;
-					newa.parking_chance = meters[i].parking_chance;
+					newa.name = smeters[I].name;
+					newa.expected_occupancy = meters[i].expected_occupancy;
 					al.add(newa);
 					ret.timings.add("calc : reccommendations found : " +i+" ("+meters[i].type+") : "+ new Long(new Date().getTime() - _exdt));
 					found_signatures.add(meters[i].costsignature);
 				}
 			} else {
 				ParkSharkCalcReturnReccommendation newa = new ParkSharkCalcReturnReccommendation();
-				newa.dist = meters[i].dist;
+				newa.dist_in_meters = meters[i].dist;
 				newa.cost = meters[i].cost;
 				newa.address = smeters[I].adres;
 				newa.lat = smeters[I].lat;
@@ -1119,7 +1167,22 @@ public class CalcParking {
 				newa.chance_weekday = smeters[I].chance_weekday;
 				newa.chance_sat = smeters[I].chance_sat;
 				newa.chance_sun = smeters[I].chance_sun;
-				newa.parking_chance = meters[i].parking_chance;
+				newa.name = smeters[I].name;
+				newa.expected_occupancy = meters[i].expected_occupancy;
+				newa.garage_type = sgarages[smeters[I].garageid].type;
+				newa.notes = sgarages[smeters[I].garageid].remarks;
+				newa.garage_opening_hours = sgarages[smeters[I].garageid].service_open_in +
+				" " +
+				sgarages[smeters[I].garageid].service_open_out +
+				" " +
+				sgarages[smeters[I].garageid].service_close_in +
+				" " +
+				sgarages[smeters[I].garageid].service_close_out;
+				newa.garage_includes_public_transport = sgarages[smeters[I].garageid].includes_public_transport;
+				newa.garage_owner = sgarages[smeters[I].garageid].owner;
+				newa.garage_infourl = sgarages[smeters[I].garageid].url;
+
+				
 				al.add(newa);
 				ret.timings.add("calc : reccommendations found : " +i+" ("+meters[i].type+") : "+ new Long(new Date().getTime() - _exdt));
 				
@@ -1132,7 +1195,7 @@ public class CalcParking {
 		StringBuffer retvalsb2 = new StringBuffer(); 
 		for (int j=0; j < al.size(); j++) {
 			if (j > 0) retvalsb2.append(",");
-			retvalsb2.append("["+Q(al.get(j).belnummer)+","+al.get(j).cost+","+asint(al.get(j).dist)+","+Q(al.get(j).address)+","+al.get(j).lat+","+al.get(j).lon+","+j+","+al.get(j).i+"]");
+			retvalsb2.append("["+Q(al.get(j).automat_number)+","+al.get(j).cost+","+asint(al.get(j).dist_in_meters)+","+Q(al.get(j).address)+","+al.get(j).lat+","+al.get(j).lon+","+j+","+al.get(j).i+"]");
 		}
 		ret.timings.add("calc : after 2nd stringbuffer " + new Long(new Date().getTime() - _exdt));
 		

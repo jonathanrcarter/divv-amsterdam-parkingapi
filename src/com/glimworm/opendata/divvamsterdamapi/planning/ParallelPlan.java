@@ -15,7 +15,7 @@ import com.glimworm.opendata.parkshark.xsd.ParkSharkCalcReturnReccommendation;
 
 public class ParallelPlan {
 
-	  private static final int NTHREDS = 10;
+	  private static final int NTHREDS = 20;
 	  
 	  public static void plan (ParallelPlanRequest ppr,ArrayList<ParkSharkCalcReturnReccommendation> reccommendations) {
 		  ExecutorService executor = Executors.newFixedThreadPool(NTHREDS);

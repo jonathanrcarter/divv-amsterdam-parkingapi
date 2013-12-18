@@ -1,11 +1,12 @@
 package com.glimworm.opendata.parkshark.xsd;
 
+import com.glimworm.opendata.divvamsterdamapi.planning.xsd.PlaceParkingGarage;
+
 public class Meter implements Cloneable {
 	public int i = 0;
 	public String poi = null;
 	public int match = 0;
 	public double dist = 0;
-	public double dist2 = 0;
 	public boolean onmap = false;
 	public double lat = 0;
 	public double lon = 0;
@@ -23,7 +24,8 @@ public class Meter implements Cloneable {
 	public String chance_weekday = "";
 	public String chance_sat = "";
 	public String chance_sun = "";
-	public String parking_chance = "";
+	public String expected_occupancy = "";
+	public String name = "";
 	
 	
 	/*
@@ -55,6 +57,7 @@ public class Meter implements Cloneable {
 	
 	public String type = "meter";
 	public String costsignature = "";
+	public int garageid = -1;
 	
 
     public Object clone() {
