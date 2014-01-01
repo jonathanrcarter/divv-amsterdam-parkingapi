@@ -4,5 +4,96 @@ font-size : 14px;
 }
 
 input {
+	width : 60px;
+}
+input.long {
+	width : 184px;
+}
+input.vlong {
 	width : 300px;
 }
+input[type="submit"] {
+	width : 120px;
+}
+span.short {
+	width : 60px;
+}
+label.short {
+	width : 60px;
+	display: inline-block;
+}
+label.url {
+	width : 250px;
+	display: inline-block;
+}
+label.long {
+	width : 250px;
+	display: inline-block;
+}
+body {
+	xbackground-image: url('http://jon651.glimworm.com/divvamsterdam/DIVV-multi-modal-api-report/php/example/images/glimworm02_grey.jpg');
+	background-repeat: no-repeat;
+	background-position: 0 0;
+	background-color: #cccccc;
+}
+.hero-unit {
+	margin-top:32px;
+}
+.hero-unit.bottom {
+	margin-top:10px;
+}
+
+.hero-unit h1, .navbar .brand {
+	color : red;
+}
+.hero-unit {
+	padding : 20px;
+}
+h1.small {
+	font-size: 32px;
+}
+.bottom {
+	background-color: #666666;
+	padding-bottom: 32px;
+	margin-bottom : 0;
+}
+.bottom h1 {
+	padding-left: 8px;
+	padding-top : 24px;
+	padding-bottom : 24px;
+}
+.bottom h2 {
+	padding-top : 16px;
+	padding-left: 8px;
+	color : #fff;
+}
+.bottom a {
+	padding-left: 32px;
+	display : block;
+	color : #ccc;
+	font-size : 14px;
+}
+.topbar {
+	background-color: #333333;
+	color : #fff;
+	padding-top : 8px;
+	padding-bottom : 8px;
+	padding-left : 16px;
+	padding-right : 16px;
+}
+.maincontent {
+	margin-left : 16px;
+	margin-right : 16px;
+}
+
+/*body {
+	background-image: url('http://jon651.glimworm.com/divvamsterdam/DIVV-multi-modal-api-report/php/example/images/glimworm02_grey.jpg');
+	background-repeat: no-repeat;
+	background-position: 0 0;
+
+}
+form {
+	margin-top : 50px;
+	margin-left : 50px;
+	background-color: #ffffff;
+}*/

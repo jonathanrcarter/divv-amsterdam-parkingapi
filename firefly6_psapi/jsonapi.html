@@ -2,7 +2,7 @@
 <html lang="en">
   <head>
     <meta charset="utf-8">
-    <title>Park Shark Amsterdam - API</title>
+    <title>DIVV Amsterdam Parking API</title>
     <meta name="viewport" content="width=device-width, initial-scale=1.0">
     <meta name="description" content="Park Shark Amsterdam - API">
     <meta name="author" content="Glimworm It BV">
@@ -16,6 +16,7 @@
       }
     </style>
     <link href="bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+    <link href="style.css" rel="stylesheet">
 
     <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
     <!--[if lt IE 9]>
@@ -44,14 +45,8 @@
           <div class="nav-collapse">
             <ul class="nav">
               <li><a href="index.html">Home</a></li>
-              <li><a href="getbutton.html">Get the button</a></li>
-              <li><a href="getbutton-antwerp.html">Antwerp</a></li>
               <li class="active"><a href="jsonapi.html">Developers</a></li>
               <li><a href="examples.html">Examples</a></li>
-              <!-- 
-              <li><a href="#about">About</a></li>
-              <li><a href="#contact">Contact</a></li>
-              -->
             </ul>
           </div><!--/.nav-collapse -->
         </div>
@@ -63,208 +58,542 @@
       <!-- Main hero unit for a primary marketing message or call to action -->
       <div class="hero-unit">
         <h1>Developers (json api)</h1>
-        <p>Park Shark Amsterdam is an initiative of Glimworm IT.  The API is based on the same data as the ParkShark Amsterdam iPhone APP but allows independent developers to calculate parking charges over time and duration</p>
 		
+		
+		<a href='#basic'><h3>Basic Query</h3></a>
+		<a href='#geocode'><h3>Geocode</h3></a>
+		<a href='#getgarage'><h3>Get details of a parking garage</h3></a>
+		<a href='#getmeter'><h3>Get details of a meter</h3></a>
+        <p><a class="btn" href='apitest.jsp'>Try the API</a></p>
+		
+		<a name='basic'></a>
+		<p>&nbsp;</p>
+		<p>&nbsp;</p>
         <h2>Basic query </h2>
-        <p><pre>http://api.parkshark.nl/psapi/api.jsp?day=5&hr=8&min=30&duration=3&lat=52.377&lon=4.9104&methods=cash,pin</pre> </p>
-        <p>Will return costs for all the meters starting on day 5 (Friday) starting at 8:30 and for 3 hrs.</p>
+        <p><pre>http://divvapi.parkshark.nl/apitest.jsp?action=plan&to_lat=51.5&to_lon=4.9&dd=28&mm=12&yy=2013&h=12&m=50&dur=2&opt_routes=y&opt_routes_ret=n&opt_am=n&opt_rec=y</pre> </p>
+        <p>Will return costs and recommendations for visiting marco polo straat on the 28 december 2013 and staying for 3 hs</p>
         <p>It will use 51.5 x 4.9 as your geolocation and look only for machines accepting cash and pin</p>
         <p><pre>
+        
+Parmeters :
+
+	to_lat			:	latitude of destination		(51.4)
+	to_lon			: 	longitude of destination	(4.9)
+	dd			: 	day		(28)
+	mm			: 	month	(12)
+	yy			:	year	(2013)
+	h			:	hour	(12)
+	m			:	minutes	(50)
+	dur			:	Duration in hours (2)
+	opt_am			:	Include the full list of meters	(y/n)
+	opt_routes_ret		:	Also calculate the return routes (y/n)
+	opt_rec			:	return recommendations (y/n)
+	plan_radius		:	Create rout plan only if within a radius in meters
+
+
+Example result	
+
 {
-	"params":{
-		"fmt":0
-	},
-	"results":[
-		
-		/* Array of :
-			[ meternumber, price in euro, distance in meters, matches the payment methods (1=yes),id] 
-		*/
-		
-		["10668",8.0,4497,1,265],
-		["10841",8.0,4926,1,320],
-		 ...... , 
-		["10853",8.0,5099,1,329]
-	],
-	"advice":[
+	result: {
+		_executiontime: 13855,
+		timings: [
+			"after prv : 114",
+			"after plan : 13855"
+		],
+		reccommendations: [
+			/* Array of :
+				[ recommendations] 
+			*/
 
-		/* Array of :
-			[ meternumber, price in euro, address, latitide, longitude, order, 0] 
-		*/
-
-		["10668",8.0,4497,"Oosterdok 39",52.3724709,4.90942,0,0],
-		["10612",10.0,5444,"Prins Hendrikkade 137",52.3736496,4.9059,1,0],
-		["11328",6.0,5943,"Dijksgracht 6",52.3762589,4.9164801,2,0],
-		["16538",4.0,23664,"Celebesstraat 6",52.3654289,4.93187,3,0],
-		["19540",2.0,27168,"Loenermark 81",52.3977585,4.9291902,4,0],
-		["15815",0.0,35813,"Korte Ouderkerkerdijk 16",52.3409309,4.91822,5,0]
-	]
-}
-
-        </pre></p>
-        <p>&nbsp;</p>
-
-
-        <h2>Find meters in a geographic area</h2>
-        <p><pre>http://api.parkshark.nl/psapi/api.jsp?action=get_meters_in_box&north=52.3724709&south=52.2724709&east=4.90042&west=4.90962</pre> </p>
-        <p>Will return the meters in a geographic square</p>
-        <p><pre>
-
-		{"items":[
-			["10103",0,0,"",52.3649406,4.90095,0,0],
-			["10106",0,0,"",52.363781,4.9014001,1,0],
-			["10107",0,0,"",52.3631096,4.9018998,2,0]
+			{
+				"dist_in_meters":78787,		/* distance from your destination in meters (as the crow flies) */
+				"cost":-1,			/* cost of parking in Euro or -1 if it cannot be calculated */
+				"name" : "Olympic Statuim"	/* Name of location */
+				"automat_number":"",		/* the unique number appearing on a parking meter */
+				"address":"De entree 7",	/* street address */
+				"lat":52.3109973,		/* latitude */
+				"lon":4.9391216,		/* longitude */
+				"i":0,				/* internal counter refering back to list of meters */
+				"match" : 1,			/* this is always  or above and it for internal use */
+				"type":"garage",		/* on street meter / or garage */
+				"expected_occupancy":"",	/* as a percentage */
+				"garage_type" : "park-and-ride",/* parking-garage or park-and-ride
+				"notes" : ""			/* notes */
+				"garage_opening_hours" : "0-5 0000 0000 0000 0000|6 0700 0700 2200 2200",	
+								/* days open_in open_out close_in close_out */
+								/* there can be multiple broken by a | */
+								/* days can be 0-5 or 5 or 1,2 */
+				"garage_opening_hours_today" : "0000 0000 0000 0000",
+								/* opening hours on the day being planned */
+				"garage_opening_hours_today_json" : "{"open_in":"0000","open_out":"0000","close_in":"0000","close_out":"0000"}",						
+				"garage_owner" : "",		/* owner URL */
+				"garage_infourl" : "",		/* information URL */
+				"garage_includes_public_transport" : "n",		
+								/* do you get a free public transport card included  y/n */
+				
+				"csdkid" : "test.divv.parking.car.36", 	/* citysdk id */
+				"csdkurl" : "http://test-api.citysdk.waag.org/test.divv.parking.car.36", 	
+								/* citysdk direct URL */
+				
+				"reccommended_pt_route":{	/* recommended public transport route  as legs returned from open trip planner*/
+					"status":0,
+					"distance":123727,	/* in meters, calculated along the travel route */
+					"duration":11151,	/* duration in minutes */
+					"cost":-1,		/* cost of travel is -1 if it cannot be calculated */
+					"src":"",		/* */
+					"url":"",		/* */
+					"legs":[
+						{
+							"from":{
+								/* Place format */
+								"lat":52.31098914608117,
+								"lon":4.939129283393896,
+								"name":"De Entree",
+								"street":"",
+								"postcode":"",
+								"url":"",
+								"type":"",
+								"rawdata":"",
+								"cdk_id":""		/* city sdk node id if appropriate */
+							},
+							"to":{
+								/* Place format */
+							}
+							"mode":"WALKING",		/* modes are WALKING, TRAM, TRAIN, METRO, FERRY */
+							"transitinfo":{
+								/* information returned frmo open trip planner */
+								"@class":"com.glimworm.opendata.divvamsterdamapi.planning.transit.xsd.TransitInfoWalk",
+								"agency":"null",	/* for example GVB or NS or 
+								"line":"",		/* for example 33 for bus line 33 */
+								"lineId":"null",	/* for example 33 for line 33 */
+								"headsign":"null",	/* Amsterdam CS on the front of a bus */
+								"polyline":"{\"levels\":null,\"length\":19,\"points\":\"s~g~Hotc]c@eBf@c@FKOo@[mAsAoFj@k@|BqBEOaCwJKY]yAGSMg@g@wBAM?ODM\"}",
+											/* polyline can be represented on a google map */
+								"from":{
+									/* Place format */
+								},
+								"to":{
+									/* Place format */
+								}
+								"startTime":{
+									/* MMDateTime format */
+									"day":12,
+									"month":12,
+									"year":2013,
+									"hour":7,
+									"minute":47
+								},
+								"endTime":{
+								},
+								"type":"leg"
+							},{
+							. . . many more legs . . . 
+							}
+						],
+						"type":"",
+						"startTime":"2013-12-12T07:47:09.000+01:00",
+						"endTime":"2013-12-12T10:53:00.000+01:00",
+						"_executiontime":3148
+					},
+					"reccommended_pt_route_return":{
+						/* same format at the pt_route but for the return journey */
+					}
+				}
+			},
+			meters : [
+			{
+				/* array of parking meters */
+				"i":2313,
+				"match":1,
+				"dist":787873,			/* distance from your end destination in meters */
+				"onmap":false,			/* */
+				"lat":52.3109973,		/* latitude */
+				"lon":4.9391216,		/* longitude */
+				"cost":-1,			/* total cost or -1 if it cannot be calculated */
+				"totalcost":-1,			/* total cost or -1 if it cannot be calculated */
+				"max":0,			/* maximum allowed parking time in minutes */
+				"isInNorth":false,		/* true if is in amsterdam north */
+				"bw":{
+					"cash":true,		/* accepts cash */
+					"creditcard":true,	/* accepts creditcard */
+					"pin":true,		/* accepts pin */
+					"chip":true		/* accepts chipknip */
+				},
+				"costs":{
+					/* basic cost info */
+				},
+				"csdkid":"",	/* citysdk node id if found */
+				"csdkzone":"",	/* city sdk tariff zone */
+				"expected_occupancy":"",	
+				"entityid":"",
+				"stadsdeel":"",
+				"belnummer":"",
+				"adres":"",
+				"postcode":"",
+				"woonplaats":"",
+				"typeautomaat":"",
+				"betaalwijze":"",
+				"status":"",
+				"tariefcode":"",
+				"type":"garage",			/* types : on-street-meter , garage */
+				"costsignature":""
+				}, {
+					. . .  more meters . . .
+				}
 			]
-		}
+		]
+	
+
+
         </pre></p>
         <p>&nbsp;</p>
-
-
-
-        <h2>Find nearest meter to top up payment at</h2>
-        <p><pre>http://api.parkshark.nl/psapi/api.jsp?action=find_nearest&lat=52.377&lon=4.9104&rate=3.0</pre> </p>
-        <p>Will return the nearest meter (from lat,lon) at which you can top up your parking at a rate of at least 3.00 / hr.</p>
+        
+<!-- call to geocode -->
+		<a name="geocode"/></a>
+		<p>&nbsp;</p>
+		<p>&nbsp;</p>
+		<h2>Looking up a geocode</h2>
+        <p><pre>http://divvapi.parkshark.nl/apitest.jsp?action=geocode&addr=Marco+Polostraat+107+%2C+Amsterdam%2C+Netherlands</pre> </p>
+        <p>Will return details of the geocoded responses from mapquest</p>
         <p><pre>
 {
-	"id":265,
-	"meterlat":52.3724709,
-	"meterlon":4.90942,
-	"meternum":10668,
-	"dist":4497.0
-}        
-        </pre></p>
-        <p>&nbsp;</p>
-        <h2>Get details of one (or several) meter(s)</h2>
-        <p><pre>http://api.parkshark.nl/psapi/api.jsp?action=get_meters&meternumbers=10667,10567</pre> </p>
-        <p>Will return the details of meters 10667 and 10567.</p>
+		result: {
+			_executiontime: 1332,
+			timings: [ ],
+			places: [
+			{
+			lat: 52.368007,
+			lon: 4.85601,
+			name: "",
+			street: "Marco Polostraat 107",
+			postcode: "1057 BM",
+			url: "http://open.mapquestapi.com/staticmap/v4/getmap?key=Fmjtd|luubn16829,bw=o5-90asgw&type=map&size=225,160&pois=purple-1,52.3680074236842,4.85600957894737,0,0|¢er=52.3680074236842,4.85600957894737&zoom=15&rand=-62158057",
+type: "s",
+			rawdata: "{"latLng":{"lng":4.85601,"lat":52.368007},"adminArea4":"Stadsregio Amsterdam","adminArea5Type":"City","adminArea4Type":"County","adminArea5":"Amsterdam","street":"Marco Polostraat 107","adminArea1":"NL","adminArea3":"North Holland","type":"s","displayLatLng":{"lng":4.85601,"lat":52.368007},"linkId":0,"postalCode":"1057 BM","dragPoint":false,"sideOfStreet":"N","adminArea1Type":"Country","geocodeQuality":"POINT","geocodeQualityCode":"P1XXX","adminArea3Type":"State","mapUrl":"http://open.mapquestapi.com/staticmap/v4/getmap?key=Fmjtd|luubn16829,bw=o5-90asgw&type=map&size=225,160&pois=purple-1,52.3680074236842,4.85600957894737,0,0|¢er=52.3680074236842,4.85600957894737&zoom=15&rand=-62158057"}",
+			cdk_id: "",
+			data: {
+				map: [
+				[
+					"latLng",
+					{
+						map: [
+						[
+							"lng",
+							4.85601
+						],
+						[
+							"lat",
+							52.368007
+						]
+						]
+					}
+				],
+				[
+					"adminArea4",
+					"Stadsregio Amsterdam"
+				],
+				[
+					"adminArea5Type",
+					"City"
+				],
+				[
+					"adminArea4Type",
+					"County"
+				],
+				[
+					"adminArea5",
+					"Amsterdam"
+				],
+				[
+					"street",
+					"Marco Polostraat 107"
+				],
+				[
+					"adminArea1",
+					"NL"
+				],
+				[
+					"adminArea3",
+					"North Holland"
+				],
+				[
+					"type",
+					"s"
+				],
+				[
+					"displayLatLng",
+					{
+					map: [
+						[
+							"lng",
+							4.85601
+						],
+						[
+							"lat",
+							52.368007
+						]
+					]
+					}
+				],
+				[
+					"linkId",
+					0
+				],
+				[
+					"postalCode",
+					"1057 BM"
+				],
+				[
+					"dragPoint",
+					false
+				],
+				[
+					"sideOfStreet",
+					"N"
+				],
+				[
+					"adminArea1Type",
+					"Country"
+				],
+				[
+					"geocodeQuality",
+					"POINT"
+				],
+				[
+					"geocodeQualityCode",
+					"P1XXX"
+				],
+				[
+					"adminArea3Type",
+					"State"
+				],
+				[
+				"mapUrl",
+				"http://open.mapquestapi.com/staticmap/v4/getmap?key=Fmjtd|luubn16829,bw=o5-90asgw&type=map&size=225,160&pois=purple-1,52.3680074236842,4.85600957894737,0,0|¢er=52.3680074236842,4.85600957894737&zoom=15&rand=-62158057"
+				]
+				]
+				}
+			}
+			]
+			}
+}
+        </pre></p>         
+        
+<!-- call to garage -->
+		<a name="getgarage"/></a>
+		<p>&nbsp;</p>
+		<p>&nbsp;</p>
+		<h2>Details of one garage</h2>
+        <p><pre>http://divvapi.parkshark.nl/apitest.jsp?action=get-garage-by-id&id=27</pre> </p>
+        <p>Will return details of the garage as imported into the api from the citysdk</p>
+        <p><a class="btn" href='apitest.jsp'>Try the API</a></p>
         <p><pre>
-
-
-{"items": [
-  {
-    "i": 264,
-    "match": 0,
-    "dist": 0.0,
-    "dist2": 0.0,
-    "onmap": false,
-    "lat": 52.3766708,		/* latitude */
-    "lon": 4.9010301,		/* longitude */
-    "cost": 0.0,
-    "totalcost": 0.0,
-    "max": 0.0,
-    "isInNorth": false,		/* is in Amsterdam North */
-    "dbg": "",
-    "bw": {	
-      "cash": false,		/* accepts cash */
-      "creditcard": true,	/* accepts creditcard */
-      "pin": true,		/* accepts pin */
-      "chip": true		/* acepts chipknip */
-    },
-    "costs": {
-      "geb_code": "G1",		/* Payment charging code */
-      "days": [			/* start end end of hours in which you have to pay starting with Sunday as element [0] */
-        {
-          "start": 12,
-          "end": 24
-        },
-        {
-          "start": 9,
-          "end": 24
-        },
-        {
-          "start": 9,
-          "end": 24
-        },
-        {
-          "start": 9,
-          "end": 24
-        },
-        {
-          "start": 9,
-          "end": 24
-        },
-        {
-          "start": 9,
-          "end": 24
-        },
-        {
-          "start": 9,
-          "end": 24
-        }
-      ],
-      "t_code": "TZ11",		/* link to Paymen table */
-      "first": {
-      				/* 	there are payment combinations
-      					if the comaination is "Y" then the price
-      					specified is good for the first number of
-      					hours specified in "hrs" 
-      				*/
-        "combination": "n",
-        "price": 0.0,
-        "hrs": 0
-      },
-      "cost": 5.0,			/* cost per hour */
-      "max": 0.0			/* if there is a maximum stay */
-    },
-    "entityid": "667",			/* internal id */
-    "stadsdeel": "Centrum",		/* city area */
-    "belnummer": "10667",		/* meter number */
-    "adres": "Prins Hendrikkade 76",	/* address */
-    "postcode": "1012 AE",		/* postcode */
-    "woonplaats": "Amsterdam",		/* city */
-    "typeautomaat": "CWO",		/* Type of mater */
-    "betaalwijze": "5",
-    "status": "OP",
-    "tariefcode": "1"			/* link to tarrif codes */
-  },
-  {}
-]}
-
-
-
-
-
+		{
+		result: {
+		_executiontime: 2,
+		timings: [ ],
+		garage: {
+			lat: 52.3440266,
+			lon: 4.8539215,
+			name: "Olympisch Stadion",
+			street: "",
+			postcode: "1076DE",
+			url: "http://www.p1.nl/parkeren/parkeergarage-olympisch-stadion/",
+			type: "parking-garage",
+			rawdata: "",
+			cdk_id: "test.divv.parking.car.23",
+			places: 0,
+			owner: "P1 Parkeergarage Olympisch Stadion",
+			remarks: "",
+			capacity: 0,
+					price_day: 50,
+			free_minutes: 0,
+			opening_times: [
+			{
+				dayOfWeek: 0,
+				open_in: "0000",
+				open_out: "0000",
+				close_in: "0000",
+				close_out: "0000"
+			},
+			{
+				dayOfWeek: 1,
+				open_in: "0000",
+				open_out: "0000",
+				close_in: "0000",
+				close_out: "0000"
+			},
+			{
+				dayOfWeek: 2,
+				open_in: "0000",
+				open_out: "0000",
+				close_in: "0000",
+				close_out: "0000"
+			},
+			{
+				dayOfWeek: 3,
+				open_in: "0000",
+				open_out: "0000",
+				close_in: "0000",
+				close_out: "0000"
+			},
+			{
+				dayOfWeek: 4,
+				open_in: "0000",
+				open_out: "0000",
+				close_in: "0000",
+				close_out: "0000"
+			},
+			{
+				dayOfWeek: 5,
+				open_in: "0000",
+				open_out: "0000",
+				close_in: "0000",
+				close_out: "0000"
+			},
+			{
+				dayOfWeek: 6,
+				open_in: "0000",
+				open_out: "0000",
+				close_in: "0000",
+				close_out: "0000"
+			}],
+			opening_times_raw: "0-6 0000 0000 0000 0000",
+			time_unit_minutes: 9,
+			price_per_time_unit: 0.5,
+			includes_public_transport: "n",
+			calc_type: "garage",
+			csdkid: "test.divv.parking.car.23",
+			csdkurl: "http://test-api.citysdk.waag.org/test.divv.parking.car.23"
+		}}}        
         </pre></p>
-        <p>&nbsp;</p>
-        <h2>Get list of GebCodes</h2>
-       	<p><pre>http://api.parkshark.nl/psapi/api.jsp?action=get_gebcodes</pre> </p>
-        <p>Will return a list of gebcodes.</p>
+
+
+<!-- call to meter -->
+		<a name="getmeter"/></a>
+		<p>&nbsp;</p>
+		<p>&nbsp;</p>
+		<h2>Details of one garage</h2>
+        <p><pre>http://divvapi.parkshark.nl/apitest.jsp?action=get-meter-by-automat-number&id=11328</pre> </p>
+        <p>Will return details of the meter as imported into the api from the citysdk</p>
         <p><pre>
-{"items": [
-  {
-    "t_code": "1",
-    "geb_code": "G1",
-    "price_code": "TZ11",
-    "max": 0,
-    "oms": "zonder 0,10"
-  },, ....]
- } 
-
-
-        </pre></p>
+{
+		result: {
+		_executiontime: 3,
+		timings: [ ],
+		meter: {
+			i: 355,
+			match: 0,
+			dist: 0,
+			onmap: false,
+			lat: 52.3762398,
+			lon: 4.91645,
+			cost: 0,
+			totalcost: 0,
+			max: 0,
+			isInNorth: false,
+			bw: {
+				cash: false,
+				creditcard: true,
+				pin: true,
+				chip: true
+			},
+			costs: {
+				geb_code: "G1",
+				days: [
+				{
+					start: 12,
+					end: 24
+				},
+				{
+					start: 9,
+					end: 24
+				},
+				{
+					start: 9,
+					end: 24
+				},
+				{
+					start: 9,
+					end: 24
+				},
+				{
+					start: 9,
+					end: 24
+				},
+				{
+					start: 9,
+					end: 24
+				},
+				{
+					start: 9,
+					end: 24
+				}
+				],
+				t_code: "TZ13",
+				first: {
+					combination: "n",
+					price: 0,
+					hrs: 0,
+					price2: 0,
+					hrs2: 0
+				},
+				cost: 3,
+				max: 0,
+				maxdaycost: 0,
+				error: 0
+			},
+			csdkid: "",
+			csdkzone: "test.divv.parking.zone.13",
+			csdkurl: "",
+			expected_occupancy: "",
+			name: "",
+			entityid: "1328",
+			stadsdeel: "Centrum",
+			belnummer: "11328",
+			adres: "Dijksgracht 6",
+			postcode: "1019 BS",
+			woonplaats: "Amsterdam",
+			typeautomaat: "CWT",
+			betaalwijze: "5",
+			status: "OP",
+			tariefcode: "3",
+			type: "on-street-meter",
+			costsignature: "",
+			garageid: -1
+		}
+		}
+}
+        </pre></p>        
+        
+        
         <p>&nbsp;</p>
-        <h2>Get list of Costs</h2>
-       	<p><pre>http://api.parkshark.nl/api.jsp?action=get_costs</pre> </p>
-        <p>Will return a list of costs.</p>
-        <p><pre>
-{"items": [
-  {
-    "t_code": "TZ81",			/* tarrif code */
-    "first": {
+        <h1>Data Sources</h1>
+        <h2>Garages from citySDK</h2>
+        <a href='http://test-api.citysdk.waag.org/nodes?layer=test.divv.parking.car&geom'>http://test-api.citysdk.waag.org/nodes?layer=test.divv.parking.car.price&geom</a>
+        <br>
+        <a href='http://test-api.citysdk.waag.org/nodes?layer=test.divv.parking.car&geom'>http://test-api.citysdk.waag.org/nodes?layer=test.divv.parking.car&geom</a>
+        <h2>Parking chances from citySDK</h2>
+        <a href='http://test-api.citysdk.waag.org/test.divv.parking.zone.10?layer=test.divv.parking.zone.chance'>http://test-api.citysdk.waag.org/test.divv.parking.zone.10?layer=test.divv.parking.zone.chance</a>
+        <h2>Zone information from citySDK</h2>
+		<a href='http://test-api.citysdk.waag.org/nodes?layer=test.divv.parking.zone.*&per_page=1000'>http://test-api.citysdk.waag.org/nodes?layer=test.divv.parking.zone.*&per_page=1000</a>
+		<br>
+		<a href='http://test-api.citysdk.waag.org/nodes?lon=4.850185219599298&lat=52.355662948327264&layer=test.divv.parking.zone&radius=10&per_page=10'>http://test-api.citysdk.waag.org/nodes?lon=4.850185219599298&lat=52.355662948327264&layer=test.divv.parking.zone&radius=10&per_page=10</a>
+		<br>
+		<a href='http://test-api.citysdk.waag.org/nodes?layer=test.divv.parking.zone.*&per_page=1000&geom'>http://test-api.citysdk.waag.org/nodes?layer=test.divv.parking.zone.*&per_page=1000&geom</a>
+		<br>
+		<a href='http://test-api.citysdk.waag.org/nodes?layer=test.divv.parking.zone.*&per_page=1000'>http://test-api.citysdk.waag.org/nodes?layer=test.divv.parking.zone.*&per_page=1000</a>
+		<h2>Calculations from ParkShark</h2>
+		<a href='http://api.parkshark.nl'>http://api.parkshark.nl</a>
+		<h2>Code Hosted on Github</h2>
+		<a href='https://github.com/jonathanrcarter/divv-amsterdam-parkingapi'>https://github.com/jonathanrcarter/divv-amsterdam-parkingapi</a>
+		<h2>Hosted and supported by Glimworm</h2>
+		<a href='http://www.glimworm.com/'>http://www.glimworm.com/</a>
+		<h2>Based on research done commissioned by divv</h2>
+		<a href='https://github.com/DIVV-Amsterdam/DIVV-multi-modal-api-report'>https://github.com/DIVV-Amsterdam/DIVV-multi-modal-api-report</a>
+		<br>
+		<a href='http://jon651.glimworm.com/divvamsterdam/DIVV-multi-modal-api-report/php/example/planning/plan.php?go=y&from=52.083266%2C4.878896%2CAnjerstraat+3%2C+Woerden&to=52.359798%2C4.884206%2CRijksmuseum&opt_startWithCar=y&date=2013-12-17&time=14%3A30&hour=14&minute=30&timex=3000'>http://jon651.glimworm.com/divvamsterdam/DIVV-multi-modal-api-report/php/example/planning/plan.php?go=y&from=52.083266%2C4.878896%2CAnjerstraat+3%2C+Woerden&to=52.359798%2C4.884206%2CRijksmuseum&opt_startWithCar=y&date=2013-12-17&time=14%3A30&hour=14&minute=30&timex=3000</a>
 
-    				/* 	there are payment combinations
-      					if the comaination is "Y" then the price
-      					specified is good for the first number of
-      					hours specified in "hrs" 
-      				*/
- 
-      "combination": "n",
-      "price": 0.0,
-      "hrs": 0
-    },
-    "cost": 1.1,		/* cost per hour */
-    "max": 0.0			/* if there is a maximum stay */
-  }, ....]
- }        
         
         
         </pre></p>

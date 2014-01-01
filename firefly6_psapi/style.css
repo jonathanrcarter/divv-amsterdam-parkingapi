@@ -1,0 +1,9 @@
+body {
+	background-image: url('http://jon651.glimworm.com/divvamsterdam/DIVV-multi-modal-api-report/php/example/images/glimworm02_grey.jpg');
+	background-repeat: no-repeat;
+	background-position: 0 0;
+}
+
+.hero-unit h1, .navbar .brand {
+	color : red;
+}

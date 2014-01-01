@@ -52,13 +52,7 @@ public class _testapi {
 				System.out.print("\t");
 				System.out.print(com.glimworm.opendata.parkshark.CalcParking.sgarages[i].owner);
 				System.out.print("\t");
-				System.out.print(com.glimworm.opendata.parkshark.CalcParking.sgarages[i].service_open_in);
-				System.out.print(",");
-				System.out.print(com.glimworm.opendata.parkshark.CalcParking.sgarages[i].service_close_in);
-				System.out.print(",");
-				System.out.print(com.glimworm.opendata.parkshark.CalcParking.sgarages[i].service_open_out);
-				System.out.print(",");
-				System.out.print(com.glimworm.opendata.parkshark.CalcParking.sgarages[i].service_close_out);
+				System.out.print(com.glimworm.opendata.parkshark.CalcParking.sgarages[i].opening_times_raw);
 				System.out.print("\t");
 				System.out.print(com.glimworm.opendata.parkshark.CalcParking.sgarages[i].price_day);
 				System.out.print("\t");

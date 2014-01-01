@@ -82,7 +82,9 @@ public class ParallelPlanCallable implements Callable<PlanResponse>{
 			}
 			
 			
-			if (ppr.plan_return_also == true) {
+			if (ppr.plan_return_also == false) {
+				rec.reccommended_pt_route_return.summaryasstring = null;
+			} else {
 
 				req = new PlanRequest();
 				req.to = parkingLocation;

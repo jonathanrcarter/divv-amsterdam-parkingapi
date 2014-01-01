@@ -21,6 +21,7 @@ public class Meter implements Cloneable {
 	
 	public String csdkid = "";
 	public String csdkzone = "";
+	public String csdkurl = "";
 	public String chance_weekday = "";
 	public String chance_sat = "";
 	public String chance_sun = "";

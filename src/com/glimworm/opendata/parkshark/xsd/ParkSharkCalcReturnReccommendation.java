@@ -9,18 +9,24 @@ public class ParkSharkCalcReturnReccommendation {
 	public double lat = 0;
 	public double lon = 0;
 	public int i = 0;
+	public int match = 0;
 	public String type = "";
 	public String dbg = "";
 	public String expected_occupancy = "";
 	public String chance_weekday = "";
 	public String chance_sat = "";
 	public String chance_sun = "";
-	public String garage_type = "";
-	public String notes = "";
-	public String garage_opening_hours = "";
-	public String garage_owner = "";
-	public String garage_infourl = "";
-	public String garage_includes_public_transport = "";
+	public String garageid = null;
+	public String garage_type = null;
+	public String notes = null;
+	public String garage_opening_hours = null;
+	public String garage_opening_hours_today = null;
+	public String garage_opening_hours_today_json = null;
+	public String garage_owner = null;
+	public String garage_infourl = null;
+	public String garage_includes_public_transport = null;
+	public String csdkid = null;
+	public String csdkurl = null;
 	
 
 	public ParkSharkCalcReturnReccommendation_ptroute reccommended_pt_route = new ParkSharkCalcReturnReccommendation_ptroute();

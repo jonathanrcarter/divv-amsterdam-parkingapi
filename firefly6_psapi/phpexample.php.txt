@@ -1,0 +1,85 @@
+<html>
+<head>
+      <meta charset="utf-8">
+      <title>DIVV-multi-modal-api-report</title>
+      <meta name="viewport" content="width=device-width, initial-scale=1.0">
+      <meta name="description" content="">
+      <meta name="author" content="">
+      <!-- Le styles -->
+      <link href="http://www.glimworm.com/_assets/moock/bootstrap/css/bootstrap.css" rel="stylesheet">
+      <link href="http://www.glimworm.com/_assets/moock/bootstrap/css/bootstrap-responsive.css" rel="stylesheet">
+      <!-- Le HTML5 shim, for IE6-8 support of HTML5 elements -->
+      <!--[if lt IE 9]>
+      <script src="http://html5shim.googlecode.com/svn/trunk/html5.js"></script>
+      <![endif]-->
+      <!-- Le fav and touch icons -->
+      <link rel="shortcut icon" href="http://www.glimworm.com/_assets/moock/bootstrap/ico/favicon.ico">
+      <link rel="apple-touch-icon-precomposed" sizes="144x144" href="http://www.glimworm.com/_assets/moock/bootstrap/ico/apple-touch-icon-144-precomposed.png">
+      <link rel="apple-touch-icon-precomposed" sizes="114x114" href="http://www.glimworm.com/_assets/moock/bootstrap/ico/apple-touch-icon-114-precomposed.png">
+      <link rel="apple-touch-icon-precomposed" sizes="72x72" href="http://www.glimworm.com/_assets/moock/bootstrap/ico/apple-touch-icon-72-precomposed.png">
+      <link rel="apple-touch-icon-precomposed" href="http://www.glimworm.com/_assets/moock/bootstrap/ico/apple-touch-icon-57-precomposed.png">
+      <link rel="stylesheet" href="http://code.jquery.com/ui/1.10.0/themes/base/jquery-ui.css" />
+      <script src="http://code.jquery.com/jquery-1.8.3.js"></script>
+      <script src="http://code.jquery.com/ui/1.10.0/jquery-ui.js"></script>
+      <script type="text/javascript" src="http://maps.googleapis.com/maps/api/js?libraries=geometry&sensor=false"></script>
+      
+<script>
+</script>
+</head>
+<body>
+<?php
+
+$URL = "http://divvapi.parkshark.nl/apitest.jsp?action=plan&to_lat=52.368104267594056&to_lon=4.856208655327167&dd=28&mm=12&yy=2013&h=12&m=50&dur=2";
+$c = file_get_contents($URL);
+
+$d = json_decode($c);
+
+$cnt = 0;
+foreach ($d->result->reccommendations as $r) {
+
+	echo "<table>";
+	echo sprintf("<tr><td width='200'>Distance : </td><td> %s</td></tr>>\n" , $r->dist);
+	echo sprintf("<tr><td>Type : </td><td> %s</td></tr>\n" , $r->type);
+	echo sprintf("<tr><td>Cost : </td><td>%s</td></tr>\n" , $r->cost);
+	echo sprintf("<tr><td>Chance : </td><td>%s</td></tr>\n" , $r->parking_chance);
+	echo sprintf("<tr><td>Chance day : </td><td>%s</td></tr>\n" , $r->chance_weekday);
+	echo sprintf("<tr><td>Chance sat : </td><td>%s</td></tr>\n" , $r->chance_sat);
+	echo sprintf("<tr><td>Chance sun : </td><td>%s</td></tr>\n" , $r->chance_sun);
+	
+	$l = "";
+	$l .= "dist : " . $r->reccommended_pt_route->distance . "\n";
+	$l .= "duration : " . $r->reccommended_pt_route->duration . "\n";
+	$l .= "src : " . $r->reccommended_pt_route->src . "\n";
+	$l .= "url : " . $r->reccommended_pt_route->url . "\n";
+
+	$pts = "";
+	foreach ($r->reccommended_pt_route->legs as $L) {
+		$l .= "<div>Leg : " . $L->mode . "from : " . $L->from->name . " to ". $L->to->name." ".$L->transitinfo->agency . " " .$L->transitinfo->line . " " . $L->transitinfo->polyline."</div>";
+	
+		$p = json_decode($L->transitinfo->polyline);
+//		$l .= "\n ". $p->points;
+		
+		$cnt++;
+		
+		$sm = "http://maps.googleapis.com/maps/api/staticmap?center=52.3681107,4.8562698&zoom=14&size=600x300&maptype=roadmap&path=weight:5|color:red|enc:".$p->points."&sensor=false&key=AIzaSyCfN3FpO9GEuiIc7wn4j-j3TGXkbSaDxb8";
+
+		$sm = "http://maps.googleapis.com/maps/api/staticmap?center=".$p->from->lat.",".$p->from->lon."&zoom=14&size=600x300&maptype=roadmap&path=weight:5|color:red|enc:".$p->points."&sensor=false&key=AIzaSyCfN3FpO9GEuiIc7wn4j-j3TGXkbSaDxb8";
+
+
+		
+		$l .= sprintf("<img src='%s'>",$sm);
+
+
+	}
+
+
+	echo sprintf("<tr><td colspan='2'><pre>%s</pre></td></tr>",$l);
+
+//	echo sprintf("<tr><td colspan='2'><pre>%s</pre></td></tr>",print_r($r->reccommended_pt_route,true));
+	echo "</table><br><hr><br>";
+	
+
+}
+
+?>
+</body></html>

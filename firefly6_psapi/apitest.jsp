@@ -4,7 +4,7 @@
 	autoFlush="true"
 	isThreadSafe="true"
 	contentType="text/html;charset=UTF-8"%><%
-
+	
 	long _exdt = new Date().getTime();
 	com.glimworm.opendata.divvamsterdamapi.planning.xsd.apiResponse ar = new com.glimworm.opendata.divvamsterdamapi.planning.xsd.apiResponse();
 	
@@ -40,44 +40,106 @@
 	String tim = gwdb.gwUtils.get(request,"tim","n");
 	String plan_radius = gwdb.gwUtils.get(request,"plan_radius","2000");
 	
+	String id = gwdb.gwUtils.get(request,"id","");
+	String idg = gwdb.gwUtils.get(request,"idg","5");
+	String idm = gwdb.gwUtils.get(request,"idm","11328");
+	String addr = gwdb.gwUtils.get(request,"addr","Marco Polostraat 107 , Amsterdam, Netherlands");
 	
 	
 	if (action.equalsIgnoreCase("")) {
+		
 		out.println("<html>");
 		out.println("<head>");
+		out.println("<link href='bootstrap/css/bootstrap.css' rel='stylesheet'>");
 		out.println("<link rel='stylesheet' href='apitest.css' />");
 		out.println("</head>");
 		out.println("<body>");
-		out.println("<form>");
+		out.println(readFileCR(application.getRealPath("/")+"/apitest.top.html"));
+		out.println("<h2>Basic API</h2>");
+		out.println("<form class='form-horizontal'>");
 		out.println("<input type='hidden' name='action' value='plan'>");
-		out.println("LAT <input name='to_lat' value='"+to_lat+"'>");
-		out.println("LON <input name='to_lon' value='"+to_lon+"'>");
-		out.println("<br>");
-		out.println("DD <input name='dd' value='"+dd+"'>");
-		out.println("MM <input name='mm' value='"+mm+"'>");
-		out.println("YY <input name='yy' value='"+yy+"'>");
-		out.println("<br>");
-		out.println("HH <input name='h' value='"+h+"'>");
-		out.println("MM <input name='m' value='"+m+"'>");
-		out.println("<br>");
-		out.println("PARKING IN HRS <input name='dur' value='"+dur+"'>");
-		out.println("<br>");
-		out.println("plan routes <input name='opt_routes' value='"+opt_routes+"'>");
-		out.println("<br>");
-		out.println("plan routes return also <input name='opt_routes_ret' value='"+opt_routes_ret+"'>");
-		out.println("<br>");
-		out.println("include meters <input name='opt_am' value='"+opt_am+"'>");
-		out.println("<br>");
-		out.println("include reccommendations <input name='opt_rec' value='"+opt_rec+"'>");
-		out.println("<br>");
-		out.println("plan routes if distance less than <input name='plan_radius' value='"+plan_radius+"'>");
-		out.println("<br>");
+		out.println("<div class='form-inline'>");
+		out.println("<label class='long'>LAT</label><input class='long' name='to_lat' value='"+to_lat+"'>");
+		out.println("<label class='short'>LON</label><input class='long' name='to_lon' value='"+to_lon+"'>");
+		out.println("</div>");
+		out.println("<div class='form-inline'>");
+		out.println("<label class='long'>DD</label><input name='dd' value='"+dd+"'>");
+		out.println("<label class='short'>MM</label><input name='mm' value='"+mm+"'>");
+		out.println("<label class='short'>YY</label><input name='yy' value='"+yy+"'>");
+		out.println("</div>");
+		out.println("<div class='form-inline'>");
+		out.println("<label class='long'>HH</label><input name='h' value='"+h+"'>");
+		out.println("<label class='short'>MM</label><input name='m' value='"+m+"'>");
+		out.println("</div>");
+		out.println("<div class='form-inline'>");
+		out.println("<label class='long'>PARKING IN HRS</label><input name='dur' value='"+dur+"'>");
+		out.println("</div>");
+		out.println("<div class='form-inline'>");
+		out.println("<label class='long'>plan routes</label><input name='opt_routes' value='"+opt_routes+"'>");
+		out.println("</div>");
+		out.println("<div class='form-inline'>");
+		out.println("<label class='long'>plan routes return also</label><input name='opt_routes_ret' value='"+opt_routes_ret+"'>");
+		out.println("</div>");
+		out.println("<div class='form-inline'>");
+		out.println("<label class='long'>include meters</label><input name='opt_am' value='"+opt_am+"'>");
+		out.println("</div>");
+		out.println("<div class='form-inline'>");
+		out.println("<label class='long'>include reccommendations</label><input name='opt_rec' value='"+opt_rec+"'>");
+		out.println("</div>");
+		out.println("<div class='form-inline'>");
+		out.println("<label class='long'>plan routes if distance less than</label><input name='plan_radius' value='"+plan_radius+"'>");
 		out.println("<input type='submit' value='plan'>");
-		out.println("Notes");
+		out.println("</div>");
 		out.println("</form>");
+		out.println("<h2>Alternative calls</h2>");
+
+		out.println("<form class='form-inline'>");
+		out.println("<input type='hidden' name='action' value='get-meter-by-automat-number'>");
+		out.println("<label class='url'>get-meter-by-automat-number&id=</label><input name='id' value='"+idm+"'>");
+		out.println("<input type='submit' value='get details'>");
+		out.println("</form>");
+
+		out.println("<form class='form-inline'>");
+		out.println("<input type='hidden' name='action' value='get-garage-by-id'>");
+		out.println("<label class='url'>get-garage-by-id&id=</label><input name='id' value='"+idg+"'>");
+		out.println("<input type='submit' value='get details'>");
+		out.println("</form>");
+
+		out.println("<form class='form-inline'>");
+		out.println("<input type='hidden' name='action' value='geocode'>");
+		out.println("<label class='url'>geocode&addr=</label><input class='vlong' name='addr' value='"+addr+"'>");
+		out.println("<input type='submit' value='geocode'>");
+		out.println("</form>");
+		
+		out.println("");
+		out.println(readFileCR(application.getRealPath("/")+"/apitest.bot.html"));
 		out.println("</body>");
 		out.println("</html>");
 		return;
+	}
+	if (action.equalsIgnoreCase("get-meter-by-automat-number")) {
+		ar.meter = com.glimworm.opendata.parkshark.CalcParking.getMeterById(id);
+		ar.reccommendations = null;
+		ar._executiontime = new Date().getTime() - _exdt;
+		out.println(xstream.toXML(ar));
+		return;
+	}
+	if (action.equalsIgnoreCase("get-garage-by-id")) {
+		int _id = Integer.parseInt(id);
+		ar.garage = com.glimworm.opendata.parkshark.CalcParking.getGarageByGarageid(_id);
+		ar.reccommendations = null;
+		ar._executiontime = new Date().getTime() - _exdt;
+		out.println(xstream.toXML(ar));
+		return;
+		
+	}
+
+	if (action.equalsIgnoreCase("geocode")) {
+		ar.places = GeoCodeByMapQuest.geocode(addr);
+		ar._executiontime = new Date().getTime() - _exdt;
+		out.println(xstream.toXML(ar));
+		return;
+		
 	}
 	
 //	ArrayList<Place> pl_home = GeoCodeByMapQuest.geocode("eerste weteringplantsoen 8 , Amsterdam, Netherlands");
@@ -162,6 +224,11 @@
 
 	}
 	
+	if (opt_routes_ret.equalsIgnoreCase("y") == false ) {
+		xstream.omitField(com.glimworm.opendata.parkshark.xsd.ParkSharkCalcReturnReccommendation.class,"reccommended_pt_route_return");
+	}
+	
+	
 	if (opt_rec.equalsIgnoreCase("y")) {
 		ar.reccommendations = prv.reccommendations;
 	}
@@ -187,4 +254,40 @@
 //	System.out.println(rv);
 //	System.out.println("parkshark::done all");
 	
+%><%!
+
+public static String readFileCR(String F) {
+
+	StringBuffer sb = new StringBuffer();
+
+	File f = new File(F);
+	System.out.println("readFileCR" + F);
+	try {
+		System.out.println("readFileCR" + f.getCanonicalPath());
+		System.out.println("readFileCR" + f.getCanonicalFile().getAbsolutePath());
+		if (!f.exists()) return null;
+
+		System.out.println("readFileCR exists" + F);
+
+
+		FileReader fr = new FileReader(f.getCanonicalFile());
+		BufferedReader in = new BufferedReader(fr);
+
+		String line = null;
+
+		while ((line = in.readLine()) != null) {
+			sb.append(line+"\n");
+		}
+
+		in.close();
+		fr.close();
+
+	} catch (Exception E) {
+		System.out.println(" gwExtras : readFile : " + E.getMessage());
+		return null;
+	}
+
+	return sb.toString();
+
+}
 %>

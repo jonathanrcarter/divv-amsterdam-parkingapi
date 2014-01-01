@@ -396,6 +396,8 @@ public class CalcParking {
 			_meter.name = garages[i].name;
 			_meter.lat = garages[i].lat;
 			_meter.lon = garages[i].lon;
+			_meter.csdkid = garages[i].csdkid;
+			_meter.csdkurl = garages[i].csdkurl;
 
 			_meter.bw.cash = true;
 			_meter.bw.creditcard = true;
@@ -542,6 +544,11 @@ public class CalcParking {
 		
 	}
 	
+
+	public static PlaceParkingGarage getGarageByGarageid (int id) {
+		if (id < sgarages.length) return sgarages[id];
+		return null;
+	}
 	public static Meter getMeterById(String meternumber) {
 		if (smeters == null) {
 			populate_meters();
@@ -670,6 +677,30 @@ public class CalcParking {
 		return calcv2(req);
 		
 	}
+	
+	public static int timevalue(int hrs, int mins) {
+		return (hrs * 60)+mins;
+	}
+	public static int timevalue(String hrsmins) {
+		if (hrsmins == null) return 0;
+		if (hrsmins.length() == 2) return Integer.parseInt(hrsmins);
+		if (hrsmins.length() == 3) return Integer.parseInt(hrsmins.substring(0,1)) * 60 + Integer.parseInt(hrsmins.substring(1));
+		if (hrsmins.length() == 4) return Integer.parseInt(hrsmins.substring(0,2)) * 60 + Integer.parseInt(hrsmins.substring(2));
+		return 0;
+	}
+	static int MINSINDAY = (24*60);
+	public static int endday(int day, int timevalue, double duration) {
+		long endtime = timevalue + Math.round(duration * 60);
+		double ddays = Math.floor(endtime / MINSINDAY);
+		int days = new Double(ddays).intValue();
+		return (days % 7);
+	}
+	public static int endtime(int day, int timevalue, double duration) {
+		long endtime = timevalue + Math.round(duration * 60);
+		long endingtime = (endtime % MINSINDAY);
+		return new Double(endingtime).intValue();
+	}
+	
 	public static ParkSharkCalcReturn calcv2(ParkSharkCalcRequest req) {
 		int _day = req._day;
 		int hrs = req.hrs;
@@ -679,6 +710,11 @@ public class CalcParking {
 		double from_lon = req.from_lon;
 		String _paymethods = req._paymethods;
 		int fmt = req.fmt;
+		
+		int starttime = timevalue(hrs,mins);
+		int endtime = endtime(_day, starttime, duration);
+		int endday = endday(_day, starttime, duration);
+		
 		
 		
 //		var day = $ef.currentdata.date_start.dt.getDay();		// 0 = sunday
@@ -716,7 +752,7 @@ public class CalcParking {
 							day.start = days.get(j).start;
 							day.end = days.get(j).end;
 							double dayhours = (day.end - day.start);
-							double daycost = ((dayhours * 60) / sgarages[smeters[i].garageid].time_unit_minutes) * sgarages[smeters[i].garageid].price_per_time_unit;
+							double daycost = Math.ceil((dayhours * 60) / sgarages[smeters[i].garageid].time_unit_minutes) * sgarages[smeters[i].garageid].price_per_time_unit;
 							if (sgarages[smeters[i].garageid].price_day > -1 && sgarages[smeters[i].garageid].price_day < daycost) daycost = sgarages[smeters[i].garageid].price_day;
 							val += daycost;
 						}
@@ -1032,6 +1068,24 @@ public class CalcParking {
 			double d = distance(loc, new location(meter.lat, meter.lon));
 			meters[i].dist = d;
 			
+			// check if the opingin times match for for garages if the match if currently positive
+			if (smeters[i].garageid > -1 && meters[i].match > 0) {
+				if (sgarages[smeters[i].garageid].opening_times[_day].open24() == false) {
+					// if the garage is not open 24x7 and start parking time before open_in then fail the match
+					if (starttime < timevalue(sgarages[smeters[i].garageid].opening_times[_day].open_in)) {
+						meters[i].match = 0;
+						if (DBG) meters[i].dbg += ("[match on opening in failed d:"+_day+", st:"+starttime+" openin : "+sgarages[smeters[i].garageid].opening_times[_day].open_in+" openin_tv "+timevalue(sgarages[smeters[i].garageid].opening_times[_day].open_in)+"]");
+					}
+				}
+				if (sgarages[smeters[i].garageid].opening_times[endday].open24() == false) {
+					// if the garage is not open 24x7 and start parking time before open_in then fail the match
+					if (endtime > timevalue(sgarages[smeters[i].garageid].opening_times[endday].close_out)) {
+						meters[i].match = 0;
+						if (DBG) meters[i].dbg += ("[match on close out failed d:"+endday+", st:"+endtime+" closeout : "+sgarages[smeters[i].garageid].opening_times[endday].close_out+" closeout_tv "+timevalue(sgarages[smeters[i].garageid].opening_times[endday].close_out)+"]");
+					}
+				}
+			}
+			
 			if (smeters[i].garageid > -1) {
 				String sig = "garage-"+smeters[i].garageid;
 				if (costsmap.containsKey(sig) && costmap.get(sig) != null) {
@@ -1040,6 +1094,10 @@ public class CalcParking {
 					meters[i].cost = val;
 					meters[i].totalcost = val;
 					meters[i].dbg = "sig "+sig + _dbg;
+				} else {
+					meters[i].cost = -1;
+					meters[i].totalcost = -1;
+					meters[i].dbg = "sig "+sig + " not found in costmap";
 				}
 				continue;
 			}
@@ -1145,6 +1203,7 @@ public class CalcParking {
 					newa.lat = smeters[I].lat;
 					newa.lon = smeters[I].lon;
 					newa.type = smeters[I].type;
+					newa.match = meters[i].match;
 					newa.dbg = meters[i].dbg;
 					newa.chance_weekday = smeters[I].chance_weekday;
 					newa.chance_sat = smeters[I].chance_sat;
@@ -1156,35 +1215,37 @@ public class CalcParking {
 					found_signatures.add(meters[i].costsignature);
 				}
 			} else {
-				ParkSharkCalcReturnReccommendation newa = new ParkSharkCalcReturnReccommendation();
-				newa.dist_in_meters = meters[i].dist;
-				newa.cost = meters[i].cost;
-				newa.address = smeters[I].adres;
-				newa.lat = smeters[I].lat;
-				newa.lon = smeters[I].lon;
-				newa.type = smeters[I].type;
-				newa.dbg = meters[i].dbg;
-				newa.chance_weekday = smeters[I].chance_weekday;
-				newa.chance_sat = smeters[I].chance_sat;
-				newa.chance_sun = smeters[I].chance_sun;
-				newa.name = smeters[I].name;
-				newa.expected_occupancy = meters[i].expected_occupancy;
-				newa.garage_type = sgarages[smeters[I].garageid].type;
-				newa.notes = sgarages[smeters[I].garageid].remarks;
-				newa.garage_opening_hours = sgarages[smeters[I].garageid].service_open_in +
-				" " +
-				sgarages[smeters[I].garageid].service_open_out +
-				" " +
-				sgarages[smeters[I].garageid].service_close_in +
-				" " +
-				sgarages[smeters[I].garageid].service_close_out;
-				newa.garage_includes_public_transport = sgarages[smeters[I].garageid].includes_public_transport;
-				newa.garage_owner = sgarages[smeters[I].garageid].owner;
-				newa.garage_infourl = sgarages[smeters[I].garageid].url;
-
-				
-				al.add(newa);
-				ret.timings.add("calc : reccommendations found : " +i+" ("+meters[i].type+") : "+ new Long(new Date().getTime() - _exdt));
+				if (meters[i].match > 0) {
+					ParkSharkCalcReturnReccommendation newa = new ParkSharkCalcReturnReccommendation();
+					newa.dist_in_meters = meters[i].dist;
+					newa.cost = meters[i].cost;
+					newa.address = smeters[I].adres;
+					newa.lat = smeters[I].lat;
+					newa.lon = smeters[I].lon;
+					newa.type = smeters[I].type;
+					newa.dbg = meters[i].dbg;
+					newa.match = meters[i].match;
+					newa.chance_weekday = smeters[I].chance_weekday;
+					newa.chance_sat = smeters[I].chance_sat;
+					newa.chance_sun = smeters[I].chance_sun;
+					newa.name = smeters[I].name;
+					newa.csdkid = smeters[I].csdkid;
+					newa.csdkurl = smeters[I].csdkurl;
+					newa.expected_occupancy = meters[i].expected_occupancy;
+					newa.garage_type = sgarages[smeters[I].garageid].type;
+					newa.garageid = Integer.toString(smeters[I].garageid);
+					newa.notes = sgarages[smeters[I].garageid].remarks;
+					newa.garage_opening_hours = sgarages[smeters[I].garageid].opening_times_raw;
+					newa.garage_opening_hours_today = sgarages[smeters[I].garageid].opening_times[_day].raw();
+					newa.garage_opening_hours_today_json = sgarages[smeters[I].garageid].opening_times[_day].json();
+					newa.garage_includes_public_transport = sgarages[smeters[I].garageid].includes_public_transport;
+					newa.garage_owner = sgarages[smeters[I].garageid].owner;
+					newa.garage_infourl = sgarages[smeters[I].garageid].url;
+					al.add(newa);
+					ret.timings.add("calc : reccommendations found : " +i+" ("+meters[i].type+") : "+ new Long(new Date().getTime() - _exdt));
+				} else {
+					ret.timings.add("calc : reccommendations excluded : " +i+" ("+meters[i].type+") : "+ new Long(new Date().getTime() - _exdt));
+				}
 				
 			}
 		}

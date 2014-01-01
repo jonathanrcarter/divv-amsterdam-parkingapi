@@ -11,4 +11,7 @@ public class apiResponse {
 	public ArrayList<String> timings = new java.util.ArrayList<String>();
 	public ArrayList<ParkSharkCalcReturnReccommendation> reccommendations = null;
 	public Meter[] meters = null;
+	public Meter meter = null;
+	public PlaceParkingGarage garage = null;
+	public ArrayList<Place> places = null;
 }
