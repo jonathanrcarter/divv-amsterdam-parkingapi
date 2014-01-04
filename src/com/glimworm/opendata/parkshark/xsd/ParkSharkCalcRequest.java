@@ -9,4 +9,6 @@ public class ParkSharkCalcRequest {
 	public double from_lon = 0;
 	public String _paymethods = "";
 	public int fmt = 0;
+	public String log = "n";	// log to sysylog for server debugging
+	public String dbg = "n";	// return debug information
 }

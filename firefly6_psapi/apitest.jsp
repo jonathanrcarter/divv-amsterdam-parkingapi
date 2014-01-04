@@ -13,15 +13,6 @@
 	xstream.omitField(com.glimworm.opendata.divvamsterdamapi.planning.xsd.MMdatetime.class,"dt");
 	xstream.alias("result",com.glimworm.opendata.divvamsterdamapi.planning.xsd.apiResponse.class);
 
-	xstream.omitField(com.glimworm.opendata.parkshark.xsd.Meter.class,"chance_weekday");
-	xstream.omitField(com.glimworm.opendata.parkshark.xsd.Meter.class,"chance_sat");
-	xstream.omitField(com.glimworm.opendata.parkshark.xsd.Meter.class,"chance_sun");
-	xstream.omitField(com.glimworm.opendata.parkshark.xsd.Meter.class,"dbg");
-	
-	xstream.omitField(com.glimworm.opendata.parkshark.xsd.ParkSharkCalcReturnReccommendation.class,"chance_weekday");
-	xstream.omitField(com.glimworm.opendata.parkshark.xsd.ParkSharkCalcReturnReccommendation.class,"chance_sat");
-	xstream.omitField(com.glimworm.opendata.parkshark.xsd.ParkSharkCalcReturnReccommendation.class,"chance_sun");
-	xstream.omitField(com.glimworm.opendata.parkshark.xsd.ParkSharkCalcReturnReccommendation.class,"dbg");
 	
 	
 	String action = gwdb.gwUtils.get(request,"action","");
@@ -39,11 +30,29 @@
 	String opt_rec = gwdb.gwUtils.get(request,"opt_rec","y");
 	String tim = gwdb.gwUtils.get(request,"tim","n");
 	String plan_radius = gwdb.gwUtils.get(request,"plan_radius","2000");
+	String log = gwdb.gwUtils.get(request,"log","n");
+	String debug = gwdb.gwUtils.get(request,"debug","n");
 	
 	String id = gwdb.gwUtils.get(request,"id","");
 	String idg = gwdb.gwUtils.get(request,"idg","5");
 	String idm = gwdb.gwUtils.get(request,"idm","11328");
 	String addr = gwdb.gwUtils.get(request,"addr","Marco Polostraat 107 , Amsterdam, Netherlands");
+	
+
+	xstream.omitField(com.glimworm.opendata.parkshark.xsd.Meter.class,"chance_weekday");
+	xstream.omitField(com.glimworm.opendata.parkshark.xsd.Meter.class,"chance_sat");
+	xstream.omitField(com.glimworm.opendata.parkshark.xsd.Meter.class,"chance_sun");
+	if (debug.equalsIgnoreCase("y") == false) {
+		xstream.omitField(com.glimworm.opendata.parkshark.xsd.Meter.class,"dbg");
+	}
+	
+	xstream.omitField(com.glimworm.opendata.parkshark.xsd.ParkSharkCalcReturnReccommendation.class,"chance_weekday");
+	xstream.omitField(com.glimworm.opendata.parkshark.xsd.ParkSharkCalcReturnReccommendation.class,"chance_sat");
+	xstream.omitField(com.glimworm.opendata.parkshark.xsd.ParkSharkCalcReturnReccommendation.class,"chance_sun");
+	if (debug.equalsIgnoreCase("y") == false) {
+		xstream.omitField(com.glimworm.opendata.parkshark.xsd.ParkSharkCalcReturnReccommendation.class,"dbg");
+	}
+	
 	
 	
 	if (action.equalsIgnoreCase("")) {
@@ -184,6 +193,8 @@
 	req.from_lon = lon;
 	req._paymethods = methods;
 	req.fmt = fmt;
+	req.log = log;
+	req.dbg = debug;
 	
 	
 	com.glimworm.opendata.parkshark.xsd.ParkSharkCalcReturn prv = com.glimworm.opendata.parkshark.CalcParking.calcv2(req);

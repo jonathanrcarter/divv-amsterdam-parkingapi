@@ -288,9 +288,9 @@ public class CalcParking {
 	public static Meter[] smeters = null;
 	public static PlaceParkingGarage[] sgarages = null;
 
-	public static javolution.util.FastMap<String, String> chance_day = new javolution.util.FastMap<String,String>();
-	public static javolution.util.FastMap<String, String> chance_sat = new javolution.util.FastMap<String,String>();
-	public static javolution.util.FastMap<String, String> chance_sun = new javolution.util.FastMap<String,String>();
+	public static javolution.util.FastMap<String, String> chance_day = new javolution.util.FastMap<String,String>().setShared(true);
+	public static javolution.util.FastMap<String, String> chance_sat = new javolution.util.FastMap<String,String>().setShared(true);
+	public static javolution.util.FastMap<String, String> chance_sun = new javolution.util.FastMap<String,String>().setShared(true);
 
 	public static void populate_meters() {
 		String sql = "select a.*,p.cash,p.creditcard,p.pin,p.chip from _site1493_dbsynch_automats a left join _site1493_dbsynch_paymethods p on (a.typeautomaat = p.type) ";
@@ -637,7 +637,7 @@ public class CalcParking {
 		return obj.text;
 	}
 	
-	public static javolution.util.FastMap<String, Integer> costsmap = new javolution.util.FastMap<String,Integer>();
+	public static javolution.util.FastMap<String, Integer> costsmap = new javolution.util.FastMap<String,Integer>().setShared(true);
 	public static boolean costsmap_loaded = false;
 	public static void populate_costmap() {
 		for (int i=0; i < smeters.length; i++) {
@@ -714,6 +714,9 @@ public class CalcParking {
 		int starttime = timevalue(hrs,mins);
 		int endtime = endtime(_day, starttime, duration);
 		int endday = endday(_day, starttime, duration);
+		
+		boolean dbg = (req.dbg.equalsIgnoreCase("y"));
+		boolean log = (req.log.equalsIgnoreCase("y"));
 		
 		
 		
@@ -877,11 +880,11 @@ public class CalcParking {
 		}
 		
 		System.out.println("START CALC");
-		System.out.println("DAYS");
-		System.out.println(days);
+		if (log) System.out.println("DAYS");
+		if (log) System.out.println(days);
 		com.thoughtworks.xstream.XStream xstream = new com.thoughtworks.xstream.XStream(new com.thoughtworks.xstream.io.json.JsonHierarchicalStreamDriver());
 		xstream.setMode(com.thoughtworks.xstream.XStream.NO_REFERENCES);
-		System.out.println(xstream.toXML(days));
+		if (log) System.out.println(xstream.toXML(days));
 
 		ret.timings.add("calc : after days " + new Long(new Date().getTime() - _exdt));
 		
@@ -917,9 +920,10 @@ public class CalcParking {
 
 		boolean DBG = false;
 		if (fmt == 3) DBG = true;
+		if (dbg) DBG = true;
 
-		javolution.util.FastMap<String, Double> costmap = new javolution.util.FastMap<String,Double>();
-		javolution.util.FastMap<String, String> dbgmap = new javolution.util.FastMap<String,String>();
+		javolution.util.FastMap<String, Double> costmap = new javolution.util.FastMap<String,Double>().setShared(true);
+		javolution.util.FastMap<String, String> dbgmap = new javolution.util.FastMap<String,String>().setShared(true);
 		
 		ExecutorService executor = Executors.newFixedThreadPool(10);
 	    List<Future<Integer>> list = new ArrayList<Future<Integer>>();
@@ -943,7 +947,7 @@ public class CalcParking {
 		    System.out.println("Interrupted");
 			e.printStackTrace();
 		}
-		System.out.println(xstream.toXML(costmap));
+		if (log) System.out.println(xstream.toXML(costmap));
 
 		ret.timings.add("calc : after costs " + new Long(new Date().getTime() - _exdt));
 
