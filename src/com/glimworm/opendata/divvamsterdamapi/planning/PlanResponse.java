@@ -20,6 +20,9 @@ public class PlanResponse {
 	public MMdatetime startTime = null;
 	public MMdatetime endTime = null;
 	public String rawdata = "";
+	public String otp_url = "";
+	public String proxy_url = "";
+	public String error_text = "";
 	public org.json.JSONObject data = null;
 	
 	

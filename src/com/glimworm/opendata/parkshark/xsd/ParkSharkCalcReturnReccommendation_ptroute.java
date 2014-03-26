@@ -22,4 +22,7 @@ public class ParkSharkCalcReturnReccommendation_ptroute {
 	public String startTime = "";
 	public String endTime = "";
 	public long _executiontime = 0;
+	public String otp_url = "";
+	public String proxy_url = "";
+	public String error_msg = "";
 }

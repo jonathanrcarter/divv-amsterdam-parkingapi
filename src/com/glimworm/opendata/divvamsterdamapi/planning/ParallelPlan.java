@@ -22,7 +22,8 @@ public class ParallelPlan {
 
 		    List<Future<PlanResponse>> list = new ArrayList<Future<PlanResponse>>();
 			for (int i=0; i < reccommendations.size(); i++) {
-		    	Callable<PlanResponse> worker = (Callable<PlanResponse>) new ParallelPlanCallable(ppr, reccommendations.get(i));
+				boolean onlyurl = (i > 5);
+		    	Callable<PlanResponse> worker = (Callable<PlanResponse>) new ParallelPlanCallable(ppr, reccommendations.get(i), onlyurl);
 		    	Future<PlanResponse> submit = executor.submit(worker);
 		    	list.add(submit);
 			}
@@ -30,7 +31,7 @@ public class ParallelPlan {
 		    
 		    try {
 		    	executor.awaitTermination(30, java.util.concurrent.TimeUnit.SECONDS);
-			    System.out.println("Finished all threads");
+			    System.out.println("ParallelPlannin Finished all threads");
 			} catch (InterruptedException e) {
 				// TODO Auto-generated catch block
 			    System.out.println("Interrupted");

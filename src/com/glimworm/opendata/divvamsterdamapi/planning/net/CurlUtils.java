@@ -5,6 +5,8 @@ import org.apache.commons.httpclient.UsernamePasswordCredentials;
 import org.apache.commons.httpclient.auth.AuthScope;
 import org.apache.commons.httpclient.methods.GetMethod;
 import org.apache.commons.httpclient.methods.PostMethod;
+import org.apache.commons.httpclient.params.HttpClientParams;
+import org.apache.commons.httpclient.params.HttpConnectionParams;
 
 import com.glimworm.opendata.divvamsterdamapi.planning.net.xsd.curlResponse;
 
@@ -20,6 +22,9 @@ public class CurlUtils {
 		return getCURL( S, PARAMS,  DOM,  LOGIN,  PASS, CONTENT_TYPE,null);
 	}
 	public static curlResponse getCURL(String S,String PARAMS, String DOM, String LOGIN, String PASS,String CONTENT_TYPE, String[] HEADERS) {
+		return getCURL( S, PARAMS,  DOM,  LOGIN,  PASS, CONTENT_TYPE, HEADERS, 30);
+	}
+	public static curlResponse getCURL(String S,String PARAMS, String DOM, String LOGIN, String PASS,String CONTENT_TYPE, String[] HEADERS, int TIMEOUT) {
 		
 		
 		curlResponse retval = new curlResponse();
@@ -52,6 +57,7 @@ public class CurlUtils {
 				}
 			}
 			
+			client.setConnectionTimeout(TIMEOUT);
 			retval.status = client.executeMethod(method);
 	
 			byte[] responseBody = method.getResponseBody();

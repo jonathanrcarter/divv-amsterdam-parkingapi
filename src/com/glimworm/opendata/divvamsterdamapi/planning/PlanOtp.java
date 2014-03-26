@@ -27,34 +27,60 @@ public class PlanOtp extends Plan {
 			Place to = request.to;
 			
 			String URL = "http://opentripplanner.nl/opentripplanner-api-webapp/ws/plan";
-			String PARAMS = "maxTransfers="+request.options.maxTransfers;
-			PARAMS += "&_dc=1358423838102";
-			PARAMS += "&from=";
-			PARAMS += "&to=";
-			PARAMS += "&arriveBy="+request.options.arriveBy;
-			PARAMS += "&mode="+request.options.mode;
-			PARAMS += "&optimize="+request.options.optimize;
-			PARAMS += "&maxWalkDistance="+request.options.maxWalkDistance;
-			PARAMS += "&walkSpeed="+request.options.walkSpeed;
-			PARAMS += "&hst="+request.options.hst;
-			PARAMS += "&date="+request.options._datetime.getDate();
-			PARAMS += "&time="+request.options._datetime.getTime();
-			PARAMS += "&toPlace="+to.lat+","+to.lon;
-			PARAMS += "&fromPlace="+from.lat+","+from.lon;
+			String PARAMS = "";
+			if (request.PARAMS != null && request.PARAMS.trim().length() > 0) {
+				PARAMS = request.PARAMS;
+			} else {
+				PARAMS += "maxTransfers="+request.options.maxTransfers;
+				PARAMS += "&_dc=1358423838102";
+				PARAMS += "&from=";
+				PARAMS += "&to=";
+				PARAMS += "&arriveBy="+request.options.arriveBy;
+				PARAMS += "&mode="+request.options.mode;
+				PARAMS += "&optimize="+request.options.optimize;
+				PARAMS += "&maxWalkDistance="+request.options.maxWalkDistance;
+				PARAMS += "&walkSpeed="+request.options.walkSpeed;
+				PARAMS += "&hst="+request.options.hst;
+				PARAMS += "&date="+request.options._datetime.getDate();
+				PARAMS += "&time="+request.options._datetime.getTime();
+				PARAMS += "&toPlace="+to.lat+","+to.lon;
+				PARAMS += "&fromPlace="+from.lat+","+from.lon;
+			}
 			//System.out.println("--- otp api call ---");
 			//System.out.println(URL+"?"+PARAMS);
 			
-			com.glimworm.opendata.divvamsterdamapi.planning.net.xsd.curlResponse cr =  com.glimworm.opendata.divvamsterdamapi.planning.net.CurlUtils.getCURL(URL, PARAMS, null, null, null, null, null);
+			if (request.urlonly == true) {
+				PlanResponse response = new PlanResponse();
+				response.otp_url = URL+"?"+PARAMS;
+				response.proxy_url = "/apitest.jsp?action=otp-proxy&params="+java.net.URLEncoder.encode(PARAMS);
+				return response;
+			}
 			
-			//System.out.println("--- start otp api response ---");
-			//System.out.println(cr.text);
-			//System.out.println("--- end otp api response ---");
+			com.glimworm.opendata.divvamsterdamapi.planning.net.xsd.curlResponse cr =  com.glimworm.opendata.divvamsterdamapi.planning.net.CurlUtils.getCURL(URL, PARAMS, null, null, null, null, null,request.timeout);
+			
+			System.out.println("--- start otp api response ---");
+			System.out.println(cr.text);
+			System.out.println("--- end otp api response ---");
 	
 			org.json.JSONObject jsob = jsonUtils.string2json(cr.text);
+			if (jsob.has("error")) {
+				org.json.JSONObject error = jsob.optJSONObject("error");
+				if (error != null) {
+					PlanResponse response = new PlanResponse();
+					response.otp_url = URL+"?"+PARAMS;
+					response.proxy_url = "/apitest.jsp?action=otp-proxy&params="+java.net.URLEncoder.encode(PARAMS);
+					response.status = error.optInt("id", 0);
+					response.error_text = error.optString("msg","");
+					return response;
+				}
+			}
+			
 			org.json.JSONObject plan = jsob.optJSONObject("plan");
 			org.json.JSONObject itinerary = plan.optJSONArray("itineraries").optJSONObject(0);
 	
 			PlanResponse response = new PlanResponse();
+			response.otp_url = URL+"?"+PARAMS;
+			response.proxy_url = "/apitest.jsp?action=otp-proxy&params="+java.net.URLEncoder.encode(PARAMS);
 			response.distance = 0; //plan.optLong("distance");
 			response.duration = itinerary.optInt("duration")/1000;
 			response.startAddress = new Place();
@@ -85,6 +111,7 @@ public class PlanOtp extends Plan {
 				leg.to.lat = responseleg.optJSONObject("to").optDouble("lat");
 				leg.to.name = responseleg.optJSONObject("to").optString("name");
 				leg.distance = responseleg.optLong("distance");
+				leg.duration = responseleg.optInt("duration")/1000;
 				leg.mode = "";
 				leg.startTime = new MMdatetime().setTimeFromISO8601(responseleg.optLong("startTime"));
 				leg.endTime = new MMdatetime().setTimeFromISO8601(responseleg.optLong("endTime"));
@@ -177,6 +204,7 @@ public class PlanOtp extends Plan {
 			
 			return response;
 		} catch (Exception ex) {
+			ex.printStackTrace(System.out);
 		    return null;
 		}
 	}

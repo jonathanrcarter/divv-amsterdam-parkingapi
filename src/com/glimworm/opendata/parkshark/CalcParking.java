@@ -743,104 +743,120 @@ public class CalcParking {
 			
 			@Override
 			public Integer call() throws Exception {
-				if (smeters[i].garageid > -1) {
-					if (sgarages[smeters[i].garageid].time_unit_minutes > -1 && sgarages[smeters[i].garageid].price_per_time_unit > -1) {
-						double val = 0;
-						String dbg = "";
-						for (int j=0; j < days.size(); j++) {
+				try {
+					if (smeters[i].garageid > -1) {
+						if (sgarages[smeters[i].garageid].time_unit_minutes > -1 && sgarages[smeters[i].garageid].price_per_time_unit > -1) {
+							double val = 0;
+							String dbg = "";
+							for (int j=0; j < days.size(); j++) {
+		
+								// we have to clone the array
+								Days day = new Days();
+								day.day = days.get(j).day;
+								day.start = days.get(j).start;
+								day.end = days.get(j).end;
+								double dayhours = (day.end - day.start);
+								double daycost = Math.ceil((dayhours * 60) / sgarages[smeters[i].garageid].time_unit_minutes) * sgarages[smeters[i].garageid].price_per_time_unit;
+								if (sgarages[smeters[i].garageid].price_day > -1 && sgarages[smeters[i].garageid].price_day < daycost) daycost = sgarages[smeters[i].garageid].price_day;
+								
+								val += daycost;
+							}
+							if (sgarages[smeters[i].garageid].ams_pr_fare != null && sgarages[smeters[i].garageid].ams_pr_fare.trim().length() > 0) {
+								foundprice:
+								for (int k=0; k < sgarages[smeters[i].garageid].ams_pr_fares.length; k++) {
+									if (days.get(0).day >= sgarages[smeters[i].garageid].ams_pr_fares[k].dayOfWeek_start && days.get(0).day <= sgarages[smeters[i].garageid].ams_pr_fares[k].dayOfWeek_end) {
+										if (days.get(0).start >= sgarages[smeters[i].garageid].ams_pr_fares[k].entry_start && days.get(0).start <= sgarages[smeters[i].garageid].ams_pr_fares[k].entry_end) {
+											val = sgarages[smeters[i].garageid].ams_pr_fares[k].price_day;
+											break foundprice;
+										}
+									}
+								}
+							}
+							
+							costmap.put(sig, new Double(val));
+							dbgmap.put(sig, dbg);
+						} 
+						return new Integer(0);
+					}
 	
-							// we have to clone the array
-							Days day = new Days();
-							day.day = days.get(j).day;
-							day.start = days.get(j).start;
-							day.end = days.get(j).end;
-							double dayhours = (day.end - day.start);
-							double daycost = Math.ceil((dayhours * 60) / sgarages[smeters[i].garageid].time_unit_minutes) * sgarages[smeters[i].garageid].price_per_time_unit;
-							if (sgarages[smeters[i].garageid].price_day > -1 && sgarages[smeters[i].garageid].price_day < daycost) daycost = sgarages[smeters[i].garageid].price_day;
-							val += daycost;
-						}
-						costmap.put(sig, new Double(val));
-						dbgmap.put(sig, dbg);
-					} 
-					return new Integer(0);
-				}
-
-				PayTimes costs = smeters[i].costs;
-
-				if (costs.cost < 0) {
-					return new Integer(0);
-				}
-
-				double val = 0;
-				String dbg = "";
-				
-				for (int j=0; j < days.size(); j++) {
-
-					// we have to clone the array
-					Days day = new Days();
-					day.day = days.get(j).day;
-					day.start = days.get(j).start;
-					day.end = days.get(j).end;
-					
-					PayTime cday = costs.days[day.day];
-					
-					if (DBG) dbg += "[xj:"+j+"/s:"+dp2(day.start)+"/e:"+dp2(day.end)+"/c:"+costs.cost+"/d.d:"+day.day+"]\n";
-					if (DBG) dbg += "[xj:"+j+"/gc:"+costs.geb_code+"/fc:"+costs.first.combination+"/fh:"+costs.first.hrs+"/fp:"+costs.first.price+"]\n";
-					if (DBG) dbg += "[xj:"+j+"/s:"+cday.start+"/e:"+cday.end+"]\n";
-					if (cday.start == 0 && cday.end == 0) continue;
-					if (DBG) dbg += "a";
-					if (day.start > cday.end) continue;
-					if (DBG) dbg += "b";
-					if (day.end < cday.start) continue;
-					if (DBG) dbg += "c";
-					if (day.start < cday.start) day.start = cday.start;
-					if (DBG) dbg += "d";
-					if (day.end > cday.end) day.end = cday.end;
-					if (DBG) dbg += "e";
-					double dayhours = (day.end - day.start);
-		
-					if (dayhours > 9) {
-						// you never pay more than 9 hours
-						dayhours = 9;
-					} else if (cday.start == 9 && cday.end == 24 && day.start == 9 && day.end == 19) {
-						// day card = 6h
-						dayhours = 6;
-					} else if (cday.start == 9 && cday.end == 24 && day.start == 19 && day.end == 24) {
-						// evening card = 4h
-						dayhours = 4;
-					} else if (cday.start == 12 && cday.end == 24 && dayhours > 7.2) {
-						// sundaycard = 7.2h
-						dayhours = 7.2;
+					PayTimes costs = smeters[i].costs;
+	
+					if (costs.cost < 0) {
+						return new Integer(0);
 					}
-		
-					int el = 0;
-					if (costs.first.combination.equalsIgnoreCase("y") && j == 0) {
-						if (dayhours <= costs.first.hrs) {
-							val += (dayhours * costs.first.price);
-							if (DBG) dbg += "f\n";
-							if (DBG) dbg += "[yj:"+j+"/s:"+day.start+"/e:"+day.end+"/c:"+costs.cost+"/hrs:"+dayhours+"(all in first hours),val="+val+"]\n";
+	
+					double val = 0;
+					String dbg = "";
+					
+					for (int j=0; j < days.size(); j++) {
+	
+						// we have to clone the array
+						Days day = new Days();
+						day.day = days.get(j).day;
+						day.start = days.get(j).start;
+						day.end = days.get(j).end;
+						
+						PayTime cday = costs.days[day.day];
+						
+						if (DBG) dbg += "[xj:"+j+"/s:"+dp2(day.start)+"/e:"+dp2(day.end)+"/c:"+costs.cost+"/d.d:"+day.day+"]\n";
+						if (DBG) dbg += "[xj:"+j+"/gc:"+costs.geb_code+"/fc:"+costs.first.combination+"/fh:"+costs.first.hrs+"/fp:"+costs.first.price+"]\n";
+						if (DBG) dbg += "[xj:"+j+"/s:"+cday.start+"/e:"+cday.end+"]\n";
+						if (cday.start == 0 && cday.end == 0) continue;
+						if (DBG) dbg += "a";
+						if (day.start > cday.end) continue;
+						if (DBG) dbg += "b";
+						if (day.end < cday.start) continue;
+						if (DBG) dbg += "c";
+						if (day.start < cday.start) day.start = cday.start;
+						if (DBG) dbg += "d";
+						if (day.end > cday.end) day.end = cday.end;
+						if (DBG) dbg += "e";
+						double dayhours = (day.end - day.start);
+			
+						if (dayhours > 9) {
+							// you never pay more than 9 hours
+							dayhours = 9;
+						} else if (cday.start == 9 && cday.end == 24 && day.start == 9 && day.end == 19) {
+							// day card = 6h
+							dayhours = 6;
+						} else if (cday.start == 9 && cday.end == 24 && day.start == 19 && day.end == 24) {
+							// evening card = 4h
+							dayhours = 4;
+						} else if (cday.start == 12 && cday.end == 24 && dayhours > 7.2) {
+							// sundaycard = 7.2h
+							dayhours = 7.2;
+						}
+			
+						int el = 0;
+						if (costs.first.combination.equalsIgnoreCase("y") && j == 0) {
+							if (dayhours <= costs.first.hrs) {
+								val += (dayhours * costs.first.price);
+								if (DBG) dbg += "f\n";
+								if (DBG) dbg += "[yj:"+j+"/s:"+day.start+"/e:"+day.end+"/c:"+costs.cost+"/hrs:"+dayhours+"(all in first hours),val="+val+"]\n";
+							} else {
+								val += (costs.first.hrs * costs.first.price);
+								val += ((dayhours - costs.first.hrs) * costs.cost);
+			
+								if (DBG) dbg += "f\n";
+								if (DBG) dbg += "[yj:"+j+"/s:"+day.start+"/e:"+day.end+"/c:"+costs.cost+"/hrs:"+dayhours+"(some in first hours),val="+val+"]\n";
+							}
 						} else {
-							val += (costs.first.hrs * costs.first.price);
-							val += ((dayhours - costs.first.hrs) * costs.cost);
-		
+							val += (dayhours * costs.cost);
 							if (DBG) dbg += "f\n";
-							if (DBG) dbg += "[yj:"+j+"/s:"+day.start+"/e:"+day.end+"/c:"+costs.cost+"/hrs:"+dayhours+"(some in first hours),val="+val+"]\n";
+							if (DBG) dbg += "[yj:"+j+"/s:"+day.start+"/e:"+day.end+"/c:"+costs.cost+"/hrs:"+dayhours+"(none in first hours),val="+val+"]\n";
 						}
-					} else {
-						val += (dayhours * costs.cost);
-						if (DBG) dbg += "f\n";
-						if (DBG) dbg += "[yj:"+j+"/s:"+day.start+"/e:"+day.end+"/c:"+costs.cost+"/hrs:"+dayhours+"(none in first hours),val="+val+"]\n";
+						
+						
 					}
+	
+					if (DBG) dbg += ("[val="+val+"]");
+					if (DBG) dbg += ("[val(converted)="+new Double(val).toString()+"]");
 					
-					
+					costmap.put(sig, new Double(val));
+					dbgmap.put(sig, dbg);
+				} catch (Exception E) {
+					E.printStackTrace(System.out);
 				}
-
-				if (DBG) dbg += ("[val="+val+"]");
-				if (DBG) dbg += ("[val(converted)="+new Double(val).toString()+"]");
-				
-				costmap.put(sig, new Double(val));
-				dbgmap.put(sig, dbg);
-				
 				return new Integer(0);
 			}
 			public calculate_cost(int I, String SIG, boolean _DBG, javolution.util.FastMap<String, Double> COSTMAP, javolution.util.FastMap<String, String> DBGMAP, ArrayList<Days> DAYS) {
@@ -941,7 +957,7 @@ public class CalcParking {
 	    
 	    try {
 	    	executor.awaitTermination(30, java.util.concurrent.TimeUnit.SECONDS);
-		    System.out.println("Finished all threads");
+		    System.out.println("ParkShark CalcParking Finished all threads");
 		} catch (InterruptedException e) {
 			// TODO Auto-generated catch block
 		    System.out.println("Interrupted");
@@ -1071,9 +1087,22 @@ public class CalcParking {
 			
 			double d = distance(loc, new location(meter.lat, meter.lon));
 			meters[i].dist = d;
-			
+
+			if (smeters[i].garageid > -1 && meters[i].match > 0 && (sgarages[smeters[i].garageid].opening_times_raw == null || sgarages[smeters[i].garageid].opening_times_raw.trim().length() == 0)) {
+				meters[i].match = 0;
+			}
+
 			// check if the opingin times match for for garages if the match if currently positive
-			if (smeters[i].garageid > -1 && meters[i].match > 0) {
+			if (smeters[i].garageid > -1 && meters[i].match > 0 && sgarages[smeters[i].garageid].opening_times_raw != null && sgarages[smeters[i].garageid].opening_times_raw.trim().length() > 0) {
+				System.out.println("--) "+i);
+				System.out.println(smeters[i].garageid);
+				System.out.println(sgarages.length);
+				System.out.println(_day);
+				System.out.println(sgarages[smeters[i].garageid].name);
+				System.out.println(sgarages[smeters[i].garageid].opening_times_raw);
+				System.out.println(sgarages[smeters[i].garageid].opening_times[_day].json());
+				System.out.println(sgarages[smeters[i].garageid].opening_times[_day].open24());
+				
 				if (sgarages[smeters[i].garageid].opening_times[_day].open24() == false) {
 					// if the garage is not open 24x7 and start parking time before open_in then fail the match
 					if (starttime < timevalue(sgarages[smeters[i].garageid].opening_times[_day].open_in)) {
@@ -1202,7 +1231,8 @@ public class CalcParking {
 					ParkSharkCalcReturnReccommendation newa = new ParkSharkCalcReturnReccommendation();
 					newa.automat_number = smeters[I].belnummer;
 					newa.dist_in_meters = meters[i].dist;
-					newa.cost = meters[i].cost;
+//					newa.cost = meters[i].cost;
+					newa.cost = (double)(Math.round(meters[i].cost*100))/100;
 					newa.address = smeters[I].adres;
 					newa.lat = smeters[I].lat;
 					newa.lon = smeters[I].lon;
@@ -1222,7 +1252,8 @@ public class CalcParking {
 				if (meters[i].match > 0) {
 					ParkSharkCalcReturnReccommendation newa = new ParkSharkCalcReturnReccommendation();
 					newa.dist_in_meters = meters[i].dist;
-					newa.cost = meters[i].cost;
+//					newa.cost = meters[i].cost;
+					newa.cost = (double)(Math.round(meters[i].cost*100))/100;
 					newa.address = smeters[I].adres;
 					newa.lat = smeters[I].lat;
 					newa.lon = smeters[I].lon;
@@ -1245,6 +1276,7 @@ public class CalcParking {
 					newa.garage_includes_public_transport = sgarages[smeters[I].garageid].includes_public_transport;
 					newa.garage_owner = sgarages[smeters[I].garageid].owner;
 					newa.garage_infourl = sgarages[smeters[I].garageid].url;
+					newa.ams_pr_fare = sgarages[smeters[I].garageid].ams_pr_fare;
 					al.add(newa);
 					ret.timings.add("calc : reccommendations found : " +i+" ("+meters[i].type+") : "+ new Long(new Date().getTime() - _exdt));
 				} else {

@@ -13,16 +13,14 @@
 	xstream.omitField(com.glimworm.opendata.divvamsterdamapi.planning.xsd.MMdatetime.class,"dt");
 	xstream.alias("result",com.glimworm.opendata.divvamsterdamapi.planning.xsd.apiResponse.class);
 
-
-	org.joda.time.LocalDate ___dt = new org.joda.time.LocalDate();
-
+	
 	
 	String action = gwdb.gwUtils.get(request,"action","");
 	String to_lat = gwdb.gwUtils.get(request,"to_lat","52.368104267594056");
 	String to_lon = gwdb.gwUtils.get(request,"to_lon","4.856208655327167");
-	String dd = gwdb.gwUtils.get(request,"dd",Integer.toString(___dt.getDayOfMonth()));
-	String mm = gwdb.gwUtils.get(request,"mm",Integer.toString(___dt.getMonthOfYear()));
-	String yy = gwdb.gwUtils.get(request,"yy",Integer.toString(___dt.getYear()));
+	String dd = gwdb.gwUtils.get(request,"dd","28");
+	String mm = gwdb.gwUtils.get(request,"mm","12");
+	String yy = gwdb.gwUtils.get(request,"yy","2013");
 	String h = gwdb.gwUtils.get(request,"h","12");
 	String m = gwdb.gwUtils.get(request,"m","50");
 	String dur = gwdb.gwUtils.get(request,"dur","2");
@@ -32,11 +30,9 @@
 	String opt_rec = gwdb.gwUtils.get(request,"opt_rec","y");
 	String tim = gwdb.gwUtils.get(request,"tim","n");
 	String plan_radius = gwdb.gwUtils.get(request,"plan_radius","2000");
-	String opt_otp_timout = gwdb.gwUtils.get(request,"opt_otp_timout","3000");
 	String log = gwdb.gwUtils.get(request,"log","n");
 	String debug = gwdb.gwUtils.get(request,"debug","n");
-	String callback = gwdb.gwUtils.get(request,"callback","");
-		
+	
 	String id = gwdb.gwUtils.get(request,"id","");
 	String idg = gwdb.gwUtils.get(request,"idg","5");
 	String idm = gwdb.gwUtils.get(request,"idm","11328");
@@ -100,9 +96,6 @@
 		out.println("<label class='long'>include reccommendations</label><input name='opt_rec' value='"+opt_rec+"'>");
 		out.println("</div>");
 		out.println("<div class='form-inline'>");
-		out.println("<label class='long'>opentripplanner timeout (ms)</label><input name='opt_otp_timout' value='"+opt_otp_timout+"'>");
-		out.println("</div>");
-		out.println("<div class='form-inline'>");
 		out.println("<label class='long'>plan routes if distance less than</label><input name='plan_radius' value='"+plan_radius+"'>");
 		out.println("<input type='submit' value='plan'>");
 		out.println("</div>");
@@ -137,13 +130,7 @@
 		ar.meter = com.glimworm.opendata.parkshark.CalcParking.getMeterById(id);
 		ar.reccommendations = null;
 		ar._executiontime = new Date().getTime() - _exdt;
-		if (callback != null && callback.trim().length() > 0) {
-			response.setContentType("application/javascript");
-			out.println(""+callback+"("+xstream.toXML(ar)+");");
-		} else {
-			response.setContentType("application/json"); //fixed
-			out.println(xstream.toXML(ar));
-		}
+		out.println(xstream.toXML(ar));
 		return;
 	}
 	if (action.equalsIgnoreCase("get-garage-by-id")) {
@@ -151,13 +138,7 @@
 		ar.garage = com.glimworm.opendata.parkshark.CalcParking.getGarageByGarageid(_id);
 		ar.reccommendations = null;
 		ar._executiontime = new Date().getTime() - _exdt;
-		if (callback != null && callback.trim().length() > 0) {
-			response.setContentType("application/javascript");
-			out.println(""+callback+"("+xstream.toXML(ar)+");");
-		} else {
-			response.setContentType("application/json"); //fixed
-			out.println(xstream.toXML(ar));
-		}
+		out.println(xstream.toXML(ar));
 		return;
 		
 	}
@@ -165,31 +146,9 @@
 	if (action.equalsIgnoreCase("geocode")) {
 		ar.places = GeoCodeByMapQuest.geocode(addr);
 		ar._executiontime = new Date().getTime() - _exdt;
-		if (callback != null && callback.trim().length() > 0) {
-			response.setContentType("application/javascript");
-			out.println(""+callback+"("+xstream.toXML(ar)+");");
-		} else {
-			response.setContentType("application/json"); //fixed
-			out.println(xstream.toXML(ar));
-		}
+		out.println(xstream.toXML(ar));
 		return;
 		
-	}
-	if (action.equalsIgnoreCase("otp-proxy")) {
-		String params = gwdb.gwUtils.get(request,"params","");
-		PlanRequest req = new PlanRequest();
-		req.PARAMS = params;
-		PlanResponse pr = PlanOtp.plan(req);
-		ar.ptroute = new com.glimworm.opendata.parkshark.xsd.ParkSharkCalcReturnReccommendation_ptroute();
-		com.glimworm.opendata.divvamsterdamapi.planning.ParallelPlanCallable.convertOtpToReccommendation(ar.ptroute,pr,false);
-		if (callback != null && callback.trim().length() > 0) {
-			response.setContentType("application/javascript");
-			out.println(""+callback+"("+xstream.toXML(ar)+");");
-		} else {
-			response.setContentType("application/json"); //fixed
-			out.println(xstream.toXML(ar));
-		}
-		return;
 	}
 	
 //	ArrayList<Place> pl_home = GeoCodeByMapQuest.geocode("eerste weteringplantsoen 8 , Amsterdam, Netherlands");
@@ -198,13 +157,8 @@
 //	out.println(pl_destination);
 //	ar.timings.add("after lookup : " + new Long(new Date().getTime() - _exdt));
 
-
 	org.joda.time.LocalDate __dt = new org.joda.time.LocalDate(Integer.parseInt(yy),Integer.parseInt(mm),Integer.parseInt(dd));
 	int day = __dt.dayOfWeek().get();
-	
-	System.out.println(dd+"/"+mm+"/"+yy+"DOW "+day);
-	/* joda goes 1..7 and we need 0..6 with 0 being sunday */
-	if (day == 7) day = 0;
 
 
 	Place destination = new Place();
@@ -225,8 +179,7 @@
 	String ret_hm = (hr+duration)+":"+m;
 	
 	double plan_rad = Double.parseDouble(plan_radius);
-	int opt_otp_tim = Integer.parseInt(opt_otp_timout);
-	
+
 	
 
 //	req.options._date = "2013-12-28";
@@ -272,7 +225,6 @@
 		ppr.ret_ymd = ret_ymd;
 		ppr.ret_hm = ret_hm;
 		ppr.plan_rad = plan_rad;
-		ppr.opt_otp_tim = opt_otp_tim;
 	
 		com.glimworm.opendata.divvamsterdamapi.planning.ParallelPlan.plan(ppr, prv.reccommendations);
 		System.out.println("NOW IN PARALLEL - DONE");
@@ -299,13 +251,7 @@
 
 	ar._executiontime = new Date().getTime() - _exdt;
 
-	if (callback != null && callback.trim().length() > 0) {
-		response.setContentType("application/javascript");
-		out.println(""+callback+"("+xstream.toXML(ar)+");");
-	} else {
-		response.setContentType("application/json"); //fixed
-		out.println(xstream.toXML(ar));
-	}
+	out.println(xstream.toXML(ar));
 	
 	
 	

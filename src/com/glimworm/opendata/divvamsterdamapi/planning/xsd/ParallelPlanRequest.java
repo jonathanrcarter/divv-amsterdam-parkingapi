@@ -8,4 +8,5 @@ public class ParallelPlanRequest {
 	public String ret_ymd = "";
 	public String ret_hm = "";
 	public double plan_rad = 10000;	// 10km
+	public int opt_otp_tim = 3000;	// open trip planner timeout
 }

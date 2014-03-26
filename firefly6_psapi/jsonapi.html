@@ -87,6 +87,7 @@ Parmeters :
 	dur			:	Duration in hours (2)
 	opt_am			:	Include the full list of meters	(y/n)
 	opt_routes_ret		:	Also calculate the return routes (y/n)
+	opt_otp_timout		:	OpenTripPlanner timeour (milliseconds)
 	opt_rec			:	return recommendations (y/n)
 	plan_radius		:	Create rout plan only if within a radius in meters
 
@@ -134,11 +135,14 @@ Example result
 				"csdkid" : "test.divv.parking.car.36", 	/* citysdk id */
 				"csdkurl" : "http://test-api.citysdk.waag.org/test.divv.parking.car.36", 	
 								/* citysdk direct URL */
+				"ams_pr_fare" : "1-5 04:00 10:00 8 24 | 1-5 10:00 04:00 1 24 | 6-0 0:00 0:00 1 24",
+								/* amsterdam park and ride format */
+								
 				
 				"reccommended_pt_route":{	/* recommended public transport route  as legs returned from open trip planner*/
 					"status":0,
 					"distance":123727,	/* in meters, calculated along the travel route */
-					"duration":11151,	/* duration in minutes */
+					"duration":11151,	/* duration in seconds */
 					"cost":-1,		/* cost of travel is -1 if it cannot be calculated */
 					"src":"",		/* */
 					"url":"",		/* */
@@ -464,7 +468,39 @@ type: "s",
 			includes_public_transport: "n",
 			calc_type: "garage",
 			csdkid: "test.divv.parking.car.23",
-			csdkurl: "http://test-api.citysdk.waag.org/test.divv.parking.car.23"
+			csdkurl: "http://test-api.citysdk.waag.org/test.divv.parking.car.23",
+			ams_pr_fare: "1-5 04:00 10:00 8 24 | 1-5 10:00 04:00 1 24 | 6-0 0:00 0:00 1 24",
+			ams_pr_fares: [{
+				dayOfWeek_start: 1,
+				dayOfWeek_end: 5,
+				entry_start: 4,
+				entry_end: 10,
+				price_day: 8
+			},{
+				dayOfWeek_start: 1,
+				dayOfWeek_end: 5,
+				entry_start: 0,
+				entry_end: 10,
+				price_day: 1
+			},{
+				dayOfWeek_start: 1,
+				dayOfWeek_end: 5,
+				entry_start: 4,
+				entry_end: 24,
+				price_day: 1
+			},{
+				dayOfWeek_start: 6,
+				dayOfWeek_end: 6,
+				entry_start: 0,
+				entry_end: 24,
+				price_day: 1
+			},{
+				dayOfWeek_start: 0,
+				dayOfWeek_end: 0,
+				entry_start: 0,
+				entry_end: 24,
+				price_day: 1
+			}]
 		}}}        
         </pre></p>
 

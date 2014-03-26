@@ -6,6 +6,7 @@ public class Leg {
 
 	public Place from, to = null;
 	public long distance = 0; //In Meters
+	public int duration = 0; 
 	public String mode = "";
 	public TransitInfoBase transitinfo = null;
 	public MMdatetime startTime, endTime = null;
