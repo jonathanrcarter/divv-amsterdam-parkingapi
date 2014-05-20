@@ -35,11 +35,11 @@ public class CalcParking {
 		return degrees * (Math.PI / 180);
 	}
 	
-	public static double distance(location loc1, location loc2) {
-		double lat1 = DegToRad(loc1.latitude);
+	public static double distance_not_correct_maybe(location loc1, location loc2) {
+		double lat1 = DegToRad(loc1.latitude);		
 		double lon1 = DegToRad(loc1.longitude);
-		double lat2 = DegToRad(loc2.latitude);
-		double lon2 = DegToRad(loc2.longitude);
+		double lat2 = DegToRad(loc2.latitude);		
+		double lon2 = DegToRad(loc2.longitude);		
 		
 
 		double R = 6371000000.0; // m (change this constant to get miles)
@@ -55,6 +55,63 @@ public class CalcParking {
 		
 	    return Math.round(d/20);
 	};
+
+	/*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+	/*::                                                                         :*/
+	/*::  This routine calculates the distance between two points (given the     :*/
+	/*::  latitude/longitude of those points). It is being used to calculate     :*/
+	/*::  the distance between two locations using GeoDataSource (TM) prodducts  :*/
+	/*::                                                                         :*/
+	/*::  Definitions:                                                           :*/
+	/*::    South latitudes are negative, east longitudes are positive           :*/
+	/*::                                                                         :*/
+	/*::  Passed to function:                                                    :*/
+	/*::    lat1, lon1 = Latitude and Longitude of point 1 (in decimal degrees)  :*/
+	/*::    lat2, lon2 = Latitude and Longitude of point 2 (in decimal degrees)  :*/
+	/*::    unit = the unit you desire for results                               :*/
+	/*::           where: 'M' is statute miles                                   :*/
+	/*::                  'K' is kilometers (default)                            :*/
+	/*::                  'N' is nautical miles                                  :*/
+	/*::  Worldwide cities and other features databases with latitude longitude  :*/
+	/*::  are available at http://www.geodatasource.com                          :*/
+	/*::                                                                         :*/
+	/*::  For enquiries, please contact sales@geodatasource.com                  :*/
+	/*::                                                                         :*/
+	/*::  Official Web site: http://www.geodatasource.com                        :*/
+	/*::                                                                         :*/
+	/*::           GeoDataSource.com (C) All Rights Reserved 2014                :*/
+	/*::                                                                         :*/
+	/*::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+
+	private static double distance_from_geolocation_site(double lat1, double lon1, double lat2, double lon2) {
+	  double theta = lon1 - lon2;
+	  double dist = Math.sin(deg2rad(lat1)) * Math.sin(deg2rad(lat2)) + Math.cos(deg2rad(lat1)) * Math.cos(deg2rad(lat2)) * Math.cos(deg2rad(theta));
+	  dist = Math.acos(dist);
+	  dist = rad2deg(dist);
+	  dist = dist * 60 * 1.1515;
+	  dist = dist * 1.609344;	// kilometers
+	  dist = dist * 1000; // meters
+	  return Math.round(dist);
+	}
+	public static double distance(location loc1, location loc2) {
+		return distance_from_geolocation_site(loc1.latitude, loc1.longitude, loc2.latitude, loc2.longitude);
+	}
+
+	/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+	/*::  This function converts decimal degrees to radians             :*/
+	/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+	private static double deg2rad(double deg) {
+	  return (deg * Math.PI / 180.0);
+	}
+
+	/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+	/*::  This function converts radians to decimal degrees             :*/
+	/*:::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::::*/
+	private static double rad2deg(double rad) {
+	  return (rad * 180 / Math.PI);
+	}
+
+	
 	
 	public static double getNorthLatFromLng(double lng) {
 		double start_lat = 52.4208;
@@ -273,6 +330,16 @@ public class CalcParking {
 		retval.max = gebcode.max;
 		
 		return retval;
+	}
+	
+	public static boolean isInPaidParking(double lat, double lon) {
+		String S = "http://api.citysdk.waag.org/nodes?layer=divv.parking.zone&lat="+lat+"&lon="+lon+"&radius=1";
+		com.glimworm.opendata.divvamsterdamapi.planning.net.xsd.curlResponse res = com.glimworm.opendata.divvamsterdamapi.planning.net.CurlUtils.getCURL(S, "", null, null, null, null);
+		System.out.println(res.text);
+		org.json.JSONObject jsob = com.glimworm.common.utils.jsonUtils.string2json(res.text);
+		org.json.JSONArray ar = jsob.optJSONArray("results");
+		if (ar != null && ar.length() > 0) return true;
+		return false;
 	}
 	
 	public static String dp2(double d) {

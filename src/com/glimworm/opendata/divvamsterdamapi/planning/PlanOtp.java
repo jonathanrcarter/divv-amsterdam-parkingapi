@@ -82,7 +82,8 @@ public class PlanOtp extends Plan {
 			response.otp_url = URL+"?"+PARAMS;
 			response.proxy_url = "/apitest.jsp?action=otp-proxy&params="+java.net.URLEncoder.encode(PARAMS);
 			response.distance = 0; //plan.optLong("distance");
-			response.duration = itinerary.optInt("duration")/1000;
+//			response.duration = itinerary.optInt("duration")/1000;
+			response.duration = itinerary.optInt("duration");		// seconds
 			response.startAddress = new Place();
 			response.startAddress.lon = plan.optJSONObject("from").optDouble("lon");
 			response.startAddress.lat = plan.optJSONObject("from").optDouble("lat");
@@ -111,7 +112,8 @@ public class PlanOtp extends Plan {
 				leg.to.lat = responseleg.optJSONObject("to").optDouble("lat");
 				leg.to.name = responseleg.optJSONObject("to").optString("name");
 				leg.distance = responseleg.optLong("distance");
-				leg.duration = responseleg.optInt("duration")/1000;
+//				leg.duration = responseleg.optInt("duration")/1000;
+				leg.duration = responseleg.optInt("duration");		// seconds
 				leg.mode = "";
 				leg.startTime = new MMdatetime().setTimeFromISO8601(responseleg.optLong("startTime"));
 				leg.endTime = new MMdatetime().setTimeFromISO8601(responseleg.optLong("endTime"));
