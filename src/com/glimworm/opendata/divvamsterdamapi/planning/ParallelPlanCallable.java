@@ -82,6 +82,8 @@ public class ParallelPlanCallable implements Callable<PlanResponse>{
 			req.options._date = ppr.ymd;
 			req.options._time = ppr.hm;
 			req.timeout = ppr.opt_otp_tim;
+			if (ppr.opt_otp_server < 2) req.options.server = ppr.opt_otp_server;
+			if (ppr.opt_otp_walkspeed > 0) req.options.walkSpeed = ppr.opt_otp_walkspeed;
 			req.urlonly = true;
 			PlanResponse pr = PlanOtp.plan(req);
 			rec.reccommended_pt_route.error_msg = pr.error_text;

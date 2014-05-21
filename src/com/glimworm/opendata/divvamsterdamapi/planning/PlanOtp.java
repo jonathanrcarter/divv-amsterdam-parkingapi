@@ -26,7 +26,14 @@ public class PlanOtp extends Plan {
 			Place from = request.from;
 			Place to = request.to;
 			
-			String URL = "http://opentripplanner.nl/opentripplanner-api-webapp/ws/plan";
+//			String[] URLS = {"http://opentripplanner.nl/opentripplanner-api-webapp/ws/plan","http://188.226.134.55:8000/opentripplanner-api-webapp/ws/plan"};
+			String[] URLS = {"http://188.226.134.55:8000/opentripplanner-api-webapp/ws/plan","http://opentripplanner.nl/opentripplanner-api-webapp/ws/plan"};
+			
+			String URL = URLS[request.options.server];
+//			String URL = "http://opentripplanner.nl/opentripplanner-api-webapp/ws/plan";
+//			String URL = "http://188.226.134.55:8000/opentripplanner-api-webapp/ws/plan";
+			
+			
 			String PARAMS = "";
 			if (request.PARAMS != null && request.PARAMS.trim().length() > 0) {
 				PARAMS = request.PARAMS;

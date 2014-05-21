@@ -10,7 +10,8 @@ public class Options {
     public String ui_date = "2014-01-14";
     public String optimize = "QUICK";
     public int maxWalkDistance = 3000;
-    public double walkSpeed = 0.833;
+    public double walkSpeed = 1.3888;
+    public int server = 0;
     public boolean hst = true;
     public String _date = "2014-01-14";
     public String _time = "15:02";

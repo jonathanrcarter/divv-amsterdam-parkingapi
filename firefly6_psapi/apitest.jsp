@@ -33,6 +33,8 @@
 	String tim = gwdb.gwUtils.get(request,"tim","n");
 	String plan_radius = gwdb.gwUtils.get(request,"plan_radius","2000");
 	String opt_otp_timout = gwdb.gwUtils.get(request,"opt_otp_timout","3000");
+	String opt_otp_server = gwdb.gwUtils.get(request,"opt_otp_server","0");
+	String opt_otp_walkspeed = gwdb.gwUtils.get(request,"opt_otp_walkspeed","1.3888");
 	String log = gwdb.gwUtils.get(request,"log","n");
 	String debug = gwdb.gwUtils.get(request,"debug","n");
 	String callback = gwdb.gwUtils.get(request,"callback","");
@@ -101,6 +103,12 @@
 		out.println("</div>");
 		out.println("<div class='form-inline'>");
 		out.println("<label class='long'>opentripplanner timeout (ms)</label><input name='opt_otp_timout' value='"+opt_otp_timout+"'>");
+		out.println("</div>");
+		out.println("<div class='form-inline'>");
+		out.println("<label class='long'>opentripplanner walkspeek (km/h)</label><input name='opt_otp_walkspeed' value='"+opt_otp_walkspeed+"'>");
+		out.println("</div>");
+		out.println("<div class='form-inline'>");
+		out.println("<label class='long'>opentripplaner server (0 or 1)</label><input name='opt_otp_server' value='"+opt_otp_server+"'>");
 		out.println("</div>");
 		out.println("<div class='form-inline'>");
 		out.println("<label class='long'>plan routes if distance less than</label><input name='plan_radius' value='"+plan_radius+"'>");
@@ -274,6 +282,8 @@
 		ppr.ret_hm = ret_hm;
 		ppr.plan_rad = plan_rad;
 		ppr.opt_otp_tim = opt_otp_tim;
+		ppr.opt_otp_server = Integer.parseInt(opt_otp_server);
+		ppr.opt_otp_walkspeed = Double.parseDouble(opt_otp_walkspeed);
 	
 		com.glimworm.opendata.divvamsterdamapi.planning.ParallelPlan.plan(ppr, prv.reccommendations);
 		System.out.println("NOW IN PARALLEL - DONE");
