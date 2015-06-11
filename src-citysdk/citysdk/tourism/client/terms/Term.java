@@ -17,7 +17,7 @@
  * along with CitySDK WP5 Tourism Java Library. If not, see <http://www.gnu.org/licenses/>.
  * 
  * Copyright 2013, IST
- */
+ */ 
 package citysdk.tourism.client.terms;
 
 import citysdk.tourism.client.parser.DataReader;

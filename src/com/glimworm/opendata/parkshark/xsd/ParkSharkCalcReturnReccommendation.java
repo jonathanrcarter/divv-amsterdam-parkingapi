@@ -27,6 +27,8 @@ public class ParkSharkCalcReturnReccommendation {
 	public String garage_includes_public_transport = null;
 	public String csdkid = null;
 	public String csdkurl = null;
+	public String nprid = null;
+	public String nprurl = null;
 	public String ams_pr_fare = "";
 	
 

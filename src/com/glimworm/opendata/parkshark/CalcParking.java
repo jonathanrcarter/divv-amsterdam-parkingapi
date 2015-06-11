@@ -10,6 +10,7 @@ import java.util.Vector;
 import com.glimworm.opendata.divvamsterdamapi.planning.ParallelPlanCallable;
 import com.glimworm.opendata.divvamsterdamapi.planning.PlanResponse;
 import com.glimworm.opendata.divvamsterdamapi.planning.xsd.PlaceParkingGarage;
+import com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam;
 import com.glimworm.opendata.parkshark.xsd.*;
 import com.glimworm.opendata.utils.jsonUtils;
 import com.glimworm.opendata.xsd.*;
@@ -366,93 +367,106 @@ public class CalcParking {
 
 		Vector<Meter> vect = new Vector<Meter>();
 		
-		smeters = new Meter[automats.rows()];
-		int cnt = 0;
-		for (int i=0; i < automats.rows(); i++) {
-//			smeters[i] = new Meter();
-//			smeters[i].i = i;
-//			smeters[i].entityid = automats.getString(i, "entityid");
-//			smeters[i].stadsdeel = automats.getString(i, "stadsdeel");
-//			smeters[i].belnummer = automats.getString(i, "belnummer");
-//			smeters[i].adres = automats.getString(i, "adres");
-//			smeters[i].postcode = automats.getString(i, "postcode");
-//			smeters[i].woonplaats = automats.getString(i, "woonplaats");
-//			smeters[i].typeautomaat = automats.getString(i, "typeautomaat");
-//			smeters[i].betaalwijze = automats.getString(i, "betaalwijze");
-//			smeters[i].tariefcode = automats.getString(i, "tariefcode");
-//			smeters[i].status = automats.getString(i, "status");
-//			smeters[i].lat = automats.getDouble(i, "lon",0);
-//			smeters[i].lon = automats.getDouble(i, "lat",0);
+//		smeters = new Meter[automats.rows()];
+//		int cnt = 0;
+//		for (int i=0; i < automats.rows(); i++) {
+//			Meter _meter = new Meter();
+//			_meter.i = i;
+//			_meter.entityid = automats.getString(i, "entityid");
+//			_meter.stadsdeel = automats.getString(i, "stadsdeel");
+//			_meter.belnummer = automats.getString(i, "belnummer");
+//			_meter.adres = automats.getString(i, "adres");
+//			_meter.postcode = automats.getString(i, "postcode");
+//			_meter.woonplaats = automats.getString(i, "woonplaats");
+//			_meter.typeautomaat = automats.getString(i, "typeautomaat");
+//			_meter.betaalwijze = automats.getString(i, "betaalwijze");
+//			_meter.tariefcode = automats.getString(i, "tariefcode");
+//			_meter.status = automats.getString(i, "status");
+//			_meter.lat = automats.getDouble(i, "lon",0);
+//			_meter.lon = automats.getDouble(i, "lat",0);
+//			_meter.csdkzone = automats.getString(i, "csdkzone");
+//			_meter.chance_weekday = automats.getString(i, "chance_day");
+//			_meter.chance_sat = automats.getString(i, "chance_sat");
+//			_meter.chance_sun = automats.getString(i, "chance_sun");
 //
-//			smeters[i].bw.cash = automats.getString(i, "cash").equalsIgnoreCase("Y");
-//			smeters[i].bw.creditcard = automats.getString(i, "creditcard").equalsIgnoreCase("Y");
-//			smeters[i].bw.pin = automats.getString(i, "pin").equalsIgnoreCase("Y");
-//			smeters[i].bw.chip = automats.getString(i, "chip").equalsIgnoreCase("Y");
+//			_meter.bw.cash = automats.getString(i, "cash").equalsIgnoreCase("Y");
+//			_meter.bw.creditcard = automats.getString(i, "creditcard").equalsIgnoreCase("Y");
+//			_meter.bw.pin = automats.getString(i, "pin").equalsIgnoreCase("Y");
+//			_meter.bw.chip = automats.getString(i, "chip").equalsIgnoreCase("Y");
 //			
-//			smeters[i].costs = getcosts(smeters[i]);
-//			smeters[i].type = "on-street-meter";
+//			_meter.costs = getcosts(_meter);
+//			_meter.type = "on-street-meter";
 //			try {
-//				smeters[i].isInNorth = isInNorth(smeters[i].lat,smeters[i].lon);
+//				_meter.isInNorth = isInNorth(_meter.lat,_meter.lon);
 //			} catch (Exception E) {
-//				smeters[i].isInNorth = false;
-//			}
+//				_meter.isInNorth = false;
+//			}			
+//			
+//			vect.add(_meter);
+//			
+//			cnt++;
+//		}
 
-			Meter _meter = new Meter();
-			_meter.i = i;
-			_meter.entityid = automats.getString(i, "entityid");
-			_meter.stadsdeel = automats.getString(i, "stadsdeel");
-			_meter.belnummer = automats.getString(i, "belnummer");
-			_meter.adres = automats.getString(i, "adres");
-			_meter.postcode = automats.getString(i, "postcode");
-			_meter.woonplaats = automats.getString(i, "woonplaats");
-			_meter.typeautomaat = automats.getString(i, "typeautomaat");
-			_meter.betaalwijze = automats.getString(i, "betaalwijze");
-			_meter.tariefcode = automats.getString(i, "tariefcode");
-			_meter.status = automats.getString(i, "status");
-			_meter.lat = automats.getDouble(i, "lon",0);
-			_meter.lon = automats.getDouble(i, "lat",0);
-			_meter.csdkzone = automats.getString(i, "csdkzone");
-			_meter.chance_weekday = automats.getString(i, "chance_day");
-			_meter.chance_sat = automats.getString(i, "chance_sat");
-			_meter.chance_sun = automats.getString(i, "chance_sun");
+//		int cnt_meters = cnt;
+		
+		
 
-			_meter.bw.cash = automats.getString(i, "cash").equalsIgnoreCase("Y");
-			_meter.bw.creditcard = automats.getString(i, "creditcard").equalsIgnoreCase("Y");
-			_meter.bw.pin = automats.getString(i, "pin").equalsIgnoreCase("Y");
-			_meter.bw.chip = automats.getString(i, "chip").equalsIgnoreCase("Y");
+//		PlaceParkingGarage[] areas = com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.getMeters();
+//		for (int i=0; i < areas.length; i++) {
+//			Meter _meter = new Meter();
+//			_meter.i = cnt;
+//			_meter.entityid = "";	//?
+//			_meter.stadsdeel = "";	//?
+//			_meter.belnummer = "";	//?
+//			_meter.adres = automats.getString(i, "adres");
+//			_meter.postcode = automats.getString(i, "postcode");
+//			_meter.woonplaats = automats.getString(i, "woonplaats");
+//			_meter.typeautomaat = automats.getString(i, "typeautomaat");
+//			_meter.betaalwijze = automats.getString(i, "betaalwijze");
+//			_meter.tariefcode = automats.getString(i, "tariefcode");
+//			_meter.status = automats.getString(i, "status");
+//			_meter.lat = automats.getDouble(i, "lon",0);
+//			_meter.lon = automats.getDouble(i, "lat",0);
+//			_meter.csdkzone = automats.getString(i, "csdkzone");
+//			_meter.chance_weekday = automats.getString(i, "chance_day");
+//			_meter.chance_sat = automats.getString(i, "chance_sat");
+//			_meter.chance_sun = automats.getString(i, "chance_sun");
+
+//			_meter.bw.cash = automats.getString(i, "cash").equalsIgnoreCase("Y");
+//			_meter.bw.creditcard = automats.getString(i, "creditcard").equalsIgnoreCase("Y");
+//			_meter.bw.pin = automats.getString(i, "pin").equalsIgnoreCase("Y");
+//			_meter.bw.chip = automats.getString(i, "chip").equalsIgnoreCase("Y");
 			
-			_meter.costs = getcosts(_meter);
-			_meter.type = "on-street-meter";
-			try {
-				_meter.isInNorth = isInNorth(_meter.lat,_meter.lon);
-			} catch (Exception E) {
-				_meter.isInNorth = false;
-			}			
-			
+//			_meter.costs = getcosts(_meter);
+//			_meter.type = "on-street-meter";
+//			try {
+//				_meter.isInNorth = isInNorth(_meter.lat,_meter.lon);
+//			} catch (Exception E) {
+//				_meter.isInNorth = false;
+//			}			
+//		}
+		
+		
+		PlaceParkingGarage[] garages = com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.getGarages();	// garages
+		PlaceParkingGarage[] npr_areas = com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.getMeters();	// areas
+		com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.downloadmeters(npr_areas);
+		
+		int cnt = 0;
+		for (Meter _meter : com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.smeters) {
+			_meter.i = cnt;
 			vect.add(_meter);
-			
 			cnt++;
-			
-//			String sql2 = "select * from _site1493_dbsynch_paymethods where type='"+meters[i].typeautomaat+"'";
-//			com.glimworm.common.database.xsd.DataSet paymethods = com.glimworm.common.database.gwDataUtils.getArray(com.glimworm.common.database.GWDBBean.sqlStatic(sql2),false);
-//			if (paymethods.rows() > 0) {
-//				meters[i].bw.cash = paymethods.getString(0, "cash").equalsIgnoreCase("Y");
-//				meters[i].bw.creditcard = paymethods.getString(0, "creditcard").equalsIgnoreCase("Y");
-//				meters[i].bw.pin = paymethods.getString(0, "pin").equalsIgnoreCase("Y");
-//				meters[i].bw.chip = paymethods.getString(0, "chip").equalsIgnoreCase("Y");
-//			}
-//			System.out.println("meter"+i+": "+smeters[i].belnummer + " ::" + smeters[i].adres);
-			
 		}
 		int cnt_meters = cnt;
+
 		
-		PlaceParkingGarage[] garages = com.glimworm.opendata.parkshark.importdata.citySDK.Amsterdam.getGarages();
+		
 		for (int i=0; i < garages.length; i++) {
 			Meter _meter = new Meter();
 			_meter.i = cnt;
-			_meter.entityid = garages[i].cdk_id;
+			_meter.entityid = garages[i].nprid;
 			_meter.stadsdeel = "";
-			_meter.belnummer = garages[i].cdk_id;
+			_meter.belnummer = garages[i].nprid;
 			_meter.adres = garages[i].street;
 			_meter.postcode = garages[i].postcode;
 			_meter.woonplaats = "";
@@ -465,6 +479,8 @@ public class CalcParking {
 			_meter.lon = garages[i].lon;
 			_meter.csdkid = garages[i].csdkid;
 			_meter.csdkurl = garages[i].csdkurl;
+			_meter.nprid = garages[i].nprid;
+			_meter.nprurl = garages[i].nprurl;
 
 			_meter.bw.cash = true;
 			_meter.bw.creditcard = true;
@@ -1333,6 +1349,10 @@ public class CalcParking {
 					newa.name = smeters[I].name;
 					newa.csdkid = smeters[I].csdkid;
 					newa.csdkurl = smeters[I].csdkurl;
+					//npr
+					newa.nprid = smeters[I].nprid;
+					newa.nprurl = smeters[I].nprurl;
+					
 					newa.expected_occupancy = meters[i].expected_occupancy;
 					newa.garage_type = sgarages[smeters[I].garageid].type;
 					newa.garageid = Integer.toString(smeters[I].garageid);

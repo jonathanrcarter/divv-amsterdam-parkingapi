@@ -134,7 +134,22 @@
 		out.println("<label class='url'>geocode&addr=</label><input class='vlong' name='addr' value='"+addr+"'>");
 		out.println("<input type='submit' value='geocode'>");
 		out.println("</form>");
-		
+
+		out.println("<form class='form-inline'>");
+		out.println("<input type='hidden' name='action' value='list-meters'>");
+		out.println("<input type='submit' value='get-meters'>");
+		out.println("</form>");
+
+		out.println("<form class='form-inline'>");
+		out.println("<input type='hidden' name='action' value='list-meters-2'>");
+		out.println("<input type='submit' value='get-meters-2'>");
+		out.println("</form>");
+
+		out.println("<form class='form-inline'>");
+		out.println("<input type='hidden' name='action' value='list-garages'>");
+		out.println("<input type='submit' value='get-garages'>");
+		out.println("</form>");
+
 		out.println("");
 		out.println(readFileCR(application.getRealPath("/")+"/apitest.bot.html"));
 		out.println("</body>");
@@ -170,6 +185,23 @@
 		
 	}
 
+	if (action.equalsIgnoreCase("list-meters")) {
+		response.setContentType("application/json"); //fixed
+		out.println(xstream.toXML(com.glimworm.opendata.parkshark.CalcParking.smeters));
+	}
+	if (action.equalsIgnoreCase("list-meters-2")) {
+		response.setContentType("application/json"); //fixed
+		out.println(xstream.toXML(com.glimworm.opendata.parkshark.CalcParking.getMeters(56,52,4,6)));
+	}
+	if (action.equalsIgnoreCase("list-garages")) {
+		response.setContentType("application/json"); //fixed
+		out.println(xstream.toXML(com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.getGarages()));
+	}
+	if (action.equalsIgnoreCase("list-garages-2")) {
+		response.setContentType("application/json"); //fixed
+		out.println(xstream.toXML(com.glimworm.opendata.parkshark.CalcParking.sgarages));
+	}
+	
 	if (action.equalsIgnoreCase("geocode")) {
 		ar.places = GeoCodeByMapQuest.geocode(addr);
 		ar._executiontime = new Date().getTime() - _exdt;

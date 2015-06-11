@@ -57,6 +57,10 @@ public class testsdk {
 		},
 		*/
 		
+		
+		
+		
+		
 		com.glimworm.opendata.divvamsterdamapi.planning.net.xsd.curlResponse res = com.glimworm.opendata.divvamsterdamapi.planning.net.CurlUtils.getCURL(S, "", null, null, null, null);
 		System.out.println(res.text);
 		org.json.JSONObject jsob = com.glimworm.common.utils.jsonUtils.string2json(res.text);

@@ -1,5 +1,8 @@
 package com.glimworm.opendata.divvamsterdamapi.planning.xsd;
 
+import com.glimworm.opendata.parkshark.xsd.PayTimes;
+import com.vividsolutions.jts.geom.Polygon;
+
 public class PlaceParkingGarage  extends Place {
 	
 
@@ -20,9 +23,14 @@ public class PlaceParkingGarage  extends Place {
 	public String csdkid = "";
 	public String csdkurl = "";
 	public String csdkstatus = "";
+	public String nprid = "";
+	public String nprurl = "";
+	public String nprstatus = "";
 	public String ams_pr_fare = "";		// amsterdam park and ride fare string 
 										// e.g. "1-5 04:00 10:00 8 24 | 1-5 10:00 04:00 1 24 | 6-0 0:00 0:00 1 24"
 	public PlaceParkingGarageAmsterdamPrVariation[] ams_pr_fares = null;
+	public Polygon poly = null;
+	public PayTimes pt = null;
 	
 	public PlaceParkingGarage() {
 	}

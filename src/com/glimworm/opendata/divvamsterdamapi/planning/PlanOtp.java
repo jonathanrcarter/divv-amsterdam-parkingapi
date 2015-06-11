@@ -27,7 +27,11 @@ public class PlanOtp extends Plan {
 			Place to = request.to;
 			
 //			String[] URLS = {"http://opentripplanner.nl/opentripplanner-api-webapp/ws/plan","http://188.226.134.55:8000/opentripplanner-api-webapp/ws/plan"};
-			String[] URLS = {"http://188.226.134.55:8000/opentripplanner-api-webapp/ws/plan","http://opentripplanner.nl/opentripplanner-api-webapp/ws/plan"};
+//			String[] URLS = {"http://188.226.134.55:8000/opentripplanner-api-webapp/ws/plan","http://opentripplanner.nl/opentripplanner-api-webapp/ws/plan"};
+			String[] URLS = {"http://planner.plannerstack.org/otp-rest-servlet/ws/plan","http://opentripplanner.nl/opentripplanner-api-webapp/ws/plan"};
+			
+			// http://planner.plannerstack.org/otp-rest-servlet/ws/plan?191028677510493434966_1402671666814&fromPlace=52.36050593525293%2C4.89990234375&toPlace=52.005173970555695%2C4.380798339843749&time=5%3A12pm&date=06-13-2014&mode=TRANSIT%2CWALK&maxWalkDistance=750&arriveBy=false&showIntermediateStops=false&startTransitStopId=ARR_14784&_=1402671666819			
+			
 			
 			String URL = URLS[request.options.server];
 //			String URL = "http://opentripplanner.nl/opentripplanner-api-webapp/ws/plan";
