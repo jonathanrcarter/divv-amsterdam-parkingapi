@@ -1,5 +1,7 @@
 package com.glimworm.opendata.parkshark.importdata.NPR.xsd;
 
+import java.util.ArrayList;
+
 import com.glimworm.opendata.parkshark.xsd.PayTimes;
 import com.vividsolutions.jts.geom.Polygon;
 
@@ -35,7 +37,10 @@ public class AreaListItem {
 	public String city = "";
 	public String province = "";
 	public String country = "";
-	public Polygon poly = null;
+//	public Polygon poly = null;
+	public ArrayList<Polygon> polys = new ArrayList<Polygon>();
+	
+	
 	public PayTimes pt = null;
 	
 	

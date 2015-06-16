@@ -36,9 +36,7 @@ public class FileUtils {
 	public static String readFile(String F) {
 
 		File f = new File(F);
-		System.out.println(" trying " + F);
 		if (!f.exists()) return null;
-		System.out.println(" Exists " + F);
 
 		StringBuffer sb = new StringBuffer();
 

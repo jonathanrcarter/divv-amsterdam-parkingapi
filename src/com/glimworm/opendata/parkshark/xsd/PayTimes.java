@@ -1,6 +1,6 @@
 package com.glimworm.opendata.parkshark.xsd;
 
-public class PayTimes {
+public class PayTimes implements Cloneable {
 	public String geb_code = "";
 	public PayTime[] days = {null,null,null,null,null,null,null};
 
@@ -26,5 +26,14 @@ public class PayTimes {
 			max + "|" +
 			maxdaycost;
 	}
-	
+	public Object clone() {
+		try {
+			PayTimes clone = (PayTimes) super.clone();
+			clone.days = (PayTime[]) days.clone();
+			clone.first = (First) first.clone();
+			return clone;
+		} catch( CloneNotSupportedException e ) {
+		    return null;
+		}
+    }	
 }

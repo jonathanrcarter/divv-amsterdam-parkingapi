@@ -47,7 +47,7 @@ public class Amsterdam {
 		
 		if (lat > new_lat) return true;
 		return false;
-	};	
+	};
 	
 	public static Meter[] smeters = null;
 	public static void downloadmeters(PlaceParkingGarage[] areas) {
@@ -98,6 +98,10 @@ public class Amsterdam {
 		473				236131			20120101														(52.378572755, 4.530698053)
 		599				320				20140101									J.B. BAKEMAKADE		(51.9076118, 4.5018101)
 
+		AreaManagerId	AreaId	StartDate	EndDate	Geodata
+		363				1401	01/01/12			POLYGON((1 1,1 2))
+		
+
 		*
 		*/		
 		
@@ -125,6 +129,11 @@ public class Amsterdam {
 					 */
 					item.lat = Double.parseDouble(cols[5].replace('(',' ').replace('"',' ').trim());
 					item.lon = Double.parseDouble(cols[6].replace(')',' ').replace('"',' ').trim());
+					
+					if (item.sellingpointid.equalsIgnoreCase("14086")) {
+						System.err.println("14086!!");
+//						return;
+					}
 
 					Coordinate cor1 = new Coordinate(item.lat,item.lon);
 					final com.vividsolutions.jts.geom.Point point = fact.createPoint(cor1);
@@ -134,11 +143,20 @@ public class Amsterdam {
 					 * match to an area
 					 */
 					
+					boolean found1 = false;
 					place:
 					for (PlaceParkingGarage area : areas) {
-						if (area.poly != null && point.within(area.poly) == true) {
+						if (area.polys == null) continue place;
+						
+						boolean fnd = false;
+						for (Polygon areapoly : area.polys) {
+							if (point.within(areapoly) == true) fnd = true;
+						}
+						
+						if (fnd) {
 							item.area = area.name;
 							System.out.println("L: "+i+" "+item.sellingpointid+" ["+item.lat+","+item.lon+" A:"+item.area+"]");				
+							found1 = true;
 
 							
 							Meter _meter = new Meter();
@@ -152,7 +170,7 @@ public class Amsterdam {
 							_meter.woonplaats = "";								//automats.getString(i, "woonplaats");
 							_meter.typeautomaat = "CWT";						//automats.getString(i, "typeautomaat");
 							_meter.betaalwijze = "OP";							//automats.getString(i, "betaalwijze");
-							_meter.tariefcode = "";						//automats.getString(i, "tariefcode");
+							_meter.tariefcode = "";								//automats.getString(i, "tariefcode");
 							_meter.status = "";									//automats.getString(i, "status");
 							_meter.lat = item.lat;								//automats.getDouble(i, "lon",0);
 							_meter.lon = item.lon;								//automats.getDouble(i, "lat",0);
@@ -204,6 +222,7 @@ public class Amsterdam {
 											retval.days[dc] = new PayTime();
 											retval.days[dc].start = pt.start;
 											retval.days[dc].end = pt.end;
+											retval.t_code = parts[0];
 											found = true;
 											
 										} else if (part.length() == 5) {
@@ -214,6 +233,7 @@ public class Amsterdam {
 														retval.days[ddc] = new PayTime();
 														retval.days[ddc].start = pt.start;
 														retval.days[ddc].end = pt.end;
+														retval.t_code = parts[0];
 														found = true;
 													}
 												}
@@ -228,7 +248,11 @@ public class Amsterdam {
 							}
 							
 							if (found == false) {
-								retval = area.pt;
+								retval = (PayTimes)area.pt.clone();
+							}
+							if (parts.length > 1) {
+								retval.t_code = parts[0];
+								_meter.tariefcode = parts[0];
 							}
 							
 							/**
@@ -242,17 +266,20 @@ public class Amsterdam {
 								}
 							}
 							//retval.first = area.free_minutes;
-							retval.first = new First();
-							retval.first.combination = "n";		//jc todo
-							retval.first.hrs = 0;				//jc todo
-							retval.first.hrs2 = 0;				//jc todo
-							retval.first.price = 0;				//jc todo
-							retval.first.price2 = 0;			//jc todo
+							if (area.pt.first.combination.equalsIgnoreCase("y")) {
+								retval.first = (First)area.pt.first.clone();
+							} else {
+								retval.first = new First();
+								retval.first.combination = "n";		//jc todo
+								retval.first.hrs = 0;				//jc todo
+								retval.first.hrs2 = 0;				//jc todo
+								retval.first.price = 0;				//jc todo
+								retval.first.price2 = 0;			//jc todo
+							}
 							
 							retval.geb_code = "";				//jc todo
 							retval.max = 0;						//jc todo
 							retval.maxdaycost = area.price_day;
-							retval.t_code = "";					//jc todo
 							_meter.costs = retval;
 
 							_meter.type = "on-street-meter";
@@ -270,6 +297,10 @@ public class Amsterdam {
 						}
 						
 					}
+					
+					if (!found1) {
+						System.out.println("X: "+i+" "+item.sellingpointid+" ["+item.lat+","+item.lon+" A:"+item.area+"]");				
+					}
 
 				
 				} catch (Exception E) {
@@ -283,6 +314,26 @@ public class Amsterdam {
 				VERKOOPPUNTs.add(item);
 			}
 		}
+
+		String coords = "";
+		for (PlaceParkingGarage a : areas) {
+			if (a.polys != null) {
+				for (Polygon poly : a.polys) {
+					coords += "/* "+a.name+"*/\n";
+					coords += ("coords.push([");
+					for (int i=0; i < poly.getNumPoints(); i++) {
+						coords += ("new google.maps.LatLng( "+poly.getCoordinates()[i].x+","+poly.getCoordinates()[i].y+"),");
+					}
+					coords += ("]);\n");
+				}
+			} else {
+				System.out.println(a.name.substring(0,20));
+				System.out.println(a.nprurl);
+			}
+		}
+		com.glimworm.opendata.divvamsterdamapi.planning.net.FileUtils.writeFile("/opt/tmp/rdw/map/index_coords.js", coords);
+		
+		
 		Object result[] = new Meter[vect.size()];
 		vect.copyInto(result);
 		smeters = (Meter[])result;
@@ -291,6 +342,95 @@ public class Amsterdam {
 	}
 	public static PlaceParkingGarage[] getGarages(int GARAGESORMETERS) {
 		// TODO Auto-generated method stub
+
+		String polygoneUrl = "https://opendata.rdw.nl/api/views/nsk3-v9n7/rows.csv?accessType=DOWNLOAD";
+		com.glimworm.opendata.divvamsterdamapi.planning.net.xsd.curlResponse res0 = com.glimworm.opendata.divvamsterdamapi.planning.net.CurlUtils.getCURL(polygoneUrl, "", null, null, null, null,null,500);
+		System.out.println(res0.text);
+		String[] polygon_lines = res0.text.split("[\n]");
+
+		ArrayList<AreaListItem> alis = new ArrayList<AreaListItem>();
+		
+		
+		nextline:
+		for (int i=1; i < polygon_lines.length; i++) {	// skip first line
+			String[] cols = polygon_lines[i].split("[,]",5);
+			
+			AreaListItem ali = new AreaListItem();
+			ali.areamanagerid = cols[0];
+			ali.areaId = cols[1];
+
+			if (ali.areamanagerid.equalsIgnoreCase("363") == false && ali.areaId.startsWith("363_") == false) continue nextline;
+
+			
+			
+			String geo = cols[4];
+
+//			System.out.print(ali.areaId);
+//			System.out.print(ali.areamanagerid);
+//			System.out.print(geo);
+//			System.out.println();
+			
+			if (geo.startsWith("\"POLYGON ((")) {
+				geo = geo.substring(11).replace(')',' ').replace('"',' ').trim();
+				
+
+//				System.out.print(geo);
+//				System.out.println();
+				
+				String[] geos = geo.split("[(]");
+				for (String _geo : geos) {
+
+					String[] points = _geo.split("[,]");
+	
+					Vector<Coordinate> vectc = new Vector<Coordinate>();
+					Coordinate cor0 = null;
+					
+					nextpoint:
+					for (String point : points) {
+						
+						System.out.println("pnt " + point);
+						if (point == null || point.trim().length() == 0) continue nextpoint;
+						
+						String[] pnt = point.trim().split("[ ]");
+
+						if (pnt == null || pnt.length != 2) continue nextpoint;
+
+						System.out.println("pnt0 " + pnt[0]);
+						System.out.println("pnt1 " + pnt[1]);
+						
+						try {
+							double lon = Double.parseDouble(pnt[0]);
+							double lat = Double.parseDouble(pnt[1]);
+							Coordinate cor1 = new Coordinate(lat,lon);
+							vectc.add(cor1);
+							if (cor0 == null) cor0 = cor1;
+						} catch (Exception E) {
+							
+						}
+					}
+					if (cor0 != null) vectc.add(cor0);	// close the shape
+					//
+					Object resultc[] = new Coordinate[vectc.size()];
+					vectc.copyInto(resultc);
+					Coordinate[] cor = (Coordinate[])resultc;
+					GeometryFactory fact = new GeometryFactory();
+					ali.polys.add(fact.createPolygon(cor));
+				}
+				alis.add(ali);
+			}
+		}
+
+		if (alis.size() > 0) {
+			for (int i=0; i < alis.size(); i++) {
+				
+				System.out.print("AI " + alis.get(i).areaId);
+				System.out.print("\t" + alis.get(i).areamanagerid);
+				System.out.print("\t" + alis.get(i).polys.get(0));
+				System.out.println();
+			}
+			
+		}
+		
 		/* make a list of area items
 		 * 
 		 */
@@ -350,11 +490,11 @@ public class Amsterdam {
 				/** if file exists do not download again - sort of cache **/
 				
 				if (f.exists()) {
-					System.out.println("READING FILE ["+areas.get(i).uuid+"]");
+//					System.out.println("READING FILE ["+areas.get(i).uuid+"]");
 					txt = com.glimworm.opendata.divvamsterdamapi.planning.net.FileUtils.readFile(FN);
 				}
 				if (txt == null || txt.trim().length() == 0) {
-					System.out.println("SEARCHING FOR ["+areas.get(i).uuid+"]"+U);
+//					System.out.println("SEARCHING FOR ["+areas.get(i).uuid+"]"+U);
 					res = com.glimworm.opendata.divvamsterdamapi.planning.net.CurlUtils.getCURL(U, "", null, null, null, null,null,500);
 					com.glimworm.opendata.divvamsterdamapi.planning.net.FileUtils.writeFile(FN, res.text);
 					txt = res.text;
@@ -384,10 +524,6 @@ public class Amsterdam {
 //				long now = 1337126400+1000;
 //				new java.text.SimpleDateFormat("MM/dd/yyyy HH:mm:ss").parse("01/01/2013 01:00:00").getTime() / 1000;
 				
-				System.out.println(now);
-				System.out.println(areas.get(i).validityStartOfPeriod);
-				System.out.println(areas.get(i).validityEndOfPeriod);
-				
 				/**
 				 * skip if not currently active
 				 * 
@@ -396,9 +532,13 @@ public class Amsterdam {
 				
 				if (now < areas.get(i).validityStartOfPeriod || (areas.get(i).validityEndOfPeriod > 0 && now > areas.get(i).validityEndOfPeriod)) {
 					areas.get(i).valid =  false;
+					System.out.println("DBG1 : NOW, START , END");
+					System.out.println(now);
+					System.out.println(areas.get(i).validityStartOfPeriod);
+					System.out.println(areas.get(i).validityEndOfPeriod);
+					System.out.println("INVALID");
 					continue nextarea;
 				}
-				System.out.println("VALID");
 
 				org.json.JSONArray specifications = jsob1.optJSONArray("specifications");
 				if (specifications != null) {
@@ -452,9 +592,22 @@ public class Amsterdam {
 										Coordinate[] cor = (Coordinate[])resultc;
 										GeometryFactory fact = new GeometryFactory();
 										Polygon poly1 = fact.createPolygon(cor);
-										areas.get(i).poly = poly1;
+										areas.get(i).polys.add(poly1);
+//										if (areas.get(i).poly == null) {
+//											areas.get(i).poly = poly1;
+//											System.err.println("xxp1"+poly1);
+//											System.err.println("xxp1.area="+poly1.getArea());
+//										} else {
+//											System.err.println(poly1);
+//											System.err.println("xxxp1.area="+poly1.getArea());
+//											System.err.println("xxxa1.area="+areas.get(i).poly.getArea());
+//											if (poly1.getArea() > areas.get(i).poly.getArea()) {
+//												System.err.println("xxxp1 replaced");
+//												areas.get(i).poly = poly1;
+//											}
+//											System.err.println("xxxp1"+areas.get(i).poly);
+//										}
 										
-										System.err.println(poly1);
 										
 										 
 //										com.vividsolutions.jts.geom.Polygon poly1 = new com.vividsolutions.jts.geom.Polygon(pol);
@@ -462,9 +615,32 @@ public class Amsterdam {
 								}
 							}
 						}
-						
 					}
 				}
+				
+				/* 
+				 * if the area did not get a polygon at all for any reason then revert to the imported list above
+				 */
+//				areas.get(i).polys.clear();
+				
+//				if (areas.get(i).polys.size() == 0) {
+					// we use the other array
+					for (int ai=0; ai < alis.size(); ai++) {
+						System.out.println(""+alis.get(ai).areaId+" =?= " + areas.get(i).areaId+"");
+						if (alis.get(ai).areaId.equalsIgnoreCase(areas.get(i).areaId)) {
+							System.out.println(""+alis.get(ai).areamanagerid+" =?= " + areas.get(i).areamanagerid+"");
+							if (alis.get(ai).areamanagerid.equalsIgnoreCase(areas.get(i).areamanagerid)) {
+								if (alis.get(ai).polys.size() > 0) {
+									System.out.println(alis.get(ai).polys);
+									for (int aii = 0; aii < alis.get(ai).polys.size(); aii++) {
+										areas.get(i).polys.add(alis.get(ai).polys.get(aii));
+									}
+								}
+							}
+						}
+					}
+//				}
+
 				
 				if (GARAGESORMETERS == METERS) {
 					// hmmm  did I want to do something here?
@@ -520,7 +696,13 @@ public class Amsterdam {
 				pl.url = areas.get(i).detail_url;
 				pl.lat = areas.get(i).lat;
 				pl.lon = areas.get(i).lon;
-				pl.poly = areas.get(i).poly;
+				
+				if (areas.get(i).polys != null) {
+					pl.polys = new Polygon[areas.get(i).polys.size()];
+					areas.get(i).polys.toArray(pl.polys);
+				} else {
+					pl.polys = new Polygon[0];
+				}
 				pl.postcode = areas.get(i).zipcode;
 				pl.street = areas.get(i).streetName + " " + areas.get(i).houseNumber;
 				pl.nprurl = U;
@@ -603,6 +785,8 @@ public class Amsterdam {
 								int validityUntilTime_h = jsobjt.getJSONObject("validityUntilTime").getInt("h");
 								int validityUntilTime_m = jsobjt.getJSONObject("validityUntilTime").getInt("m");
 								int validityUntilTime_s = jsobjt.getJSONObject("validityUntilTime").getInt("s");
+								
+								if (validityUntilTime_m > 45 && validityUntilTime_h < 24) validityUntilTime_h++;
 
 								areas.get(i).usage += " "+validityUntilTime_h+validityUntilTime_m+" ";
 
@@ -666,9 +850,27 @@ public class Amsterdam {
 													/* 
 													 * I want it in euro / hour for meters
 													 */
-													if (((60/chargePeriod) * charge) > pt.cost) {
-														pt.cost = (60/chargePeriod) * charge;
+													if (tariffDescription.indexOf("combi") > -1){
+														if (intervalRates.length() > 1 && k == 0) {
+															// this is the first of a combi zone
+															pt.first.combination = "y";
+															pt.first.hrs = (durationUntil/60);
+															pt.first.price = (60/chargePeriod) * charge;
+															pt.first.price2 = (60/chargePeriod) * charge;
+														}
+														if (intervalRates.length() > 1 && k == 1) {
+															// this is the first of a combi zone
+															pt.first.hrs2 = (durationUntil/60);
+															pt.first.price2 = (60/chargePeriod) * charge;
+															pt.cost = (60/chargePeriod) * charge;
+														}
+														
+													} else {
+														if (((60/chargePeriod) * charge) > pt.cost) {
+															pt.cost = (60/chargePeriod) * charge;
+														}
 													}
+													
 												}
 											
 											}
@@ -715,7 +917,16 @@ public class Amsterdam {
 					}
 				}
 				vect.add(pl);
-
+				
+//				// https://npropendata.rdw.nl/parkingdata/v2/static/a2ad1b55-29f8-4f7f-934b-50851bac6384
+//				if (areas.get(i).uuid.equalsIgnoreCase("a2ad1b55-29f8-4f7f-934b-50851bac6384")) {
+//					System.out.println(areas.get(i).areamanagerid);
+//					System.out.println(areas.get(i).areaId);
+//					System.out.println(areas.get(i).poly);
+//					return null;
+//				}
+				
+				
 //				if (readfrominternet > 50) break;
 
 			} catch (Exception E) {
@@ -735,8 +946,21 @@ public class Amsterdam {
 		class AreaSort implements Comparator<PlaceParkingGarage> {
 		    // Comparator interface requires defining compare method.
 		    public int compare(PlaceParkingGarage a, PlaceParkingGarage b) {
-		        if (a.poly != null && b.poly != null && a.poly.getArea() < b.poly.getArea()) {return -1;}
-		        if (a.poly != null && b.poly != null && a.poly.getArea() > b.poly.getArea()) {return 1;}
+		    	double apolyarea = 0;
+		    	double bpolyarea = 0;
+		    	if (a.polys != null) {
+			    	for (Polygon apoly : a.polys) {
+			    		if (apoly.getArea() > apolyarea) apolyarea = apoly.getArea();
+			    	}
+		    	}
+		    	if (b.polys != null) {
+			    	for (Polygon bpoly : b.polys) {
+			    		if (bpoly.getArea() > bpolyarea) bpolyarea = bpoly.getArea();
+			    	}
+		    	}
+		    	
+		        if (apolyarea > 0 && apolyarea < bpolyarea) {return -1;}
+		        if (bpolyarea > 0 && bpolyarea < apolyarea) {return 1;}
 		        return 0;
 		    }
 		}
