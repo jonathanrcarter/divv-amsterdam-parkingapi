@@ -4,6 +4,7 @@ import java.io.File;
 import java.util.ArrayList;
 import java.util.Arrays;
 import java.util.Comparator;
+import java.util.List;
 import java.util.Vector;
 
 import org.json.JSONObject;
@@ -22,6 +23,14 @@ import com.vividsolutions.jts.geom.Coordinate;
 import com.vividsolutions.jts.geom.GeometryFactory;
 import com.vividsolutions.jts.geom.LinearRing;
 import com.vividsolutions.jts.geom.Polygon;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
 
 public class Amsterdam {
 	
@@ -48,6 +57,112 @@ public class Amsterdam {
 		if (lat > new_lat) return true;
 		return false;
 	};
+	
+	public static Polygon getPolyFromJsonArray(org.json.JSONArray coordset){
+
+		Vector<Coordinate> vectc = new Vector<Coordinate>();
+		Coordinate cor0 = null;
+		
+		for (int j=0; j < coordset.length(); j++) {
+		
+			org.json.JSONArray point = coordset.optJSONArray(j);
+			
+			if (point != null && point.length() > 1) {
+				double lon = point.optDouble(0);
+				double lat = point.optDouble(1);
+				Coordinate cor1 = new Coordinate(lat,lon);
+				vectc.add(cor1);
+				if (cor0 == null) cor0 = cor1;
+			}
+		}
+
+		if (cor0 != null) vectc.add(cor0);	// close the shape
+		//
+		Object resultc[] = new Coordinate[vectc.size()];
+		vectc.copyInto(resultc);
+
+		Coordinate[] cor = (Coordinate[])resultc;
+		GeometryFactory fact = new GeometryFactory();
+		Polygon poly1 = fact.createPolygon(cor);
+		return poly1;
+		
+	}
+
+	public static AreaListItem inAmsterdam = null;
+	public static AreaListItem inPaidParking = null;
+	public static AreaListItem inCentrum = null;
+	
+	public static void loadgeojson() {
+		inPaidParking = loadgeojson("gemeentegrens");
+		inCentrum = loadgeojson("centrumzone");
+	}
+	public static boolean isin(double lat, double lon, ArrayList<Polygon> polys) {
+
+		GeometryFactory fact = new GeometryFactory();
+		Coordinate cor1 = new Coordinate(lat,lon);
+		final com.vividsolutions.jts.geom.Point point = fact.createPoint(cor1);
+
+		for (int i=0; i < polys.size(); i++) {
+			if (point.within(polys.get(i)) == true) return true;
+		}
+		return false;
+	}
+	
+	public static AreaListItem loadgeojson(String filename) {
+		AreaListItem pl =new AreaListItem();
+		
+		String FN = "/opt/tmp/rdw/uploads/"+filename+".geojson";
+		File f = new File(FN);
+		if (!f.exists()) return null;
+
+		String txt = com.glimworm.opendata.divvamsterdamapi.planning.net.FileUtils.readFile(FN);
+		
+		if (txt == null || txt.trim().length() == 0) {
+			return null;
+		}
+		
+		/**
+		 * create a json obejct "jsob"
+		 */
+		
+		org.json.JSONObject jsob = com.glimworm.common.utils.jsonUtils.string2json(txt);
+		org.json.JSONObject jso_features = jsob.optJSONObject("features");
+		
+		if (jso_features != null) {
+			org.json.JSONObject jso_geom = jso_features.optJSONObject("geometry");
+			if (jso_geom != null) {
+				String type = jso_geom.optString("type","");
+				if (type.equalsIgnoreCase("Polygon")) {
+					org.json.JSONArray coords = jso_features.optJSONArray("coordinates");
+					for (int i=0; i < coords.length(); i++) {
+						org.json.JSONArray coordset = coords.optJSONArray(i);
+						if (coordset!= null) {
+							Polygon poly = getPolyFromJsonArray(coordset);
+							pl.polys.add(poly);
+						}
+					}
+				}
+				if (type.equalsIgnoreCase("MultiPolygon")) {
+					org.json.JSONArray coords = jso_features.optJSONArray("coordinates");
+					for (int i=0; i < coords.length(); i++) {
+						org.json.JSONArray multicoordset = coords.optJSONArray(i);
+						if (multicoordset!= null) {
+							for (int j=0; j < multicoordset.length(); j++) {
+								org.json.JSONArray coordset = multicoordset.optJSONArray(i);
+								if (coordset!= null) {
+									Polygon poly = getPolyFromJsonArray(coordset);
+									pl.polys.add(poly);
+								}
+							}
+						}
+					}
+				}
+			}
+		}
+		
+		return pl;
+	}
+	
 	
 	public static Meter[] smeters = null;
 	public static void downloadmeters(PlaceParkingGarage[] areas) {
@@ -315,31 +430,61 @@ public class Amsterdam {
 			}
 		}
 
-		String coords = "";
+		
+		System.out.println("START OUTPUT MAP INDEX for ["+areas.length+"] areas");
+		StringBuffer coords = new StringBuffer("");
 		for (PlaceParkingGarage a : areas) {
+			System.out.println("START OUTPUT MAP INDEX area ["+a.name+"]");
 			if (a.polys != null) {
 				for (Polygon poly : a.polys) {
-					coords += "/* "+a.name+"*/\n";
-					coords += ("coords.push([");
+					coords.append("/* "+a.name+"*/\n");
+					coords.append("coords.push([");
+					System.out.println("START OUTPUT MAP INDEX for ["+poly.getNumPoints()+"] points");
 					for (int i=0; i < poly.getNumPoints(); i++) {
-						coords += ("new google.maps.LatLng( "+poly.getCoordinates()[i].x+","+poly.getCoordinates()[i].y+"),");
+						coords.append("new google.maps.LatLng( "+poly.getCoordinates()[i].x+","+poly.getCoordinates()[i].y+"),");
 					}
-					coords += ("]);\n");
+					coords.append("]);\n");
 				}
 			} else {
-				System.out.println(a.name.substring(0,20));
+				if (a.name.length() > 20) {
+					System.out.println(a.name.substring(0,20));
+				} else {
+					System.out.println(a.name);
+				}
 				System.out.println(a.nprurl);
 			}
 		}
-		com.glimworm.opendata.divvamsterdamapi.planning.net.FileUtils.writeFile("/opt/tmp/rdw/map/index_coords.js", coords);
+		System.out.println("END OUTPUT MAP INDEX for ["+areas.length+"] areas");
+		com.glimworm.opendata.divvamsterdamapi.planning.net.FileUtils.writeFile("/opt/tmp/rdw/map/index_coords.js", coords.toString());
 		
 		
 		Object result[] = new Meter[vect.size()];
 		vect.copyInto(result);
 		smeters = (Meter[])result;
+		
+		System.out.println("END ROUTINE smeter count is  ["+smeters.length+"]");
+		
 		return;
 				
 	}
+
+	public static org.w3c.dom.Node getnode(org.w3c.dom.Node node, String NAME) {
+		for (int i = 0; i < node.getChildNodes().getLength(); i++) {
+			if (node.getChildNodes().item(i).getNodeName().equalsIgnoreCase(NAME)) {
+				return node.getChildNodes().item(i);
+			}
+		}
+		return null;
+	}
+	public static List<org.w3c.dom.Node> getnodes(org.w3c.dom.Node node, String NAME) {
+		List<org.w3c.dom.Node> retval = new ArrayList<org.w3c.dom.Node>();
+		for (int i = 0; i < node.getChildNodes().getLength(); i++) {
+			if (node.getChildNodes().item(i).getNodeName().equalsIgnoreCase(NAME)) {
+				retval.add(node.getChildNodes().item(i));
+			}
+		}
+		return retval;
+	}	
 	public static PlaceParkingGarage[] getGarages(int GARAGESORMETERS) {
 		// TODO Auto-generated method stub
 
@@ -430,6 +575,149 @@ public class Amsterdam {
 			}
 			
 		}
+		/*
+		 * Download the KML file
+		 */
+		
+		String KMLurl = "https://opendata.rdw.nl/api/geospatial/7sqe-3mca?method=export&format=KML";
+		com.glimworm.opendata.divvamsterdamapi.planning.net.xsd.curlResponse reskml = com.glimworm.opendata.divvamsterdamapi.planning.net.CurlUtils.getCURL(KMLurl, "", null, null, null, null,null,500);
+		System.out.println(reskml.text);
+
+		String FNKML = "/opt/tmp/rdw/download.kml";
+		com.glimworm.opendata.divvamsterdamapi.planning.net.FileUtils.writeFile(FNKML, reskml.text);
+
+		try {
+		
+			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
+			DocumentBuilder builder = factory.newDocumentBuilder();
+			org.w3c.dom.Document document = builder.parse(new File(FNKML));		
+			
+			org.w3c.dom.NodeList nodeList = document.getDocumentElement().getChildNodes().item(1).getChildNodes();
+			for (int i = 0; i < nodeList.getLength(); i++) {
+				org.w3c.dom.Node node = nodeList.item(i);
+				if (node.getNodeName().equalsIgnoreCase("Placemark")) {
+
+					org.w3c.dom.NodeList placelist = node.getChildNodes();
+					String AreaId = "";
+					String AreaManId = "";
+					List<String> poly = new ArrayList<String>();
+					AreaListItem ali = new AreaListItem();
+
+					nextline:
+					for (int j = 0; j < placelist.getLength(); j++) {
+						org.w3c.dom.Node nodep = placelist.item(j);
+
+						if (nodep.getNodeName().equalsIgnoreCase("Description")) {
+//							System.out.println(j+")"+nodep.getChildNodes().item(0).getNodeValue());
+							String S1 = nodep.getChildNodes().item(0).getNodeValue();
+							String[] SS = S1.split("[\n]");
+							for (String SSS : SS) {
+								if (SSS.indexOf(">AreaId<") > -1) {
+									String[] SSSS = SSS.split("[<>]");
+									if (SSSS.length > 12) {
+										AreaId = SSSS[12];
+									}
+//									for (String SSSSS : SSSS) {
+//										System.out.println("*"+SSSSS);
+//									}
+								}
+								if (SSS.indexOf(">AreaManId<") > -1) {
+									String[] SSSS = SSS.split("[<>]");
+									if (SSSS.length > 12) {
+										AreaManId = SSSS[12];
+									}
+//									for (String SSSSS : SSSS) {
+//										System.out.println("*"+SSSSS);
+//									}
+								}
+							}
+							
+						}
+
+						ali.areamanagerid = AreaManId;
+						ali.areaId = AreaId;
+
+						if (ali.areamanagerid.equalsIgnoreCase("363") == false && ali.areaId.startsWith("363_") == false) continue nextline;
+						
+						
+						if (nodep.getNodeName().equalsIgnoreCase("MultiGeometry")) {
+						
+							org.w3c.dom.Node multigeometry = nodep;	//getnode(nodep,"MultiGeometry");
+							if (multigeometry != null) {
+								
+								List<org.w3c.dom.Node> polygons = getnodes(multigeometry,"Polygon");
+								for (org.w3c.dom.Node polygon : polygons) {
+									List<org.w3c.dom.Node> outerBoundaryIss = getnodes(polygon,"outerBoundaryIs");
+									for (org.w3c.dom.Node outerBoundaryIs : outerBoundaryIss) {
+										List<org.w3c.dom.Node> LinearRings = getnodes(outerBoundaryIs,"LinearRing");
+										for (org.w3c.dom.Node LinearRing : LinearRings) {
+											List<org.w3c.dom.Node> coordinatess = getnodes(LinearRing,"coordinates");
+											for (org.w3c.dom.Node coordinates : coordinatess) {
+												poly.add(coordinates.getChildNodes().item(0).getNodeValue());
+											}
+										}
+									}
+								}
+							}
+						}
+						
+						
+					}
+					System.out.print("["+AreaId+"]");
+					System.out.print("\t");
+					System.out.print("["+AreaManId+"]");
+					System.out.print("\t");
+					System.out.print("["+poly+"]");
+					System.out.println("");
+					// <coordinates>4.616,52.4593 4.6164,52.4593</coordinates>
+					
+					for (String geo : poly){
+						String[] points = geo.split("[ ]");
+		
+						Vector<Coordinate> vectc = new Vector<Coordinate>();
+						Coordinate cor0 = null;
+						
+						nextpoint:
+						for (String point : points) {
+							
+							System.out.println("pnt " + point);
+							if (point == null || point.trim().length() == 0) continue nextpoint;
+							
+							String[] pnt = point.trim().split("[,]");
+
+							if (pnt == null || pnt.length != 2) continue nextpoint;
+
+							System.out.println("pnt0 " + pnt[0]);
+							System.out.println("pnt1 " + pnt[1]);
+							
+							try {
+								double lon = Double.parseDouble(pnt[0]);
+								double lat = Double.parseDouble(pnt[1]);
+								Coordinate cor1 = new Coordinate(lat,lon);
+								vectc.add(cor1);
+								if (cor0 == null) cor0 = cor1;
+							} catch (Exception E) {
+								
+							}
+						}
+						if (cor0 != null) vectc.add(cor0);	// close the shape
+						//
+						Object resultc[] = new Coordinate[vectc.size()];
+						vectc.copyInto(resultc);
+						Coordinate[] cor = (Coordinate[])resultc;
+						GeometryFactory fact = new GeometryFactory();
+						ali.polys.add(fact.createPolygon(cor));
+					}
+					alis.add(ali);
+				}
+			}
+			
+			
+		} catch (Exception E) {
+			E.printStackTrace(System.out);
+		}
+		
+
 		
 		/* make a list of area items
 		 * 
@@ -686,6 +974,27 @@ public class Amsterdam {
 						}
 					}
 				}
+
+
+				String FN1 = "/opt/tmp/rdw/upload/additionaldata/"+areas.get(i).uuid+".json";
+				File f1 = new File(FN1);
+				if (f1.exists()) {
+//					System.out.println("READING FILE ["+areas.get(i).uuid+"]");
+					String txt1 = com.glimworm.opendata.divvamsterdamapi.planning.net.FileUtils.readFile(FN1);
+					org.json.JSONObject jsob_additional = com.glimworm.common.utils.jsonUtils.string2json(txt1);
+					if (jsob_additional.has("location")) {
+						org.json.JSONArray coords = jsob_additional.optJSONArray("location");
+						areas.get(i).lon = coords.getDouble(0);
+						areas.get(i).lat = coords.getDouble(1);
+					}
+					areas.get(i).streetName = jsob_additional.optString("streetname",areas.get(i).streetName);
+					areas.get(i).houseNumber = jsob_additional.optString("houseNumber",areas.get(i).streetName);
+					areas.get(i).zipcode = jsob_additional.optString("zipcode",areas.get(i).streetName);
+					areas.get(i).city = jsob_additional.optString("city",areas.get(i).streetName);
+					areas.get(i).province = jsob_additional.optString("province",areas.get(i).streetName);
+					areas.get(i).country = jsob_additional.optString("country",areas.get(i).streetName);
+					
+				}
 				
 				/*
 				 * move the data into a "parkingplacegarage"
@@ -935,6 +1244,304 @@ public class Amsterdam {
 			}
 			
 		}
+		/*
+
+		   {
+		        "cdk_id": "",
+		        "name": "Transferium ArenA",
+		        "lat": 52.3136379,
+		        "lon": 4.940279,
+		        "owner": "www.amsterdam.nl/parkeergebouwen",
+		        "street": "",
+		        "postcode": "1101EP",
+		        "url": "http://www.amsterdam.nl/parkeergebouwen/onze-garages/amsterdam_arenapoort/p1-arena/",
+		        "type": "parking-garage",
+		        "calc_type": "garage",
+		        "capacity": 0,
+		        "places": 0,
+		        "price_day": 24.5,
+		        "remarks": "",
+		        "opening_times_raw": "0-6 0000 0000 0000 0000",
+		        "tariff_raw": "0000-9999  ",
+		        "includes_public_transport": "n",
+		        "ams_pr_fare": ""
+		    },
+		*/
+		
+		String FN1 = "/opt/tmp/rdw/upload/additionaldata/newgarages/garages.json";
+		File f1 = new File(FN1);
+		if (f1.exists()) {
+			String txt1 = com.glimworm.opendata.divvamsterdamapi.planning.net.FileUtils.readFile(FN1);
+			org.json.JSONObject jsob_additional = com.glimworm.common.utils.jsonUtils.string2json("{\"arr\" : " + txt1+ "}");
+			org.json.JSONArray garages = jsob_additional.optJSONArray("arr");
+			for (int i=0; i < garages.length(); i++) {
+				org.json.JSONObject garage = garages.optJSONObject(i);
+				if (garage != null) {
+					String cdk = garage.optString("cdk_id");
+					if (cdk != null && cdk.length() == 0) {		// this is an empty cdk
+						/*
+						 * move the data into a "parkingplacegarage"
+						 */
+
+						PlaceParkingGarage pl = new PlaceParkingGarage();
+						pl.name = garage.optString("name");
+						pl.url = garage.optString("url");
+						pl.lat = garage.optDouble("lat");
+						pl.lon = garage.optDouble("lon");
+						pl.postcode = garage.optString("postcode");
+						pl.street = garage.optString("street");
+						pl.nprurl = "";
+						pl.nprid = "";
+						pl.cdk_id = "";
+						pl.csdkurl = "";
+						pl.places = garage.optInt("places");
+						pl.type = garage.optString("type","parking-garage"); // "park-and-ride"
+						pl.opening_times_raw = garage.optString("opening_times_raw","n/a");
+
+						pl.capacity = garage.optInt("capacity");
+						pl.free_minutes = 0;
+						pl.time_unit_minutes = 0;
+						pl.remarks = garage.optString("remarks");
+
+						pl.price_day = garage.optDouble("price_day");
+						pl.price_per_time_unit = garage.optDouble("price_per_time_unit",-1);
+						pl.calc_type = garage.optString("calc_type");
+						pl.ams_pr_fare = garage.optString("ams_pr_fare");
+						pl.includes_public_transport = garage.optString("includes_public_transport");
+						
+						String tariff_raw = garage.optString("tariff_raw");
+						if (tariff_raw != null) {
+							// 0000-9999 2 21
+							String[] tariff_raws = tariff_raw.split("[|]");
+							if (tariff_raws.length == 1) {
+								String[] tariff_rawsp = tariff_raws[0].split("[ ]");
+								if (tariff_rawsp.length == 3) {
+									try {
+										pl.price_per_time_unit = Double.parseDouble(tariff_rawsp[1]);
+										pl.time_unit_minutes = Integer.parseInt(tariff_rawsp[2]);
+									} catch (Exception E) { E.printStackTrace(System.out);}
+								}
+							} else if (tariff_raws.length == 2) {
+								pl.pt.first.combination = "y";
+
+								String[] tariff_rawsp = tariff_raws[1].split("[ ]");
+								if (tariff_rawsp.length == 3) {
+									try {
+										pl.pt.first.hrs = Integer.parseInt(tariff_rawsp[0].split("[-]")[1])/60;
+										pl.pt.first.price = Double.parseDouble(tariff_rawsp[1]);
+									} catch (Exception E) { E.printStackTrace(System.out);}
+								}
+
+								tariff_rawsp = tariff_raws[1].split("[ ]");
+								if (tariff_rawsp.length == 3) {
+									try {
+										pl.price_per_time_unit = Double.parseDouble(tariff_rawsp[1]);
+										pl.pt.first.price2 = Double.parseDouble(tariff_rawsp[1]);
+										pl.time_unit_minutes = Integer.parseInt(tariff_rawsp[2]);
+										pl.pt.first.hrs = Integer.parseInt(tariff_rawsp[0].split("[-]")[1])/60;
+									} catch (Exception E) { E.printStackTrace(System.out);}
+								}
+								
+							}
+						}
+						
+						
+						for (int d=0; d < 7; d++) {
+							pl.opening_times[d] = new PlaceParkingGarageOpeningTimes();
+							pl.opening_times[d].dayOfWeek= d;
+						}
+						try {
+							// opening_times: "0 0930 0930 1930 1930|1-6 0730 0730 2130 2130",
+							//				  "0 0930 0930 1930 1930|1-6 0730 0730 2130 2130"	
+
+							
+							if (pl.opening_times_raw != null && pl.opening_times_raw.trim().length() > 0) {
+								System.out.println("openingtimes::"+pl.opening_times_raw);
+								String[] days = pl.opening_times_raw.split("[|]");
+								nextday:
+								for (String day : days) {	// e.g. 0 0930 0930 1930 1930
+									System.out.println("openingtimes::day::"+day);
+									if (day == null || day.trim().length() == 0) continue nextday;
+									String[] dayParts = day.split("[ ]");	// e.g. [0, 0930, 0930, 1930, 1930]
+									System.out.println("openingtimes::day::len="+dayParts.length);
+									if (dayParts.length != 5) continue nextday;
+
+									System.out.println("openingtimes::day::[0]="+dayParts[0]);
+									if (dayParts[0].indexOf("-") > -1) {	// e.g. 1-6
+										System.out.println("openingtimes::day::[0]::option1");
+										String[] start_and_end = dayParts[0].split("[-]");
+										int start = Integer.parseInt(start_and_end[0]);
+										int end = Integer.parseInt(start_and_end[1]);
+										for (int tempday=start; tempday <= end; tempday++) {
+											System.out.println("openingtimes::day::[0]::option1::tempday="+tempday);
+											pl.opening_times[tempday].open_in = dayParts[1];
+											pl.opening_times[tempday].open_out = dayParts[2];
+											pl.opening_times[tempday].close_in = dayParts[3];
+											pl.opening_times[tempday].close_out = dayParts[4];
+										}
+										
+									} else if (dayParts[0].indexOf(",") > -1) {	// 2,3
+										System.out.println("openingtimes::day::[0]::option2");
+										String[] listOfDays = dayParts[0].split("[,]");
+										for (String tempday_str : listOfDays) {
+											int tempday = Integer.parseInt(tempday_str);
+											System.out.println("openingtimes::day::[0]::option2::tempday="+tempday);
+											pl.opening_times[tempday].open_in = dayParts[1];
+											pl.opening_times[tempday].open_out = dayParts[2];
+											pl.opening_times[tempday].close_in = dayParts[3];
+											pl.opening_times[tempday].close_out = dayParts[4];
+											
+										}
+
+									} else if (dayParts[0] != null && dayParts[0].trim().length() > 0) {	// 3
+										System.out.println("openingtimes::day::[0]::option3");
+										int tempday = Integer.parseInt(dayParts[0]);
+										System.out.println("openingtimes::day::[0]::option3::tempday="+tempday);
+										pl.opening_times[tempday].open_in = dayParts[1];
+										pl.opening_times[tempday].open_out = dayParts[2];
+										pl.opening_times[tempday].close_in = dayParts[3];
+										pl.opening_times[tempday].close_out = dayParts[4];
+									}
+								}
+							}
+						} catch (Exception E) {
+							E.printStackTrace(System.out);
+						}
+
+						//	fare: "1-5 04:00 10:00 8 24 | 1-5 10:00 04:00 1 24 | 6-0 0:00 0:00 1 24",
+						if (pl.ams_pr_fare != null && pl.ams_pr_fare.trim().length() > 0) {
+							Vector<PlaceParkingGarageAmsterdamPrVariation> vect1 = new Vector<PlaceParkingGarageAmsterdamPrVariation>();
+							String[] vects = pl.ams_pr_fare.trim().split("[|]");
+							for (int j = 0; j < vects.length; j++) {
+								String[] parts = vects[j].trim().split("[ ]");
+								if (parts.length == 5) {
+									String[] dayparts = parts[0].trim().split("[-]");
+									int day_low = Integer.parseInt(dayparts[0]);
+									int day_high = Integer.parseInt(dayparts[1]);
+									int hour_start = Integer.parseInt(parts[1].split("[:]")[0]);
+									int hour_end = Integer.parseInt(parts[2].split("[:]")[0]);
+									double dayrate = Double.parseDouble(parts[3]);
+									int maxstay = Integer.parseInt(parts[4]);
+									if (day_low < day_high) {
+										if (hour_start == 0 && hour_end == 0) {
+											PlaceParkingGarageAmsterdamPrVariation pv = new PlaceParkingGarageAmsterdamPrVariation();
+											pv.dayOfWeek_start = day_low;
+											pv.dayOfWeek_end = day_high;
+											pv.entry_start = 0;
+											pv.entry_end = 24;
+											pv.price_day = dayrate;
+											vect1.add(pv);
+										} else if (hour_start < hour_end) {
+											PlaceParkingGarageAmsterdamPrVariation pv = new PlaceParkingGarageAmsterdamPrVariation();
+											pv.dayOfWeek_start = day_low;
+											pv.dayOfWeek_end = day_high;
+											pv.entry_start = hour_start;
+											pv.entry_end = hour_end;
+											pv.price_day = dayrate;
+											vect1.add(pv);
+										} else {
+											PlaceParkingGarageAmsterdamPrVariation pv = new PlaceParkingGarageAmsterdamPrVariation();
+											pv.dayOfWeek_start = day_low;
+											pv.dayOfWeek_end = day_high;
+											pv.entry_start = 0;
+											pv.entry_end = hour_start;
+											pv.price_day = dayrate;
+											vect1.add(pv);
+
+											PlaceParkingGarageAmsterdamPrVariation pv1 = new PlaceParkingGarageAmsterdamPrVariation();
+											pv1.dayOfWeek_start = day_low;
+											pv1.dayOfWeek_end = day_high;
+											pv1.entry_start = hour_end;
+											pv1.entry_end = 24;
+											pv1.price_day = dayrate;
+											vect1.add(pv1);
+											
+										}
+										
+										
+									} else {
+										if (hour_start == 0 && hour_end == 0) {
+											PlaceParkingGarageAmsterdamPrVariation pv = new PlaceParkingGarageAmsterdamPrVariation();
+											pv.dayOfWeek_start = day_low;
+											pv.dayOfWeek_end = day_low;
+											pv.entry_start = 0;
+											pv.entry_end = 24;
+											pv.price_day = dayrate;
+											vect1.add(pv);
+											
+											PlaceParkingGarageAmsterdamPrVariation pv1 = new PlaceParkingGarageAmsterdamPrVariation();
+											pv1.dayOfWeek_start = day_high;
+											pv1.dayOfWeek_end = day_high;
+											pv1.entry_start = 0;
+											pv1.entry_end = 24;
+											pv1.price_day = dayrate;
+											vect1.add(pv1);
+										} else if (hour_start < hour_end) {
+											PlaceParkingGarageAmsterdamPrVariation pv = new PlaceParkingGarageAmsterdamPrVariation();
+											pv.dayOfWeek_start = day_low;
+											pv.dayOfWeek_end = day_low;
+											pv.entry_start = hour_start;
+											pv.entry_end = hour_end;
+											pv.price_day = dayrate;
+											vect1.add(pv);
+											
+											PlaceParkingGarageAmsterdamPrVariation pv1 = new PlaceParkingGarageAmsterdamPrVariation();
+											pv1.dayOfWeek_start = day_high;
+											pv1.dayOfWeek_end = day_high;
+											pv.entry_start = hour_start;
+											pv.entry_end = hour_end;
+											pv1.price_day = dayrate;
+											vect1.add(pv1);
+										} else {
+											PlaceParkingGarageAmsterdamPrVariation pv = new PlaceParkingGarageAmsterdamPrVariation();
+											pv.dayOfWeek_start = day_low;
+											pv.dayOfWeek_end = day_low;
+											pv.entry_start = 0;
+											pv.entry_end = hour_start;
+											pv.price_day = dayrate;
+											vect1.add(pv);
+											
+											PlaceParkingGarageAmsterdamPrVariation pv1 = new PlaceParkingGarageAmsterdamPrVariation();
+											pv1.dayOfWeek_start = day_high;
+											pv1.dayOfWeek_end = day_high;
+											pv1.entry_start = 0;
+											pv1.entry_end = hour_start;
+											pv1.price_day = dayrate;
+											vect1.add(pv1);
+
+											PlaceParkingGarageAmsterdamPrVariation pv2 = new PlaceParkingGarageAmsterdamPrVariation();
+											pv2.dayOfWeek_start = day_low;
+											pv2.dayOfWeek_end = day_low;
+											pv2.entry_start = hour_end;
+											pv2.entry_end = 24;
+											pv2.price_day = dayrate;
+											vect1.add(pv2);
+											
+											PlaceParkingGarageAmsterdamPrVariation pv3 = new PlaceParkingGarageAmsterdamPrVariation();
+											pv3.dayOfWeek_start = day_high;
+											pv3.dayOfWeek_end = day_high;
+											pv3.entry_start = hour_end;
+											pv3.entry_end = 24;
+											pv3.price_day = dayrate;
+											vect1.add(pv3);
+											
+										
+										}
+									}
+								}
+							}
+
+							
+							Object result[] = new PlaceParkingGarageAmsterdamPrVariation[vect1.size()];
+							vect1.copyInto(result);
+							pl.ams_pr_fares = (PlaceParkingGarageAmsterdamPrVariation[])result;
+						}
+						vect.add(pl);
+					}
+				}
+			}
+		}
+		
 		
 		Object result[] = new PlaceParkingGarage[vect.size()];
 		vect.copyInto(result);
@@ -965,8 +1572,10 @@ public class Amsterdam {
 		    }
 		}
 		
+		System.out.println("BEGIN SORT - array length : "+ pg.length);
 		Comparator<PlaceParkingGarage> MeterByArea = new AreaSort();
 		Arrays.sort(pg, MeterByArea);
+		System.out.println("END BEGIN SORT");
 		
 		
 //		for (PlaceParkingGarage p : pg) {

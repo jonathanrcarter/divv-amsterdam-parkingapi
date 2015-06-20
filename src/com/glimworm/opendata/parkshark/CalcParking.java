@@ -334,13 +334,16 @@ public class CalcParking {
 	}
 	
 	public static boolean isInPaidParking(double lat, double lon) {
-		String S = "http://api.citysdk.waag.org/nodes?layer=divv.parking.zone&lat="+lat+"&lon="+lon+"&radius=1";
-		com.glimworm.opendata.divvamsterdamapi.planning.net.xsd.curlResponse res = com.glimworm.opendata.divvamsterdamapi.planning.net.CurlUtils.getCURL(S, "", null, null, null, null);
-		System.out.println(res.text);
-		org.json.JSONObject jsob = com.glimworm.common.utils.jsonUtils.string2json(res.text);
-		org.json.JSONArray ar = jsob.optJSONArray("results");
-		if (ar != null && ar.length() > 0) return true;
-		return false;
+		
+		return com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.isin(lat, lon, com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.inPaidParking.polys);	// garages
+		
+//		String S = "http://api.citysdk.waag.org/nodes?layer=divv.parking.zone&lat="+lat+"&lon="+lon+"&radius=1";
+//		com.glimworm.opendata.divvamsterdamapi.planning.net.xsd.curlResponse res = com.glimworm.opendata.divvamsterdamapi.planning.net.CurlUtils.getCURL(S, "", null, null, null, null);
+//		System.out.println(res.text);
+//		org.json.JSONObject jsob = com.glimworm.common.utils.jsonUtils.string2json(res.text);
+//		org.json.JSONArray ar = jsob.optJSONArray("results");
+//		if (ar != null && ar.length() > 0) return true;
+//		return false;
 	}
 	
 	public static String dp2(double d) {
@@ -450,6 +453,7 @@ public class CalcParking {
 		PlaceParkingGarage[] garages = com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.getGarages();	// garages
 		PlaceParkingGarage[] npr_areas = com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.getMeters();	// areas
 		com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.downloadmeters(npr_areas);
+		com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.loadgeojson();
 		
 		int cnt = 0;
 		for (Meter _meter : com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.smeters) {

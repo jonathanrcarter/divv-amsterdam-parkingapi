@@ -268,7 +268,6 @@
 	int opt_otp_tim = Integer.parseInt(opt_otp_timout);
 	
 	
-	ar.isInPaidParkingAmsterdam = com.glimworm.opendata.parkshark.CalcParking.isInPaidParking(lat,lon) ? "y" : "n";
 
 //	req.options._date = "2013-12-28";
 //	req.options._time = "18:00";
@@ -293,6 +292,7 @@
 		}
 	}
 	ar.timings.add("after prv : " + new Long(new Date().getTime() - _exdt));
+	ar.isInPaidParkingAmsterdam = com.glimworm.opendata.parkshark.CalcParking.isInPaidParking(lat,lon) ? "y" : "n";
 
 
 	/*

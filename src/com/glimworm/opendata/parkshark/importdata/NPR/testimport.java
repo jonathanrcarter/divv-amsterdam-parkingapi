@@ -26,10 +26,44 @@ import citysdk.tourism.client.requests.ParameterList;
 import citysdk.tourism.client.requests.TourismClient;
 import citysdk.tourism.client.requests.TourismClientFactory;
 import citysdk.tourism.client.terms.ParameterTerms;
+import de.micromata.opengis.kml.v_2_2_0.AbstractObject;
+import de.micromata.opengis.kml.v_2_2_0.Feature;
+import de.micromata.opengis.kml.v_2_2_0.Kml;
+import de.micromata.opengis.kml.v_2_2_0.Placemark;
+
+import javax.xml.parsers.ParserConfigurationException;
+import javax.xml.parsers.SAXParser;
+import javax.xml.parsers.SAXParserFactory;
+
+import javax.xml.parsers.DocumentBuilder;
+import javax.xml.parsers.DocumentBuilderFactory;
+import javax.xml.parsers.ParserConfigurationException;
+
 
 
 public class testimport {
 
+	public static org.w3c.dom.Node getnode(org.w3c.dom.Node node, String NAME) {
+		for (int i = 0; i < node.getChildNodes().getLength(); i++) {
+			if (node.getChildNodes().item(i).getNodeName().equalsIgnoreCase(NAME)) {
+				return node.getChildNodes().item(i);
+			}
+		}
+		return null;
+	}
+
+	public static List<org.w3c.dom.Node> getnodes(org.w3c.dom.Node node, String NAME) {
+		List<org.w3c.dom.Node> retval = new ArrayList<org.w3c.dom.Node>();
+		for (int i = 0; i < node.getChildNodes().getLength(); i++) {
+			if (node.getChildNodes().item(i).getNodeName().equalsIgnoreCase(NAME)) {
+				retval.add(node.getChildNodes().item(i));
+			}
+		}
+		return retval;
+	}
+	
+	
+	
 	/**
 	 * @param args
 	 */
@@ -61,10 +95,15 @@ public class testimport {
 		*/
 
 //		Amsterdam.populate();
+		
+		
 		PlaceParkingGarage[] ggs = Amsterdam.getGarages();	// garages
 		PlaceParkingGarage[] ags = Amsterdam.getMeters();	// areas
+		if (ags != null) {
+			Amsterdam.downloadmeters(ags);
+			Amsterdam.loadgeojson();
+		}
 		
-		if (ags != null) Amsterdam.downloadmeters(ags);
 		
 		
 		
