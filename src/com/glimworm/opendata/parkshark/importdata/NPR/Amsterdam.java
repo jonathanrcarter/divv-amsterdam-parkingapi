@@ -111,7 +111,7 @@ public class Amsterdam {
 	public static AreaListItem loadgeojson(String filename) {
 		AreaListItem pl =new AreaListItem();
 		
-		String FN = "/opt/tmp/rdw/uploads/"+filename+".geojson";
+		String FN = "/opt/tmp/rdw/upload/"+filename+".geojson";
 		File f = new File(FN);
 		if (!f.exists()) return null;
 

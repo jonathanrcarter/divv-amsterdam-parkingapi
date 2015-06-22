@@ -1281,7 +1281,32 @@ public class CalcParking {
 		
 		StringBuffer retvalsb = new StringBuffer(); 
 		
+		int metersfound = 0;
+		int garagesfound = 0;
+		int totalfound = 0;
+
+		int metersmax = -1;		// unlimited by default
+		int garagesmax = -1;
+		int totalmax = -1;
+		
+		if (req.opt_metercount != null && req.opt_metercount.trim().length() > 0) {
+			try { metersmax = Integer.parseInt(req.opt_metercount); } catch (Exception E) { metersmax = -1; }
+		}
+		if (req.opt_garagecount != null && req.opt_garagecount.trim().length() > 0) {
+			try { garagesmax = Integer.parseInt(req.opt_garagecount); } catch (Exception E) { garagesmax = -1; }
+		}
+		if (req.opt_maxresults != null && req.opt_maxresults.trim().length() > 0) {
+			try { totalmax = Integer.parseInt(req.opt_maxresults); } catch (Exception E) { totalmax = -1; }
+		}
+		
+		System.out.println("req.opt_metercount ["+req.opt_metercount+"] ["+metersmax+"]");
+		System.out.println("req.opt_garagecount ["+req.opt_garagecount+"] ["+garagesmax+"]");
+		System.out.println("req.opt_maxresults ["+req.opt_maxresults+"] ["+totalmax+"]");
+		
+		meterloop:
 		for (int i=0; i < meters.length; i++) {
+			
+			if (totalmax > -1 && totalfound > totalmax) break meterloop;
 //			System.out.println("d:"+meters[i].dist + "c:"+meters[i].cost + "a:"+meters[i].adres+" \n"+meters[i].dbg+"\n");
 			int I = meters[i].i;
 			if (i > 0) retvalsb.append(",");
@@ -1315,61 +1340,69 @@ public class CalcParking {
 			
 			if (meters[i].type.equalsIgnoreCase("on-street-meter")) {
 				if (found_signatures.contains(meters[i].costsignature) == false) {
-					ParkSharkCalcReturnReccommendation newa = new ParkSharkCalcReturnReccommendation();
-					newa.automat_number = smeters[I].belnummer;
-					newa.dist_in_meters = meters[i].dist;
-//					newa.cost = meters[i].cost;
-					newa.cost = (double)(Math.round(meters[i].cost*100))/100;
-					newa.address = smeters[I].adres;
-					newa.lat = smeters[I].lat;
-					newa.lon = smeters[I].lon;
-					newa.type = smeters[I].type;
-					newa.match = meters[i].match;
-					newa.dbg = meters[i].dbg;
-					newa.chance_weekday = smeters[I].chance_weekday;
-					newa.chance_sat = smeters[I].chance_sat;
-					newa.chance_sun = smeters[I].chance_sun;
-					newa.name = smeters[I].name;
-					newa.expected_occupancy = meters[i].expected_occupancy;
-					al.add(newa);
-					ret.timings.add("calc : reccommendations found : " +i+" ("+meters[i].type+") : "+ new Long(new Date().getTime() - _exdt));
-					found_signatures.add(meters[i].costsignature);
+					if (metersmax < 0 || metersfound < metersmax) {
+						metersfound++;
+						totalfound++;
+						ParkSharkCalcReturnReccommendation newa = new ParkSharkCalcReturnReccommendation();
+						newa.automat_number = smeters[I].belnummer;
+						newa.dist_in_meters = meters[i].dist;
+	//					newa.cost = meters[i].cost;
+						newa.cost = (double)(Math.round(meters[i].cost*100))/100;
+						newa.address = smeters[I].adres;
+						newa.lat = smeters[I].lat;
+						newa.lon = smeters[I].lon;
+						newa.type = smeters[I].type;
+						newa.match = meters[i].match;
+						newa.dbg = meters[i].dbg;
+						newa.chance_weekday = smeters[I].chance_weekday;
+						newa.chance_sat = smeters[I].chance_sat;
+						newa.chance_sun = smeters[I].chance_sun;
+						newa.name = smeters[I].name;
+						newa.expected_occupancy = meters[i].expected_occupancy;
+						al.add(newa);
+						ret.timings.add("calc : reccommendations found : " +i+" ("+meters[i].type+") : "+ new Long(new Date().getTime() - _exdt));
+						found_signatures.add(meters[i].costsignature);
+					}
 				}
 			} else {
 				if (meters[i].match > 0) {
-					ParkSharkCalcReturnReccommendation newa = new ParkSharkCalcReturnReccommendation();
-					newa.dist_in_meters = meters[i].dist;
-//					newa.cost = meters[i].cost;
-					newa.cost = (double)(Math.round(meters[i].cost*100))/100;
-					newa.address = smeters[I].adres;
-					newa.lat = smeters[I].lat;
-					newa.lon = smeters[I].lon;
-					newa.type = smeters[I].type;
-					newa.dbg = meters[i].dbg;
-					newa.match = meters[i].match;
-					newa.chance_weekday = smeters[I].chance_weekday;
-					newa.chance_sat = smeters[I].chance_sat;
-					newa.chance_sun = smeters[I].chance_sun;
-					newa.name = smeters[I].name;
-					newa.csdkid = smeters[I].csdkid;
-					newa.csdkurl = smeters[I].csdkurl;
-					//npr
-					newa.nprid = smeters[I].nprid;
-					newa.nprurl = smeters[I].nprurl;
-					
-					newa.expected_occupancy = meters[i].expected_occupancy;
-					newa.garage_type = sgarages[smeters[I].garageid].type;
-					newa.garageid = Integer.toString(smeters[I].garageid);
-					newa.notes = sgarages[smeters[I].garageid].remarks;
-					newa.garage_opening_hours = sgarages[smeters[I].garageid].opening_times_raw;
-					newa.garage_opening_hours_today = sgarages[smeters[I].garageid].opening_times[_day].raw();
-					newa.garage_opening_hours_today_json = sgarages[smeters[I].garageid].opening_times[_day].json();
-					newa.garage_includes_public_transport = sgarages[smeters[I].garageid].includes_public_transport;
-					newa.garage_owner = sgarages[smeters[I].garageid].owner;
-					newa.garage_infourl = sgarages[smeters[I].garageid].url;
-					newa.ams_pr_fare = sgarages[smeters[I].garageid].ams_pr_fare;
-					al.add(newa);
-					ret.timings.add("calc : reccommendations found : " +i+" ("+meters[i].type+") : "+ new Long(new Date().getTime() - _exdt));
+					if (garagesmax < 0 || garagesfound < garagesmax) {
+						garagesfound++;
+						totalfound++;
+						ParkSharkCalcReturnReccommendation newa = new ParkSharkCalcReturnReccommendation();
+						newa.dist_in_meters = meters[i].dist;
+	//					newa.cost = meters[i].cost;
+						newa.cost = (double)(Math.round(meters[i].cost*100))/100;
+						newa.address = smeters[I].adres;
+						newa.lat = smeters[I].lat;
+						newa.lon = smeters[I].lon;
+						newa.type = smeters[I].type;
+						newa.dbg = meters[i].dbg;
+						newa.match = meters[i].match;
+						newa.chance_weekday = smeters[I].chance_weekday;
+						newa.chance_sat = smeters[I].chance_sat;
+						newa.chance_sun = smeters[I].chance_sun;
+						newa.name = smeters[I].name;
+						newa.csdkid = smeters[I].csdkid;
+						newa.csdkurl = smeters[I].csdkurl;
+						//npr
+						newa.nprid = smeters[I].nprid;
+						newa.nprurl = smeters[I].nprurl;
+						
+						newa.expected_occupancy = meters[i].expected_occupancy;
+						newa.garage_type = sgarages[smeters[I].garageid].type;
+						newa.garageid = Integer.toString(smeters[I].garageid);
+						newa.notes = sgarages[smeters[I].garageid].remarks;
+						newa.garage_opening_hours = sgarages[smeters[I].garageid].opening_times_raw;
+						newa.garage_opening_hours_today = sgarages[smeters[I].garageid].opening_times[_day].raw();
+						newa.garage_opening_hours_today_json = sgarages[smeters[I].garageid].opening_times[_day].json();
+						newa.garage_includes_public_transport = sgarages[smeters[I].garageid].includes_public_transport;
+						newa.garage_owner = sgarages[smeters[I].garageid].owner;
+						newa.garage_infourl = sgarages[smeters[I].garageid].url;
+						newa.ams_pr_fare = sgarages[smeters[I].garageid].ams_pr_fare;
+						al.add(newa);
+						ret.timings.add("calc : reccommendations found : " +i+" ("+meters[i].type+") : "+ new Long(new Date().getTime() - _exdt));
+					}
 				} else {
 					ret.timings.add("calc : reccommendations excluded : " +i+" ("+meters[i].type+") : "+ new Long(new Date().getTime() - _exdt));
 				}

@@ -2,6 +2,7 @@ package com.glimworm.opendata.parkshark.rest;
 
 import java.util.Date;
 
+import javax.ws.rs.DefaultValue;
 import javax.ws.rs.GET;
 import javax.ws.rs.Path;
 import javax.ws.rs.PathParam;
@@ -41,8 +42,8 @@ public class RestInterface {
 	@Path("/get-meter-by-automat-number/{param}")
 	@Produces("application/json")
 	public Response getMeterByNumber(
-			@PathParam("param") String id,
-			@QueryParam("debug") String debug) {
+			@PathParam("param") @DefaultValue("") String id,
+			@QueryParam("debug") @DefaultValue("n") String debug) {
 
 		long _exdt = new Date().getTime();
 
@@ -62,9 +63,11 @@ public class RestInterface {
 	@Path("/get-meter-by-automat-number/{param}/callback")
 	@Produces("application/javascript")
 	public Response getMeterByNumberWithCallback(
-			@PathParam("param") String id,
-			@QueryParam("callback") String callback,
-			@QueryParam("debug") String debug) {
+			@PathParam("param") @DefaultValue("") String id,
+			@QueryParam("callback") @DefaultValue("callback") String callback,
+			@QueryParam("debug") @DefaultValue("n") String debug) {
+		
+		
 
 		long _exdt = new Date().getTime();
 
@@ -92,14 +95,14 @@ public class RestInterface {
 		xstream.omitField(com.glimworm.opendata.parkshark.xsd.Meter.class,"chance_weekday");
 		xstream.omitField(com.glimworm.opendata.parkshark.xsd.Meter.class,"chance_sat");
 		xstream.omitField(com.glimworm.opendata.parkshark.xsd.Meter.class,"chance_sun");
-		if (debug.equalsIgnoreCase("y") == false) {
+		if (debug != null && debug.equalsIgnoreCase("y") == false) {
 			xstream.omitField(com.glimworm.opendata.parkshark.xsd.Meter.class,"dbg");
 		}
 		
 		xstream.omitField(com.glimworm.opendata.parkshark.xsd.ParkSharkCalcReturnReccommendation.class,"chance_weekday");
 		xstream.omitField(com.glimworm.opendata.parkshark.xsd.ParkSharkCalcReturnReccommendation.class,"chance_sat");
 		xstream.omitField(com.glimworm.opendata.parkshark.xsd.ParkSharkCalcReturnReccommendation.class,"chance_sun");
-		if (debug.equalsIgnoreCase("y") == false) {
+		if (debug != null && debug.equalsIgnoreCase("y") == false) {
 			xstream.omitField(com.glimworm.opendata.parkshark.xsd.ParkSharkCalcReturnReccommendation.class,"dbg");
 		}
 		return xstream;

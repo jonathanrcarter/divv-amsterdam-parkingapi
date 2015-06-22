@@ -90,6 +90,9 @@ Parmeters :
 	opt_otp_timout		:	OpenTripPlanner timeour (milliseconds)
 	opt_rec			:	return recommendations (y/n)
 	plan_radius		:	Create rout plan only if within a radius in meters
+	opt_garagecount		:	Maximum amount of garages to include in results
+	opt_metercount		:	Maximum amount of meters to include in results
+	opt_maxresults		:	Maximum results in total to include in results
 
 
 Example result	
@@ -512,6 +515,9 @@ type: "s",
 		<p>&nbsp;</p>
 		<h2>Details of one garage</h2>
         <p><pre>http://divvapi.parkshark.nl/apitest.jsp?action=get-meter-by-automat-number&id=11328</pre> </p>
+        <p>Alternative (rest)</p>p>
+        <p><pre>http://ms1.glimworm.com/divvapi/rest/get-meter-by-automat-number/27</pre></p>
+        <p><pre>http://ms1.glimworm.com/divvapi/rest/get-meter-by-automat-number/27/callback?callback=myvariable</pre></p>
         <p>Will return details of the meter as imported into the api from the citysdk</p>
         <p><pre>
 {

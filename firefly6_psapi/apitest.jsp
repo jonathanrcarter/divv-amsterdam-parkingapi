@@ -38,7 +38,13 @@
 	String log = gwdb.gwUtils.get(request,"log","n");
 	String debug = gwdb.gwUtils.get(request,"debug","n");
 	String callback = gwdb.gwUtils.get(request,"callback","");
-		
+
+	
+	String opt_metercount = gwdb.gwUtils.get(request,"opt_metercount","");
+	String opt_garagecount = gwdb.gwUtils.get(request,"opt_garagecount","");
+	String opt_maxresults = gwdb.gwUtils.get(request,"opt_maxresults","");
+
+	
 	String id = gwdb.gwUtils.get(request,"id","");
 	String idg = gwdb.gwUtils.get(request,"idg","5");
 	String idm = gwdb.gwUtils.get(request,"idm","11328");
@@ -112,8 +118,20 @@
 		out.println("</div>");
 		out.println("<div class='form-inline'>");
 		out.println("<label class='long'>plan routes if distance less than</label><input name='plan_radius' value='"+plan_radius+"'>");
+		out.println("</div>");
+		out.println("<div class='form-inline'>");
+		out.println("<label class='long'>Maximim meters (blank for unlimited)</label><input name='opt_metercount' value='"+opt_metercount+"'>");
+		out.println("</div>");
+		out.println("<div class='form-inline'>");
+		out.println("<label class='long'>Maximim garages (blank for unlimited)</label><input name='opt_garagecount' value='"+opt_garagecount+"'>");
+		out.println("</div>");
+		out.println("<div class='form-inline'>");
+		out.println("<label class='long'>Maximim total results (blank for unlimited)</label><input name='opt_maxresults' value='"+opt_maxresults+"'>");
 		out.println("<input type='submit' value='plan'>");
 		out.println("</div>");
+		
+		
+		
 		out.println("</form>");
 		out.println("<h2>Alternative calls</h2>");
 
@@ -122,7 +140,7 @@
 		out.println("<label class='url'>get-meter-by-automat-number&id=</label><input name='id' value='"+idm+"'>");
 		out.println("<input type='submit' value='get details'>");
 		out.println("</form>");
-
+		
 		out.println("<form class='form-inline'>");
 		out.println("<input type='hidden' name='action' value='get-garage-by-id'>");
 		out.println("<label class='url'>get-garage-by-id&id=</label><input name='id' value='"+idg+"'>");
@@ -282,6 +300,9 @@
 	req.fmt = fmt;
 	req.log = log;
 	req.dbg = debug;
+	req.opt_garagecount = opt_garagecount;
+	req.opt_metercount = opt_metercount;
+	req.opt_maxresults = opt_maxresults;
 	
 	
 	com.glimworm.opendata.parkshark.xsd.ParkSharkCalcReturn prv = com.glimworm.opendata.parkshark.CalcParking.calcv2(req);
