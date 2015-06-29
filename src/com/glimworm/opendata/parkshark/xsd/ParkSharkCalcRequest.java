@@ -13,6 +13,8 @@ public class ParkSharkCalcRequest {
 	public String dbg = "n";	// return debug information
 	public String opt_metercount = "";
 	public String opt_garagecount = "";
+	public String opt_prcount = "";
 	public String opt_maxresults = "";
+	
 
 }

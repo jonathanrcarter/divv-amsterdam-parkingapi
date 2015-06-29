@@ -22,6 +22,7 @@ public class PlanResponse {
 	public String rawdata = "";
 	public String otp_url = "";
 	public String proxy_url = "";
+	public String proxy_url_rest = "";
 	public String error_text = "";
 	public org.json.JSONObject data = null;
 	

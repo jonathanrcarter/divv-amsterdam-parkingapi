@@ -42,6 +42,7 @@
 	
 	String opt_metercount = gwdb.gwUtils.get(request,"opt_metercount","");
 	String opt_garagecount = gwdb.gwUtils.get(request,"opt_garagecount","");
+	String opt_prcount = gwdb.gwUtils.get(request,"opt_prcount","");
 	String opt_maxresults = gwdb.gwUtils.get(request,"opt_maxresults","");
 
 	
@@ -126,6 +127,9 @@
 		out.println("<label class='long'>Maximim garages (blank for unlimited)</label><input name='opt_garagecount' value='"+opt_garagecount+"'>");
 		out.println("</div>");
 		out.println("<div class='form-inline'>");
+		out.println("<label class='long'>Maximim p+r (blank for unlimited)</label><input name='opt_prcount' value='"+opt_prcount+"'>");
+		out.println("</div>");
+		out.println("<div class='form-inline'>");
 		out.println("<label class='long'>Maximim total results (blank for unlimited)</label><input name='opt_maxresults' value='"+opt_maxresults+"'>");
 		out.println("<input type='submit' value='plan'>");
 		out.println("</div>");
@@ -175,6 +179,7 @@
 		return;
 	}
 	if (action.equalsIgnoreCase("get-meter-by-automat-number")) {
+		// converted to REST
 		ar.meter = com.glimworm.opendata.parkshark.CalcParking.getMeterById(id);
 		ar.reccommendations = null;
 		ar._executiontime = new Date().getTime() - _exdt;
@@ -188,6 +193,7 @@
 		return;
 	}
 	if (action.equalsIgnoreCase("get-garage-by-id")) {
+		// converted to REST
 		int _id = Integer.parseInt(id);
 		ar.garage = com.glimworm.opendata.parkshark.CalcParking.getGarageByGarageid(_id);
 		ar.reccommendations = null;
@@ -303,6 +309,7 @@
 	req.opt_garagecount = opt_garagecount;
 	req.opt_metercount = opt_metercount;
 	req.opt_maxresults = opt_maxresults;
+	req.opt_prcount = opt_prcount;
 	
 	
 	com.glimworm.opendata.parkshark.xsd.ParkSharkCalcReturn prv = com.glimworm.opendata.parkshark.CalcParking.calcv2(req);

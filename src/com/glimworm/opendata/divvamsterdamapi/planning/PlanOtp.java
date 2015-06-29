@@ -64,6 +64,7 @@ public class PlanOtp extends Plan {
 				PlanResponse response = new PlanResponse();
 				response.otp_url = URL+"?"+PARAMS;
 				response.proxy_url = "/apitest.jsp?action=otp-proxy&params="+java.net.URLEncoder.encode(PARAMS);
+				response.proxy_url_rest = "/rest/otp-proxy?params="+java.net.URLEncoder.encode(PARAMS);
 				return response;
 			}
 			
@@ -80,6 +81,7 @@ public class PlanOtp extends Plan {
 					PlanResponse response = new PlanResponse();
 					response.otp_url = URL+"?"+PARAMS;
 					response.proxy_url = "/apitest.jsp?action=otp-proxy&params="+java.net.URLEncoder.encode(PARAMS);
+					response.proxy_url_rest = "/rest/otp-proxy?params="+java.net.URLEncoder.encode(PARAMS);
 					response.status = error.optInt("id", 0);
 					response.error_text = error.optString("msg","");
 					return response;
@@ -92,6 +94,7 @@ public class PlanOtp extends Plan {
 			PlanResponse response = new PlanResponse();
 			response.otp_url = URL+"?"+PARAMS;
 			response.proxy_url = "/apitest.jsp?action=otp-proxy&params="+java.net.URLEncoder.encode(PARAMS);
+			response.proxy_url_rest = "/rest/otp-proxy?params="+java.net.URLEncoder.encode(PARAMS);
 			response.distance = 0; //plan.optLong("distance");
 //			response.duration = itinerary.optInt("duration")/1000;
 			response.duration = itinerary.optInt("duration");		// seconds

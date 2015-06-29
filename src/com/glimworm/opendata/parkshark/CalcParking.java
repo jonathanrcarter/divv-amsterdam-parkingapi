@@ -1283,10 +1283,12 @@ public class CalcParking {
 		
 		int metersfound = 0;
 		int garagesfound = 0;
+		int prfound = 0;
 		int totalfound = 0;
 
 		int metersmax = -1;		// unlimited by default
 		int garagesmax = -1;
+		int prmax = -1;
 		int totalmax = -1;
 		
 		if (req.opt_metercount != null && req.opt_metercount.trim().length() > 0) {
@@ -1295,12 +1297,17 @@ public class CalcParking {
 		if (req.opt_garagecount != null && req.opt_garagecount.trim().length() > 0) {
 			try { garagesmax = Integer.parseInt(req.opt_garagecount); } catch (Exception E) { garagesmax = -1; }
 		}
+		if (req.opt_prcount != null && req.opt_prcount.trim().length() > 0) {
+			try { prmax = Integer.parseInt(req.opt_prcount); } catch (Exception E) { prmax = -1; }
+		}
+		
 		if (req.opt_maxresults != null && req.opt_maxresults.trim().length() > 0) {
 			try { totalmax = Integer.parseInt(req.opt_maxresults); } catch (Exception E) { totalmax = -1; }
 		}
 		
 		System.out.println("req.opt_metercount ["+req.opt_metercount+"] ["+metersmax+"]");
 		System.out.println("req.opt_garagecount ["+req.opt_garagecount+"] ["+garagesmax+"]");
+		System.out.println("req.opt_prcount ["+req.opt_prcount+"] ["+prmax+"]");
 		System.out.println("req.opt_maxresults ["+req.opt_maxresults+"] ["+totalmax+"]");
 		
 		meterloop:
@@ -1366,9 +1373,25 @@ public class CalcParking {
 				}
 			} else {
 				if (meters[i].match > 0) {
-					if (garagesmax < 0 || garagesfound < garagesmax) {
-						garagesfound++;
-						totalfound++;
+					boolean _local_add_to_resultset = false;
+					boolean isPandR = (sgarages[smeters[I].garageid].type.equalsIgnoreCase("p-and-r"));
+					
+					if (isPandR) {
+						if (prmax < 0 || prfound < prmax) {
+							prfound++;
+							totalfound++;
+							_local_add_to_resultset = true;
+						}
+					} else {
+						if (garagesmax < 0 || garagesfound < garagesmax) {
+							garagesfound++;
+							totalfound++;
+							_local_add_to_resultset = true;
+						}
+					}
+					
+					
+					if (_local_add_to_resultset == true) {
 						ParkSharkCalcReturnReccommendation newa = new ParkSharkCalcReturnReccommendation();
 						newa.dist_in_meters = meters[i].dist;
 	//					newa.cost = meters[i].cost;

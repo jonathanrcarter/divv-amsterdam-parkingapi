@@ -71,6 +71,10 @@
 		<p>&nbsp;</p>
         <h2>Basic query </h2>
         <p><pre>http://divvapi.parkshark.nl/apitest.jsp?action=plan&to_lat=51.5&to_lon=4.9&dd=28&mm=12&yy=2013&h=12&m=50&dur=2&opt_routes=y&opt_routes_ret=n&opt_am=n&opt_rec=y</pre> </p>
+        <p>Alternative (rest)</p>
+        <p><pre>http://divvapi.parkshark.nl/rest/plan?to_lat=51.5&to_lon=4.9&dd=28&mm=12&yy=2013&h=12&m=50&dur=2&opt_routes=y&opt_routes_ret=n&opt_am=n&opt_rec=y</pre> </p>
+        <p><pre>http://divvapi.parkshark.nl/rest/plan/calback?to_lat=51.5&to_lon=4.9&dd=28&mm=12&yy=2013&h=12&m=50&dur=2&opt_routes=y&opt_routes_ret=n&opt_am=n&opt_rec=y</pre> </p>
+
         <p>Will return costs and recommendations for visiting marco polo straat on the 28 december 2013 and staying for 3 hs</p>
         <p>It will use 51.5 x 4.9 as your geolocation and look only for machines accepting cash and pin</p>
         <p><pre>
@@ -262,6 +266,9 @@ Example result
 		<p>&nbsp;</p>
 		<h2>Looking up a geocode</h2>
         <p><pre>http://divvapi.parkshark.nl/apitest.jsp?action=geocode&addr=Marco+Polostraat+107+%2C+Amsterdam%2C+Netherlands</pre> </p>
+        <p>Alternative (rest)</p>
+        <p><pre>http://divvapi.parkshark.nl/rest/geocode?addr=Marco+Polostraat+107+%2C+Amsterdam%2C+Netherlands</pre> </p>
+
         <p>Will return details of the geocoded responses from mapquest</p>
         <p><pre>
 {
@@ -393,6 +400,9 @@ type: "s",
 		<p>&nbsp;</p>
 		<h2>Details of one garage</h2>
         <p><pre>http://divvapi.parkshark.nl/apitest.jsp?action=get-garage-by-id&id=27</pre> </p>
+        <p>Alternative (rest)</p>p>
+        <p><pre>http://divvapi.parkshark.nl/rest/get-garage-by-id/27</pre></p>
+        <p><pre>http://divvapi.parkshark.nl/rest/get-garage-by-id/27/callback?callback=myvariable</pre></p>
         <p>Will return details of the garage as imported into the api from the citysdk</p>
         <p><a class="btn" href='apitest.jsp'>Try the API</a></p>
         <p><pre>
@@ -516,8 +526,8 @@ type: "s",
 		<h2>Details of one garage</h2>
         <p><pre>http://divvapi.parkshark.nl/apitest.jsp?action=get-meter-by-automat-number&id=11328</pre> </p>
         <p>Alternative (rest)</p>p>
-        <p><pre>http://ms1.glimworm.com/divvapi/rest/get-meter-by-automat-number/27</pre></p>
-        <p><pre>http://ms1.glimworm.com/divvapi/rest/get-meter-by-automat-number/27/callback?callback=myvariable</pre></p>
+        <p><pre>http://divvapi.parkshark.nl/rest/get-meter-by-automat-number/27</pre></p>
+        <p><pre>http://divvapi.parkshark.nl/rest/get-meter-by-automat-number/27/callback?callback=myvariable</pre></p>
         <p>Will return details of the meter as imported into the api from the citysdk</p>
         <p><pre>
 {
