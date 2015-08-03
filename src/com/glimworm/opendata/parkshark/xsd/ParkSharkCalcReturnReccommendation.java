@@ -11,6 +11,7 @@ public class ParkSharkCalcReturnReccommendation {
 	public int i = 0;
 	public int match = 0;
 	public String type = "";
+	public String displaytype = "";
 	public String dbg = "";
 	public String expected_occupancy = "";
 	public String chance_weekday = "";

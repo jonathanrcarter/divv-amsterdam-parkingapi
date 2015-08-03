@@ -1,5 +1,6 @@
 package com.glimworm.opendata.parkshark.rest;
 
+import java.util.ArrayList;
 import java.util.Date;
 
 import javax.ws.rs.DefaultValue;
@@ -16,6 +17,8 @@ import com.glimworm.opendata.divvamsterdamapi.planning.PlanRequest;
 import com.glimworm.opendata.divvamsterdamapi.planning.PlanResponse;
 import com.glimworm.opendata.divvamsterdamapi.planning.xsd.ParallelPlanRequest;
 import com.glimworm.opendata.divvamsterdamapi.planning.xsd.Place;
+import com.glimworm.opendata.parkshark.importdata.NPR.xsd.AreaListItem;
+import com.vividsolutions.jts.geom.Polygon;
 
 @Path("")
 public class RestInterface {
@@ -139,6 +142,8 @@ public class RestInterface {
 		}
 		ar.timings.add("after prv : " + new Long(new Date().getTime() - _exdt));
 		ar.isInPaidParkingAmsterdam = com.glimworm.opendata.parkshark.CalcParking.isInPaidParking(lat,lon) ? "y" : "n";
+		ar.isInAmsterdamCentrum =  com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.isin(lat, lon, com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.inCentrum.polys) ? "y" : "n";
+		ar.isInAmsterdamWiderArea =  com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.isin(lat, lon, com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.inAmsterdam.polys) ? "y" : "n";
 
 
 		com.thoughtworks.xstream.XStream xstream = getStandardXstream(debug);
@@ -292,6 +297,8 @@ public class RestInterface {
 		}
 		ar.timings.add("after prv : " + new Long(new Date().getTime() - _exdt));
 		ar.isInPaidParkingAmsterdam = com.glimworm.opendata.parkshark.CalcParking.isInPaidParking(lat,lon) ? "y" : "n";
+		ar.isInAmsterdamCentrum =  com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.isin(lat, lon, com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.inCentrum.polys) ? "y" : "n";
+		ar.isInAmsterdamWiderArea =  com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.isin(lat, lon, com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.inAmsterdam.polys) ? "y" : "n";
 
 
 		com.thoughtworks.xstream.XStream xstream = getStandardXstream(debug);
@@ -393,6 +400,51 @@ public class RestInterface {
 	}
 	
 	@GET
+	@Path("/get-meter-by-nprid/{param}")
+	@Produces("application/json")
+	public Response getMeterByNPRid(
+			@PathParam("param") @DefaultValue("") String id,
+			@QueryParam("debug") @DefaultValue("n") String debug) {
+
+		long _exdt = new Date().getTime();
+
+		com.glimworm.opendata.divvamsterdamapi.planning.xsd.apiResponse ar = new com.glimworm.opendata.divvamsterdamapi.planning.xsd.apiResponse();
+
+		org.joda.time.LocalDate ___dt = new org.joda.time.LocalDate();
+		
+		ar.meter = com.glimworm.opendata.parkshark.CalcParking.getMeterByNPRid(id);
+		ar.reccommendations = null;
+		ar._executiontime = new Date().getTime() - _exdt;
+		return Response.status(200).entity(getStandardXstream(debug).toXML(ar)).build();
+		
+	}
+
+	
+	@GET
+	@Path("/get-meter-by-nprid/{param}/callback")
+	@Produces("application/javascript")
+	public Response getMeterByNPRidWithCallback(
+			@PathParam("param") @DefaultValue("") String id,
+			@QueryParam("callback") @DefaultValue("callback") String callback,
+			@QueryParam("debug") @DefaultValue("n") String debug) {
+		
+		
+
+		/**
+		 * standard block
+		 */
+		long _exdt = new Date().getTime();
+		com.glimworm.opendata.divvamsterdamapi.planning.xsd.apiResponse ar = new com.glimworm.opendata.divvamsterdamapi.planning.xsd.apiResponse();
+		org.joda.time.LocalDate ___dt = new org.joda.time.LocalDate();
+		
+		ar.meter = com.glimworm.opendata.parkshark.CalcParking.getMeterByNPRid(id);
+		ar.reccommendations = null;
+		ar._executiontime = new Date().getTime() - _exdt;
+		return Response.status(200).entity(""+callback+"("+getStandardXstream(debug).toXML(ar)+");").build();
+		
+	}	
+	
+	@GET
 	@Path("/get-garage-by-id/{param}")
 	@Produces("application/json")
 	public Response getGarageById(
@@ -440,6 +492,50 @@ public class RestInterface {
 		ar._executiontime = new Date().getTime() - _exdt;
 		return Response.status(200).entity(""+callback+"("+getStandardXstream(debug).toXML(ar)+");").build();
 	}	
+	
+	@GET
+	@Path("/get-garage-by-nprid/{param}")
+	@Produces("application/json")
+	public Response getGarageByNPRid(
+			@PathParam("param") @DefaultValue("") String id,
+			@QueryParam("debug") @DefaultValue("n") String debug) {
+	
+
+		/**
+		 * standard block
+		 */
+		long _exdt = new Date().getTime();
+		com.glimworm.opendata.divvamsterdamapi.planning.xsd.apiResponse ar = new com.glimworm.opendata.divvamsterdamapi.planning.xsd.apiResponse();
+		org.joda.time.LocalDate ___dt = new org.joda.time.LocalDate();
+
+		
+		ar.garage = com.glimworm.opendata.parkshark.CalcParking.getGarageByNPRid(id);
+		ar.reccommendations = null;
+		ar._executiontime = new Date().getTime() - _exdt;
+		return Response.status(200).entity(getStandardXstream(debug).toXML(ar)).build();
+	}
+
+	@GET
+	@Path("/get-garage-by-nprid/{param}/callback")
+	@Produces("application/javascript")
+	public Response getGarageByNPRidWithCallback(
+			@PathParam("param") @DefaultValue("") String id,
+			@QueryParam("callback") @DefaultValue("callback") String callback,
+			@QueryParam("debug") @DefaultValue("n") String debug) {
+	
+
+		/**
+		 * standard block
+		 */
+		long _exdt = new Date().getTime();
+		com.glimworm.opendata.divvamsterdamapi.planning.xsd.apiResponse ar = new com.glimworm.opendata.divvamsterdamapi.planning.xsd.apiResponse();
+		org.joda.time.LocalDate ___dt = new org.joda.time.LocalDate();
+		
+		ar.garage = com.glimworm.opendata.parkshark.CalcParking.getGarageByNPRid(id);
+		ar.reccommendations = null;
+		ar._executiontime = new Date().getTime() - _exdt;
+		return Response.status(200).entity(""+callback+"("+getStandardXstream(debug).toXML(ar)+");").build();
+	}		
 	
 
 	@GET
@@ -553,14 +649,87 @@ public class RestInterface {
 		
 		return Response.status(200).entity(""+callback+"("+getStandardXstream(debug).toXML(ar)+");").build();
 	}		
+
+	@GET
+	@Path("/get-point/{params_lat}/{params_lng}")
+	@Produces("application/javascript")
+	public Response getPoint(
+			@PathParam("params_lat") @DefaultValue("52.37") Double lat,
+			@PathParam("params_lng") @DefaultValue("4.926") Double lng,
+			@QueryParam("callback") @DefaultValue("callback") String callback,
+			@QueryParam("debug") @DefaultValue("n") String debug) {
+		
+		class resp {
+			public boolean isInNorth = false;
+			public boolean isInPaidParking = false;
+			public AreaListItem gemeentegrens = null;
+			public AreaListItem centrumzone = null;
+			
+		}
+		resp res = new resp();
+		res.isInPaidParking = com.glimworm.opendata.parkshark.CalcParking.isInPaidParking(lat, lng);
+		res.isInNorth = com.glimworm.opendata.parkshark.CalcParking.isInNorth(lat, lng);
+		
+		if (debug.equalsIgnoreCase("y")) {
+			res.gemeentegrens = com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.loadgeojson("gemeentegrens","y");
+			res.centrumzone = com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.loadgeojson("centrumzone","y");
+		}
+
+
+		return Response.status(200).entity(getStandardXstream(debug,resp.class).toXML(res)).build();
+	}		
 	
+	@GET
+	@Path("/data-polys-paidparking")
+	@Produces("application/javascript")
+	public Response getPolysPaidParking(
+			@QueryParam("callback") @DefaultValue("callback") String callback,
+			@QueryParam("debug") @DefaultValue("n") String debug) {
+		
+		class resp {
+			public ArrayList<Polygon> polys = null;
+		}
+		resp res = new resp();
+		res.polys = com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.inPaidParking.polys;
+
+		return Response.status(200).entity(getStandardXstream(debug,resp.class).toXML(res)).build();
+	}	
+
+	@GET
+	@Path("/data-areas")
+	@Produces("application/javascript")
+	public Response getAreas(
+			@QueryParam("callback") @DefaultValue("callback") String callback,
+			@QueryParam("debug") @DefaultValue("n") String debug) {
+		
+		class resp {
+			public AreaListItem inAmsterdam = null;
+			public AreaListItem inPaidParking = null;
+			public AreaListItem inCentrum = null;
+		}
+		resp res = new resp();
+		res.inAmsterdam = com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.inAmsterdam;
+		res.inPaidParking = com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.inPaidParking;
+		res.inCentrum = com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.inCentrum;
+
+		return Response.status(200).entity(getStandardXstream(debug,resp.class).toXML(res)).build();
+	}		
 	
 	private static com.thoughtworks.xstream.XStream getStandardXstream (String debug) {
+		return getStandardXstream(debug,null);
+	}
+	private static com.thoughtworks.xstream.XStream getStandardXstream (String debug, Class resultClass) {
 		
 		com.thoughtworks.xstream.XStream xstream = new com.thoughtworks.xstream.XStream(new com.thoughtworks.xstream.io.json.JsonHierarchicalStreamDriver());
 		xstream.setMode(com.thoughtworks.xstream.XStream.NO_REFERENCES);
 		xstream.omitField(com.glimworm.opendata.divvamsterdamapi.planning.xsd.MMdatetime.class,"dt");
 		xstream.alias("result",com.glimworm.opendata.divvamsterdamapi.planning.xsd.apiResponse.class);
+		
+		if (resultClass != null) {
+			xstream.alias("result",resultClass);
+		}
+		
+		
 
 		xstream.omitField(com.glimworm.opendata.parkshark.xsd.Meter.class,"chance_weekday");
 		xstream.omitField(com.glimworm.opendata.parkshark.xsd.Meter.class,"chance_sat");

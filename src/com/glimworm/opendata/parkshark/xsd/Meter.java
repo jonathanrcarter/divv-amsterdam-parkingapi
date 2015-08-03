@@ -61,6 +61,7 @@ public class Meter implements Cloneable {
 	public String tariefcode = "";
 	
 	public String type = "meter";
+	public String displaytype = "meter";
 	public String costsignature = "";
 	public int garageid = -1;
 	

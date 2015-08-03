@@ -93,7 +93,8 @@ public class Amsterdam {
 	public static AreaListItem inCentrum = null;
 	
 	public static void loadgeojson() {
-		inPaidParking = loadgeojson("gemeentegrens");
+		inAmsterdam = loadgeojson("gemeentegrens");
+		// inPaidParking is loaded during  "downloadmeters";
 		inCentrum = loadgeojson("centrumzone");
 	}
 	public static boolean isin(double lat, double lon, ArrayList<Polygon> polys) {
@@ -109,9 +110,13 @@ public class Amsterdam {
 	}
 	
 	public static AreaListItem loadgeojson(String filename) {
+		return loadgeojson(filename, "n");
+	}
+	public static AreaListItem loadgeojson(String filename, String debug) {
 		AreaListItem pl =new AreaListItem();
 		
 		String FN = "/opt/tmp/rdw/upload/"+filename+".geojson";
+		System.out.println(FN);
 		File f = new File(FN);
 		if (!f.exists()) return null;
 
@@ -125,33 +130,47 @@ public class Amsterdam {
 		 * create a json obejct "jsob"
 		 */
 		
+		
 		org.json.JSONObject jsob = com.glimworm.common.utils.jsonUtils.string2json(txt);
 		org.json.JSONObject jso_features = jsob.optJSONObject("features");
-		
-		if (jso_features != null) {
-			org.json.JSONObject jso_geom = jso_features.optJSONObject("geometry");
-			if (jso_geom != null) {
-				String type = jso_geom.optString("type","");
-				if (type.equalsIgnoreCase("Polygon")) {
-					org.json.JSONArray coords = jso_features.optJSONArray("coordinates");
-					for (int i=0; i < coords.length(); i++) {
-						org.json.JSONArray coordset = coords.optJSONArray(i);
-						if (coordset!= null) {
-							Polygon poly = getPolyFromJsonArray(coordset);
-							pl.polys.add(poly);
+		org.json.JSONArray jso_featuresArray = jsob.optJSONArray("features");
+
+		if (debug != null && debug.equalsIgnoreCase("y")) {
+			pl.source = txt;
+			pl.sourceJson = jsob;
+		}
+
+		for (int fi =0; fi < jso_featuresArray.length(); fi++) {
+			jso_features = jso_featuresArray.optJSONObject(fi);
+			if (jso_features != null) {
+				org.json.JSONObject jso_geom = jso_features.optJSONObject("geometry");
+				if (jso_geom != null) {
+					String type = jso_geom.optString("type","");
+					if (type.equalsIgnoreCase("Polygon")) {
+						org.json.JSONArray coords = jso_geom.optJSONArray("coordinates");
+						for (int i=0; i < coords.length(); i++) {
+							org.json.JSONArray coordset = coords.optJSONArray(i);
+							if (coordset!= null) {
+								Polygon poly = getPolyFromJsonArray(coordset);
+								pl.polys.add(poly);
+							}
 						}
 					}
-				}
-				if (type.equalsIgnoreCase("MultiPolygon")) {
-					org.json.JSONArray coords = jso_features.optJSONArray("coordinates");
-					for (int i=0; i < coords.length(); i++) {
-						org.json.JSONArray multicoordset = coords.optJSONArray(i);
-						if (multicoordset!= null) {
-							for (int j=0; j < multicoordset.length(); j++) {
-								org.json.JSONArray coordset = multicoordset.optJSONArray(i);
-								if (coordset!= null) {
-									Polygon poly = getPolyFromJsonArray(coordset);
-									pl.polys.add(poly);
+					if (type.equalsIgnoreCase("MultiPolygon")) {
+						org.json.JSONArray coords = jso_geom.optJSONArray("coordinates");
+						for (int i=0; i < coords.length(); i++) {
+							System.out.println("POLY "+i);
+							org.json.JSONArray multicoordset = coords.optJSONArray(i);
+							System.out.println("POLY "+i+" multicoordset");
+							if (multicoordset!= null) {
+								for (int j=0; j < multicoordset.length(); j++) {
+									org.json.JSONArray coordset = multicoordset.optJSONArray(j);
+									System.out.println("POLY "+i+" coordset");
+									if (coordset!= null) {
+										Polygon poly = getPolyFromJsonArray(coordset);
+										pl.polys.add(poly);
+										System.out.println("POLY "+i+" Added");
+									}
 								}
 							}
 						}
@@ -276,7 +295,8 @@ public class Amsterdam {
 							
 							Meter _meter = new Meter();
 							_meter.i = i;
-							_meter.name = item.area;
+//							_meter.name = item.area;
+							_meter.name = (item.SellingPointDesc.trim().length() > 0) ? item.SellingPointDesc : item.area;
 							_meter.entityid = item.sellingpointid;
 							_meter.stadsdeel = "";								//automats.getString(i, "stadsdeel");
 							_meter.belnummer = item.sellingpointid;;			//automats.getString(i, "belnummer");
@@ -430,6 +450,8 @@ public class Amsterdam {
 			}
 		}
 
+		AreaListItem ali = new AreaListItem();
+		ali.name = "AllPaidParkingAreas";
 		
 		System.out.println("START OUTPUT MAP INDEX for ["+areas.length+"] areas");
 		StringBuffer coords = new StringBuffer("");
@@ -437,6 +459,8 @@ public class Amsterdam {
 			System.out.println("START OUTPUT MAP INDEX area ["+a.name+"]");
 			if (a.polys != null) {
 				for (Polygon poly : a.polys) {
+					ali.polys.add(poly);
+					
 					coords.append("/* "+a.name+"*/\n");
 					coords.append("coords.push([");
 					System.out.println("START OUTPUT MAP INDEX for ["+poly.getNumPoints()+"] points");
@@ -456,6 +480,7 @@ public class Amsterdam {
 		}
 		System.out.println("END OUTPUT MAP INDEX for ["+areas.length+"] areas");
 		com.glimworm.opendata.divvamsterdamapi.planning.net.FileUtils.writeFile("/opt/tmp/rdw/map/index_coords.js", coords.toString());
+		inPaidParking = ali;
 		
 		
 		Object result[] = new Meter[vect.size()];
@@ -1213,7 +1238,7 @@ public class Amsterdam {
 					}
 				}
 				pl.pt = pt;
-				pl.name += "|"+areas.get(i).usage;
+//				pl.name += "|"+areas.get(i).usage;
 				
 				org.json.JSONArray openingTimes = jsob1.optJSONArray("openingTimes");
 				if (openingTimes != null) {
@@ -1277,8 +1302,8 @@ public class Amsterdam {
 			for (int i=0; i < garages.length(); i++) {
 				org.json.JSONObject garage = garages.optJSONObject(i);
 				if (garage != null) {
-					String cdk = garage.optString("cdk_id");
-					if (cdk != null && cdk.length() == 0) {		// this is an empty cdk
+					String nprid = garage.optString("nprid");
+					if (nprid != null && nprid.length() == 0) {		// this is an empty cdk
 						/*
 						 * move the data into a "parkingplacegarage"
 						 */
@@ -1296,6 +1321,7 @@ public class Amsterdam {
 						pl.csdkurl = "";
 						pl.places = garage.optInt("places");
 						pl.type = garage.optString("type","parking-garage"); // "park-and-ride"
+						if (pl.type.equalsIgnoreCase("p-and-r")) pl.type = "park-and-ride";
 						pl.opening_times_raw = garage.optString("opening_times_raw","n/a");
 
 						pl.capacity = garage.optInt("capacity");
@@ -1524,10 +1550,11 @@ public class Amsterdam {
 											pv3.entry_end = 24;
 											pv3.price_day = dayrate;
 											vect1.add(pv3);
-											
-										
 										}
 									}
+									
+									
+									
 								}
 							}
 
@@ -1536,7 +1563,16 @@ public class Amsterdam {
 							vect1.copyInto(result);
 							pl.ams_pr_fares = (PlaceParkingGarageAmsterdamPrVariation[])result;
 						}
-						vect.add(pl);
+						if (pl.type.equalsIgnoreCase("park-and-ride")) {
+							pl.displaytype = "park-and-ride";
+						}
+						// vect.add(pl);
+						if (pl.type.equalsIgnoreCase("park-and-ride")) {
+							PlaceParkingGarage plcopy = (PlaceParkingGarage)pl.clone();
+							plcopy.type = "garage";
+							plcopy.displaytype = "park-and-ride";
+							vect.add(plcopy);
+						}
 					}
 				}
 			}

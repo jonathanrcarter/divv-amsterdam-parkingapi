@@ -458,6 +458,7 @@ public class CalcParking {
 		int cnt = 0;
 		for (Meter _meter : com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.smeters) {
 			_meter.i = cnt;
+			_meter.displaytype = _meter.type;
 			vect.add(_meter);
 			cnt++;
 		}
@@ -493,6 +494,7 @@ public class CalcParking {
 			
 			_meter.costs = null;
 			_meter.type = "garage";
+			_meter.displaytype = (garages[i].displaytype != null && garages[i].displaytype.trim().length() > 0) ? garages[i].displaytype : _meter.type;
 			try {
 				_meter.isInNorth = isInNorth(_meter.lat,_meter.lon);
 			} catch (Exception E) {
@@ -642,6 +644,21 @@ public class CalcParking {
 		}
 		for (int i=0; i < smeters.length; i++) {
 			if (smeters[i].belnummer.equalsIgnoreCase(meternumber)) return smeters[i];
+		}
+		return null;
+	}
+	public static PlaceParkingGarage getGarageByNPRid (String id) {
+		for (int i=0; i < sgarages.length; i++) {
+			if (sgarages[i].nprid.equalsIgnoreCase(id)) return sgarages[i];
+		}
+		return null;
+	}
+	public static Meter getMeterByNPRid(String meternumber) {
+		if (smeters == null) {
+			populate_meters();
+		}
+		for (int i=0; i < smeters.length; i++) {
+			if (smeters[i].nprid.equalsIgnoreCase(meternumber)) return smeters[i];
 		}
 		return null;
 	}
@@ -827,6 +844,7 @@ public class CalcParking {
 			private boolean DBG;
 			private javolution.util.FastMap<String, Double> costmap;
 			private javolution.util.FastMap<String, String> dbgmap;
+			private boolean isInAmsterdamCentrum = true;
 			
 			@Override
 			public Integer call() throws Exception {
@@ -848,7 +866,8 @@ public class CalcParking {
 								
 								val += daycost;
 							}
-							if (sgarages[smeters[i].garageid].ams_pr_fare != null && sgarages[smeters[i].garageid].ams_pr_fare.trim().length() > 0) {
+							
+							if (isInAmsterdamCentrum && sgarages[smeters[i].garageid].ams_pr_fare != null && sgarages[smeters[i].garageid].ams_pr_fare.trim().length() > 0) {
 								foundprice:
 								for (int k=0; k < sgarages[smeters[i].garageid].ams_pr_fares.length; k++) {
 									if (days.get(0).day >= sgarages[smeters[i].garageid].ams_pr_fares[k].dayOfWeek_start && days.get(0).day <= sgarages[smeters[i].garageid].ams_pr_fares[k].dayOfWeek_end) {
@@ -946,13 +965,14 @@ public class CalcParking {
 				}
 				return new Integer(0);
 			}
-			public calculate_cost(int I, String SIG, boolean _DBG, javolution.util.FastMap<String, Double> COSTMAP, javolution.util.FastMap<String, String> DBGMAP, ArrayList<Days> DAYS) {
+			public calculate_cost(int I, String SIG, boolean _DBG, javolution.util.FastMap<String, Double> COSTMAP, javolution.util.FastMap<String, String> DBGMAP, ArrayList<Days> DAYS, boolean isInAmsterdamCentrum) {
 				this.i = I;
 				this.sig = SIG;
 				this.DBG = _DBG;
 				this.costmap = COSTMAP;
 				this.dbgmap = DBGMAP;
 				this.days = DAYS;
+				this.isInAmsterdamCentrum = isInAmsterdamCentrum;
 			}
 		}		
 		
@@ -1010,6 +1030,8 @@ public class CalcParking {
 			populate_meters();
 			populate_costmap();
 		}
+
+		boolean isInAmsterdamCentrum =  com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.isin(req.from_lat, req.from_lon, com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.inCentrum.polys);
 		
 		
 		Meter[] meters = new Meter[smeters.length];
@@ -1035,7 +1057,7 @@ public class CalcParking {
 			int i = e.getValue().intValue();
 			String sig = e.getKey();
 			
-	    	Callable<Integer> worker = (Callable<Integer>) new calculate_cost(i, sig, DBG, costmap, dbgmap, days);
+	    	Callable<Integer> worker = (Callable<Integer>) new calculate_cost(i, sig, DBG, costmap, dbgmap, days, isInAmsterdamCentrum);
 	    	
 	    	Future<Integer> submit = executor.submit(worker);
 	    	list.add(submit);
@@ -1359,6 +1381,7 @@ public class CalcParking {
 						newa.lat = smeters[I].lat;
 						newa.lon = smeters[I].lon;
 						newa.type = smeters[I].type;
+						newa.displaytype = smeters[I].displaytype;
 						newa.match = meters[i].match;
 						newa.dbg = meters[i].dbg;
 						newa.chance_weekday = smeters[I].chance_weekday;
@@ -1374,13 +1397,16 @@ public class CalcParking {
 			} else {
 				if (meters[i].match > 0) {
 					boolean _local_add_to_resultset = false;
-					boolean isPandR = (sgarages[smeters[I].garageid].type.equalsIgnoreCase("p-and-r"));
+					boolean isPandR = (sgarages[smeters[I].garageid].type.equalsIgnoreCase("p-and-r") || sgarages[smeters[I].garageid].type.equalsIgnoreCase("park-and-ride"));
 					
 					if (isPandR) {
-						if (prmax < 0 || prfound < prmax) {
-							prfound++;
-							totalfound++;
-							_local_add_to_resultset = true;
+						// if is in centrum 
+						if (isInAmsterdamCentrum == true) {
+							if (prmax < 0 || prfound < prmax) {
+								prfound++;
+								totalfound++;
+								_local_add_to_resultset = true;
+							}
 						}
 					} else {
 						if (garagesmax < 0 || garagesfound < garagesmax) {
@@ -1400,6 +1426,7 @@ public class CalcParking {
 						newa.lat = smeters[I].lat;
 						newa.lon = smeters[I].lon;
 						newa.type = smeters[I].type;
+						newa.displaytype = smeters[I].displaytype;
 						newa.dbg = meters[i].dbg;
 						newa.match = meters[i].match;
 						newa.chance_weekday = smeters[I].chance_weekday;

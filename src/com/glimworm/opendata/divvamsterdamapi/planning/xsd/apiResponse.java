@@ -10,6 +10,8 @@ import com.glimworm.opendata.parkshark.xsd.ParkSharkCalcReturnReccommendation_pt
 public class apiResponse {
 	public long _executiontime = 0;
 	public String isInPaidParkingAmsterdam = "";
+	public String isInAmsterdamCentrum = "";
+	public String isInAmsterdamWiderArea = "";
 	public ArrayList<String> timings = new java.util.ArrayList<String>();
 	public ArrayList<ParkSharkCalcReturnReccommendation> reccommendations = null;
 	public Meter[] meters = null;

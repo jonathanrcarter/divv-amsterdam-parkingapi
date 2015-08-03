@@ -5,7 +5,7 @@ public class Place {
 
 	public double lat,lon = 0;
 	public String name = "";
-	public String street = "", postcode = "", url = "", type = "", rawdata = "",cdk_id = "";
+	public String street = "", postcode = "", url = "", type = "", rawdata = "",cdk_id = "",displaytype = "";
 	public org.json.JSONObject data = null;
 	
 	

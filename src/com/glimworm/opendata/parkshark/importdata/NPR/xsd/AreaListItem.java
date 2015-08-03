@@ -39,6 +39,8 @@ public class AreaListItem {
 	public String country = "";
 //	public Polygon poly = null;
 	public ArrayList<Polygon> polys = new ArrayList<Polygon>();
+	public String source = "";
+	public org.json.JSONObject sourceJson = null;
 	
 	
 	public PayTimes pt = null;

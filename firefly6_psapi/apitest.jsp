@@ -321,6 +321,8 @@
 	}
 	ar.timings.add("after prv : " + new Long(new Date().getTime() - _exdt));
 	ar.isInPaidParkingAmsterdam = com.glimworm.opendata.parkshark.CalcParking.isInPaidParking(lat,lon) ? "y" : "n";
+	ar.isInAmsterdamCentrum =  com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.isin(lat, lon, com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.inCentrum.polys) ? "y" : "n";
+	ar.isInAmsterdamWiderArea =  com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.isin(lat, lon, com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.inAmsterdam.polys) ? "y" : "n";
 
 
 	/*

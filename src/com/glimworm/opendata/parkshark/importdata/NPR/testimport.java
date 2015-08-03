@@ -96,13 +96,17 @@ public class testimport {
 
 //		Amsterdam.populate();
 		
+		System.out.println(Amsterdam.loadgeojson("gemeentegrens"));
+		System.out.println(Amsterdam.loadgeojson("centrumzone"));
 		
-		PlaceParkingGarage[] ggs = Amsterdam.getGarages();	// garages
-		PlaceParkingGarage[] ags = Amsterdam.getMeters();	// areas
-		if (ags != null) {
-			Amsterdam.downloadmeters(ags);
-			Amsterdam.loadgeojson();
-		}
+
+		
+//		PlaceParkingGarage[] ggs = Amsterdam.getGarages();	// garages
+//		PlaceParkingGarage[] ags = Amsterdam.getMeters();	// areas
+//		if (ags != null) {
+//			Amsterdam.downloadmeters(ags);
+//			Amsterdam.loadgeojson();
+//		}
 		
 		
 		
