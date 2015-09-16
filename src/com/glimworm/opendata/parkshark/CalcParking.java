@@ -362,8 +362,12 @@ public class CalcParking {
 	public static javolution.util.FastMap<String, String> chance_day = new javolution.util.FastMap<String,String>().setShared(true);
 	public static javolution.util.FastMap<String, String> chance_sat = new javolution.util.FastMap<String,String>().setShared(true);
 	public static javolution.util.FastMap<String, String> chance_sun = new javolution.util.FastMap<String,String>().setShared(true);
+	public static boolean populate_meters_lock = false;
 
 	public static void populate_meters() {
+		if (populate_meters_lock == true) return;
+		populate_meters_lock = true;
+		
 		String sql = "select a.*,p.cash,p.creditcard,p.pin,p.chip from _site1493_dbsynch_automats a left join _site1493_dbsynch_paymethods p on (a.typeautomaat = p.type) ";
 		java.sql.ResultSet rs = com.glimworm.common.database.GWDBBean.sqlStatic(sql);
 		com.glimworm.common.database.xsd.DataSet automats = com.glimworm.common.database.gwDataUtils.getArray(rs,false);
@@ -584,7 +588,9 @@ public class CalcParking {
 //		    System.out.println("Interrupted");
 //			e.printStackTrace();
 //		}
+		populate_meters_lock = false;
 	    System.out.println("FINSHED!!!");
+
 
 //	    for (int i=0 ; i < cnt_meters; i ++) {
 //	    	System.out.println(smeters[i].belnummer + " / " + smeters[i].csdkzone + "/" + smeters[i].chance_weekday);
@@ -596,6 +602,7 @@ public class CalcParking {
 		
 		
 		if (smeters == null) {
+			if (populate_meters_lock == true) return "";
 			populate_meters();
 		}
 
@@ -640,6 +647,7 @@ public class CalcParking {
 	}
 	public static Meter getMeterById(String meternumber) {
 		if (smeters == null) {
+			if (populate_meters_lock == true) return null;
 			populate_meters();
 		}
 		for (int i=0; i < smeters.length; i++) {
@@ -655,6 +663,7 @@ public class CalcParking {
 	}
 	public static Meter getMeterByNPRid(String meternumber) {
 		if (smeters == null) {
+			if (populate_meters_lock == true) return null;
 			populate_meters();
 		}
 		for (int i=0; i < smeters.length; i++) {
@@ -665,6 +674,7 @@ public class CalcParking {
 
 	public static int getMeterIndexById(String meternumber) {
 		if (smeters == null) {
+			if (populate_meters_lock == true) return -1;
 			populate_meters();
 		}
 		for (int i=0; i < smeters.length; i++) {
@@ -675,6 +685,7 @@ public class CalcParking {
 	
 	public static String getMeters(double north, double south, double east, double west) {
 		if (smeters == null) {
+			if (populate_meters_lock == true) return "";
 			populate_meters();
 		}
 
@@ -715,6 +726,7 @@ public class CalcParking {
 	public static String getMeters(String meternumber) {
 		
 		if (smeters == null) {
+			if (populate_meters_lock == true) return "{}";
 			populate_meters();
 		}
 		
@@ -743,7 +755,15 @@ public class CalcParking {
 	
 	public static javolution.util.FastMap<String, Integer> costsmap = new javolution.util.FastMap<String,Integer>().setShared(true);
 	public static boolean costsmap_loaded = false;
+	public static boolean populate_costmap_lock = false;
+
+
+		
 	public static void populate_costmap() {
+
+		if (populate_costmap_lock == true) return;
+		populate_costmap_lock = true;
+
 		for (int i=0; i < smeters.length; i++) {
 			if (smeters[i].costs != null) {
 				String sig = smeters[i].costs.getSignature();
@@ -759,6 +779,9 @@ public class CalcParking {
 			}
 
 		}
+		
+		populate_costmap_lock = false;
+		costsmap_loaded = true;
 	}
 
 	public static String getChance(String chance, int hr) {
@@ -831,6 +854,7 @@ public class CalcParking {
 		
 		long _exdt = new Date().getTime();
 		ParkSharkCalcReturn ret = new ParkSharkCalcReturn();
+		
 		
 		// make a table in the format
 		//
@@ -1027,7 +1051,20 @@ public class CalcParking {
 		*/
 
 		if (smeters == null || _paymethods.indexOf("reload") > -1) {
+			if (populate_meters_lock == true) {
+				ret.text = "";
+				return ret;
+			}
+
 			populate_meters();
+			
+		}
+		if (costsmap_loaded == false || _paymethods.indexOf("reload") > -1) {
+			if (populate_costmap_lock == true) {
+				ret.text = "";
+				return ret;
+			}
+			
 			populate_costmap();
 		}
 
@@ -1212,18 +1249,32 @@ public class CalcParking {
 				System.out.println(sgarages[smeters[i].garageid].opening_times[_day].json());
 				System.out.println(sgarages[smeters[i].garageid].opening_times[_day].open24());
 				
-				if (sgarages[smeters[i].garageid].opening_times[_day].open24() == false) {
+				if (sgarages[smeters[i].garageid].opening_times[_day].closed24() == true) {
+					meters[i].match = 0;
+					if (DBG) meters[i].dbg += ("[match on closed24 failed d:"+_day+" ]");
+				} else if (sgarages[smeters[i].garageid].opening_times[_day].open24() == false) {
 					// if the garage is not open 24x7 and start parking time before open_in then fail the match
 					if (starttime < timevalue(sgarages[smeters[i].garageid].opening_times[_day].open_in)) {
 						meters[i].match = 0;
 						if (DBG) meters[i].dbg += ("[match on opening in failed d:"+_day+", st:"+starttime+" openin : "+sgarages[smeters[i].garageid].opening_times[_day].open_in+" openin_tv "+timevalue(sgarages[smeters[i].garageid].opening_times[_day].open_in)+"]");
 					}
+					if (starttime > timevalue(sgarages[smeters[i].garageid].opening_times[_day].close_in)) {
+						meters[i].match = 0;
+						if (DBG) meters[i].dbg += ("[match on opening in failed d:"+_day+", st:"+starttime+" closein : "+sgarages[smeters[i].garageid].opening_times[_day].close_in+" close_in_tv "+timevalue(sgarages[smeters[i].garageid].opening_times[_day].close_in)+"]");
+					}
 				}
-				if (sgarages[smeters[i].garageid].opening_times[endday].open24() == false) {
+				if (sgarages[smeters[i].garageid].opening_times[endday].closed24() == true) {
+					meters[i].match = 0;
+					if (DBG) meters[i].dbg += ("[match on closed24 failed d:"+endday+" ]");
+				} else if (sgarages[smeters[i].garageid].opening_times[endday].open24() == false) {
 					// if the garage is not open 24x7 and start parking time before open_in then fail the match
 					if (endtime > timevalue(sgarages[smeters[i].garageid].opening_times[endday].close_out)) {
 						meters[i].match = 0;
 						if (DBG) meters[i].dbg += ("[match on close out failed d:"+endday+", st:"+endtime+" closeout : "+sgarages[smeters[i].garageid].opening_times[endday].close_out+" closeout_tv "+timevalue(sgarages[smeters[i].garageid].opening_times[endday].close_out)+"]");
+					}
+					if (endtime < timevalue(sgarages[smeters[i].garageid].opening_times[endday].open_out)) {
+						meters[i].match = 0;
+						if (DBG) meters[i].dbg += ("[match on close out failed d:"+endday+", st:"+endtime+" openout : "+sgarages[smeters[i].garageid].opening_times[endday].open_out+" openout_tv "+timevalue(sgarages[smeters[i].garageid].opening_times[endday].open_out)+"]");
 					}
 				}
 			}

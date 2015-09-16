@@ -18,5 +18,9 @@ public class PlaceParkingGarageOpeningTimes {
 		if (open_in.equals("0000") && open_out.equals("0000") && close_in.equals("0000") && close_out.equals("0000")) return true;
 		return false;
 	}
+	public boolean closed24() {
+		if (open_in.equals("9999") && open_out.equals("9999") && close_in.equals("9999") && close_out.equals("9999")) return true;
+		return false;
+	}
 
 }
