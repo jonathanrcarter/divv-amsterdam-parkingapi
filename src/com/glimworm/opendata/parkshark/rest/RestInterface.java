@@ -1,5 +1,6 @@
 package com.glimworm.opendata.parkshark.rest;
 
+import java.io.File;
 import java.util.ArrayList;
 import java.util.Date;
 
@@ -45,7 +46,70 @@ public class RestInterface {
  
 	}
 
+	@GET
+	@Path("/admin/reload")
+	@Produces("application/json")
+	public Response Plan(
+			@QueryParam("key") @DefaultValue("") String key,
+			@QueryParam("debug") @DefaultValue("n") String debug) {
+
+		class resp {
+			public int status = 0;
+			public String statusMsg = "";
+		}
+		resp res = new resp();
+		if (key == null || key.equalsIgnoreCase("divv") == false) {
+			res.status = 100;
+			res.statusMsg = "Un Authorized";
+			return Response.status(200).entity(getStandardXstream(debug,resp.class).toXML(res)).build();
+		}
+		com.glimworm.opendata.parkshark.CalcParking.populate_meters();
+		res.status = 0;
+		res.statusMsg = "Reloaded";
+		return Response.status(200).entity(getStandardXstream(debug,resp.class).toXML(res)).build();
+	}
+
+	class file {
+		public String filename = "";
+		public String contents = "";
+		file (String F, String C) {
+			filename = F;
+			contents = C;
+		}
+	}
 	
+	
+	@GET
+	@Path("/admin/getfiles")
+	@Produces("application/json")
+	public Response GetFiles(
+			@QueryParam("key") @DefaultValue("") String key,
+			@QueryParam("debug") @DefaultValue("n") String debug) {
+
+		class resp {
+			public int status = 0;
+			public String statusMsg = "";
+			public ArrayList<file> files = new ArrayList<file>();
+		}
+		resp res = new resp();
+		if (key == null || key.equalsIgnoreCase("divv") == false) {
+			res.status = 100;
+			res.statusMsg = "Un Authorized";
+			return Response.status(200).entity(getStandardXstream(debug,resp.class).toXML(res)).build();
+		}
+		com.glimworm.opendata.parkshark.CalcParking.populate_meters();
+		res.status = 0;
+		res.statusMsg = "Reloaded";
+		String[] files = {"/opt/tmp/rdw/upload/additionaldata/newgarages/garages.json"};
+		for (String _file : files) {
+			res.files.add(new file(_file,com.glimworm.opendata.divvamsterdamapi.planning.net.FileUtils.readFile(_file)));
+		}
+		return Response.status(200).entity(getStandardXstream(debug,resp.class).toXML(res)).build();
+	}
+	
+	
+	
+
 	@GET
 	@Path("/plan")
 	@Produces("application/json")
