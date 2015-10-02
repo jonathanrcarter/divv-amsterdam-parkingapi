@@ -454,6 +454,7 @@ public class CalcParking {
 //		}
 		
 		
+		com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam._importlog.clear();
 		PlaceParkingGarage[] garages = com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.getGarages();	// garages
 		PlaceParkingGarage[] npr_areas = com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.getMeters();	// areas
 		com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam.downloadmeters(npr_areas);

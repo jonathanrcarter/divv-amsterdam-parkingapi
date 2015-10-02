@@ -56,9 +56,10 @@ public class RestInterface {
 		class resp {
 			public int status = 0;
 			public String statusMsg = "";
+			public Object errors;
 		}
 		resp res = new resp();
-		if (key == null || key.equalsIgnoreCase("divv") == false) {
+		if (key == null || key.equalsIgnoreCase(get_from_file("key","")) == false) {
 			res.status = 100;
 			res.statusMsg = "Un Authorized";
 			return Response.status(200).entity(getStandardXstream(debug,resp.class).toXML(res)).build();
@@ -66,6 +67,7 @@ public class RestInterface {
 		com.glimworm.opendata.parkshark.CalcParking.populate_meters();
 		res.status = 0;
 		res.statusMsg = "Reloaded";
+		res.errors = com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam._importerrors;
 		return Response.status(200).entity(getStandardXstream(debug,resp.class).toXML(res)).build();
 	}
 
@@ -90,9 +92,11 @@ public class RestInterface {
 			public int status = 0;
 			public String statusMsg = "";
 			public ArrayList<file> files = new ArrayList<file>();
+			public ArrayList<Exception> errors;
+			public ArrayList<String> imports;
 		}
 		resp res = new resp();
-		if (key == null || key.equalsIgnoreCase("divv") == false) {
+		if (key == null || key.equalsIgnoreCase(get_from_file("key","")) == false) {
 			res.status = 100;
 			res.statusMsg = "Un Authorized";
 			return Response.status(200).entity(getStandardXstream(debug,resp.class).toXML(res)).build();
@@ -100,6 +104,8 @@ public class RestInterface {
 		com.glimworm.opendata.parkshark.CalcParking.populate_meters();
 		res.status = 0;
 		res.statusMsg = "Reloaded";
+		res.errors = com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam._importerrors;
+		res.imports = com.glimworm.opendata.parkshark.importdata.NPR.Amsterdam._importlog;
 		String[] files = {"/opt/tmp/rdw/upload/additionaldata/newgarages/garages.json"};
 		for (String _file : files) {
 			res.files.add(new file(_file,com.glimworm.opendata.divvamsterdamapi.planning.net.FileUtils.readFile(_file)));
@@ -810,6 +816,26 @@ public class RestInterface {
 		}
 		return xstream;
 	}
-	
+
+	public static String get_from_file(String S, String DEF) {
+		System.out.println("Application::returnung from file Key["+S+"]");
+
+		String cfile = "/opt/tmp/rdw/upload/settings.txt";
+		
+		String SS = com.glimworm.opendata.divvamsterdamapi.planning.net.FileUtils.readFileCR(cfile);
+		if (SS == null) return DEF;
+		for (String SP : SS.split("[\n]")) {
+			if (SP.startsWith(S+"=")) {
+				try {
+					return (SP.split("[=]",2)[1]);
+				} catch (Exception E) {
+					E.printStackTrace(System.out);
+					return DEF;
+				}
+			}
+		}
+		return DEF;		
+	}
+
 	 
 }

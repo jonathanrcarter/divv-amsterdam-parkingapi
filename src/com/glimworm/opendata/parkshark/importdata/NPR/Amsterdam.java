@@ -425,6 +425,7 @@ public class Amsterdam {
 							}			
 							
 							vect.add(_meter);							
+							_importlog.add("ADD::(METER):ADDED:"+_meter.nprid+":"+_meter.name);
 							
 							
 							break place;
@@ -510,9 +511,14 @@ public class Amsterdam {
 		}
 		return retval;
 	}	
+	public static ArrayList<Exception>_importerrors = new ArrayList<Exception>();
+	public static ArrayList<String>_importlog = new ArrayList<String>();
+	
 	public static PlaceParkingGarage[] getGarages(int GARAGESORMETERS) {
 		// TODO Auto-generated method stub
-
+		
+		_importerrors.clear();
+		
 		String polygoneUrl = "https://opendata.rdw.nl/api/views/nsk3-v9n7/rows.csv?accessType=DOWNLOAD";
 		com.glimworm.opendata.divvamsterdamapi.planning.net.xsd.curlResponse res0 = com.glimworm.opendata.divvamsterdamapi.planning.net.CurlUtils.getCURL(polygoneUrl, "", null, null, null, null,null,500);
 		System.out.println(res0.text);
@@ -734,6 +740,9 @@ public class Amsterdam {
 						ali.polys.add(fact.createPolygon(cor));
 					}
 					alis.add(ali);
+//					_importlog.add("AREAS:"+GARAGESORMETERS+":(alis loop):ADDED:"+ali.areaId+":"+ali.name);
+				} else {
+//					_importlog.add("AREAS:"+GARAGESORMETERS+":(alis loop):SKIPPED-NOT-PLACEMARK:"+node.getNodeName()+":"+node.toString());
 				}
 			}
 			
@@ -771,7 +780,11 @@ public class Amsterdam {
 				item.uuid = cols[2];
 				if (item.areamanagerid.equalsIgnoreCase("363") || item.areaId.startsWith("363_")) {
 					areas.add(item);
+				} else {
+//					_importlog.add("AREAS:"+GARAGESORMETERS+":(areas loop):SKIPPED-NOT-363:"+item.areamanagerid+":"+item.areaId);
 				}
+			} else {
+				_importlog.add("AREAS:"+GARAGESORMETERS+":(areas loop):SKIPPED-NOT-2-COLUMNS:"+lines[i]);
 			}
 		}
 
@@ -850,6 +863,7 @@ public class Amsterdam {
 					System.out.println(areas.get(i).validityStartOfPeriod);
 					System.out.println(areas.get(i).validityEndOfPeriod);
 					System.out.println("INVALID");
+					_importlog.add("ADD:"+GARAGESORMETERS+":(AREAS LOOP 1):SKIP-INVALID-DATE:"+i+":"+areas.get(i).areaId+":"+areas.get(i).validityStartOfPeriod+":"+areas.get(i).validityEndOfPeriod);
 					continue nextarea;
 				}
 
@@ -864,7 +878,17 @@ public class Amsterdam {
 						 * 
 						 * note :: there could be other text descriptions ??
 						 */
-						if (GARAGESORMETERS == GARAGES && usage.startsWith("Garage") == false) continue nextarea;
+						
+						if (usage.startsWith("VergunningParkeren") == true) {
+							continue nextarea;
+						}
+						if (GARAGESORMETERS == GARAGES && (usage.startsWith("Garage") == false && usage.startsWith("Park & Ride") == false)) {
+							if (usage.startsWith("BetaaldParkeren") == false) {
+								_importlog.add("ADD:"+GARAGESORMETERS+":(AREAS LOOP 1):SKIP-INVALID-USAGE:"+i+":"+areas.get(i).areaId+":"+areas.get(i).usage);
+							}
+							
+							continue nextarea;
+						}
 						if (GARAGESORMETERS == METERS && usage.startsWith("BetaaldParkeren") == false) continue nextarea;
 						
 						/*
@@ -1251,6 +1275,7 @@ public class Amsterdam {
 					}
 				}
 				vect.add(pl);
+				_importlog.add("ADD:"+GARAGESORMETERS+":(AREAS LOOP 1):ADDED:"+pl.nprid+":"+pl.name);
 				
 //				// https://npropendata.rdw.nl/parkingdata/v2/static/a2ad1b55-29f8-4f7f-934b-50851bac6384
 //				if (areas.get(i).uuid.equalsIgnoreCase("a2ad1b55-29f8-4f7f-934b-50851bac6384")) {
@@ -1265,7 +1290,9 @@ public class Amsterdam {
 
 			} catch (Exception E) {
 //				E.printStackTrace(System.out);
-				System.out.println(E.getLocalizedMessage());
+				System.out.println(E.getMessage());
+				_importlog.add("ADD:"+GARAGESORMETERS+":(AREAS LOOP 1):ERROR:"+i+":"+areas.get(i).name+":"+areas.get(i).uuid+":"+E.getMessage());
+				
 			}
 			
 		}
@@ -1301,12 +1328,15 @@ public class Amsterdam {
 			org.json.JSONArray garages = jsob_additional.optJSONArray("arr");
 			for (int i=0; i < garages.length(); i++) {
 				org.json.JSONObject garage = garages.optJSONObject(i);
-				if (garage != null) {
+				if (GARAGESORMETERS == GARAGES && garage != null) {
 					String nprid = garage.optString("nprid");
-					if (nprid != null && nprid.length() > 0) {		// this is an empty cdk
+					if (nprid != null && nprid.length() > 0) {		// this is not an empty cdk
 						
 						for (int gi=0; gi < vect.size(); gi++) {
 							if (vect.get(gi) != null && vect.get(gi).nprid != null &&  vect.get(gi).nprid.equalsIgnoreCase(nprid)){
+								/* this garage matches */
+								
+								/* replace theopening tims */
 								if (garage.optString("opening_times_raw",null) != null) {
 									vect.get(gi).opening_times_raw = garage.optString("opening_times_raw","n/a");
 									
@@ -1372,9 +1402,51 @@ public class Amsterdam {
 									
 									
 								}
+								/* replace the remarks */
 								if (garage.optString("remarks",null) != null) {
-									vect.get(gi).remarks  = garage.optString("remarks","");
+									vect.get(gi).remarks  = garage.optString("remarks",vect.get(gi).remarks);
 								}
+								/* replace the lat */
+								if (garage.optString("lat",null) != null) {
+									vect.get(gi).lat = garage.optDouble("lat", vect.get(gi).lat);
+								}
+								/* replace the lon */
+								if (garage.optString("lon",null) != null) {
+									vect.get(gi).lon = garage.optDouble("lon", vect.get(gi).lon);
+								}
+								/* replace the owner */
+								if (garage.optString("owner",null) != null) {
+									vect.get(gi).owner  = garage.optString("owner",vect.get(gi).owner);
+								}
+								/* replace the street */
+								if (garage.optString("street",null) != null) {
+									vect.get(gi).street  = garage.optString("street",vect.get(gi).street);
+								}
+								/* replace the postcode */
+								if (garage.optString("postcode",null) != null) {
+									vect.get(gi).postcode  = garage.optString("postcode",vect.get(gi).postcode);
+								}
+								/* replace the url */
+								if (garage.optString("url",null) != null) {
+									vect.get(gi).url  = garage.optString("url",vect.get(gi).url);
+								}
+								/* replace the type */
+								if (garage.optString("type",null) != null) {
+									vect.get(gi).type  = garage.optString("type",vect.get(gi).type);
+								}
+								/* replace the calc_type */
+								if (garage.optString("calc_type",null) != null) {
+									vect.get(gi).calc_type  = garage.optString("calc_type",vect.get(gi).calc_type);
+								}
+								/* replace the capacity */
+								if (garage.optString("capacity",null) != null) {
+									vect.get(gi).capacity = garage.optInt("capacity", vect.get(gi).capacity);
+								}
+								/* replace the places */
+								if (garage.optString("places",null) != null) {
+									vect.get(gi).places = garage.optInt("places", vect.get(gi).places);
+								}
+
 							}
 						}
 					}
@@ -1382,271 +1454,282 @@ public class Amsterdam {
 						/*
 						 * move the data into a "parkingplacegarage"
 						 */
-
-						PlaceParkingGarage pl = new PlaceParkingGarage();
-						pl.name = garage.optString("name");
-						pl.url = garage.optString("url");
-						pl.lat = garage.optDouble("lat");
-						pl.lon = garage.optDouble("lon");
-						pl.postcode = garage.optString("postcode");
-						pl.street = garage.optString("street");
-						pl.nprurl = "";
-						pl.nprid = "";
-						pl.cdk_id = "";
-						pl.csdkurl = "";
-						pl.places = garage.optInt("places");
-						pl.type = garage.optString("type","parking-garage"); // "park-and-ride"
-						if (pl.type.equalsIgnoreCase("p-and-r")) pl.type = "park-and-ride";
-						pl.opening_times_raw = garage.optString("opening_times_raw","n/a");
-
-						pl.capacity = garage.optInt("capacity");
-						pl.free_minutes = 0;
-						pl.time_unit_minutes = 0;
-						pl.remarks = garage.optString("remarks");
-
-						pl.price_day = garage.optDouble("price_day");
-						pl.price_per_time_unit = garage.optDouble("price_per_time_unit",-1);
-						pl.calc_type = garage.optString("calc_type");
-						pl.ams_pr_fare = garage.optString("ams_pr_fare");
-						pl.includes_public_transport = garage.optString("includes_public_transport");
-						
-						String tariff_raw = garage.optString("tariff_raw");
-						if (tariff_raw != null) {
-							// 0000-9999 2 21
-							String[] tariff_raws = tariff_raw.split("[|]");
-							if (tariff_raws.length == 1) {
-								String[] tariff_rawsp = tariff_raws[0].split("[ ]");
-								if (tariff_rawsp.length == 3) {
-									try {
-										pl.price_per_time_unit = Double.parseDouble(tariff_rawsp[1]);
-										pl.time_unit_minutes = Integer.parseInt(tariff_rawsp[2]);
-									} catch (Exception E) { E.printStackTrace(System.out);}
-								}
-							} else if (tariff_raws.length == 2) {
-								pl.pt.first.combination = "y";
-
-								String[] tariff_rawsp = tariff_raws[1].split("[ ]");
-								if (tariff_rawsp.length == 3) {
-									try {
-										pl.pt.first.hrs = Integer.parseInt(tariff_rawsp[0].split("[-]")[1])/60;
-										pl.pt.first.price = Double.parseDouble(tariff_rawsp[1]);
-									} catch (Exception E) { E.printStackTrace(System.out);}
-								}
-
-								tariff_rawsp = tariff_raws[1].split("[ ]");
-								if (tariff_rawsp.length == 3) {
-									try {
-										pl.price_per_time_unit = Double.parseDouble(tariff_rawsp[1]);
-										pl.pt.first.price2 = Double.parseDouble(tariff_rawsp[1]);
-										pl.time_unit_minutes = Integer.parseInt(tariff_rawsp[2]);
-										pl.pt.first.hrs = Integer.parseInt(tariff_rawsp[0].split("[-]")[1])/60;
-									} catch (Exception E) { E.printStackTrace(System.out);}
-								}
-								
-							}
-						}
-						
-						
-						for (int d=0; d < 7; d++) {
-							pl.opening_times[d] = new PlaceParkingGarageOpeningTimes();
-							pl.opening_times[d].dayOfWeek= d;
-						}
 						try {
-							// opening_times: "0 0930 0930 1930 1930|1-6 0730 0730 2130 2130",
-							//				  "0 0930 0930 1930 1930|1-6 0730 0730 2130 2130"	
-
+	
+							PlaceParkingGarage pl = new PlaceParkingGarage();
+							pl.name = garage.optString("name");
+							pl.url = garage.optString("url");
+							pl.lat = garage.optDouble("lat");
+							pl.lon = garage.optDouble("lon");
+							pl.postcode = garage.optString("postcode");
+							pl.street = garage.optString("street");
+							pl.nprurl = "";
+							pl.nprid = "";
+							pl.cdk_id = "";
+							pl.csdkurl = "";
+							pl.places = garage.optInt("places");
+							pl.type = garage.optString("type","parking-garage"); // "park-and-ride"
+							if (pl.type.equalsIgnoreCase("p-and-r")) pl.type = "park-and-ride";
+							pl.opening_times_raw = garage.optString("opening_times_raw","n/a");
+	
+							pl.capacity = garage.optInt("capacity");
+							pl.free_minutes = 0;
+							pl.time_unit_minutes = 0;
+							pl.remarks = garage.optString("remarks");
+	
+							pl.price_day = garage.optDouble("price_day");
+							pl.price_per_time_unit = garage.optDouble("price_per_time_unit",-1);
+							pl.calc_type = garage.optString("calc_type");
+							pl.ams_pr_fare = garage.optString("ams_pr_fare");
+							pl.includes_public_transport = garage.optString("includes_public_transport");
 							
-							if (pl.opening_times_raw != null && pl.opening_times_raw.trim().length() > 0) {
-								System.out.println("openingtimes::"+pl.opening_times_raw);
-								String[] days = pl.opening_times_raw.split("[|]");
-								nextday:
-								for (String day : days) {	// e.g. 0 0930 0930 1930 1930
-									System.out.println("openingtimes::day::"+day);
-									if (day == null || day.trim().length() == 0) continue nextday;
-									String[] dayParts = day.split("[ ]");	// e.g. [0, 0930, 0930, 1930, 1930]
-									System.out.println("openingtimes::day::len="+dayParts.length);
-									if (dayParts.length != 5) continue nextday;
-
-									System.out.println("openingtimes::day::[0]="+dayParts[0]);
-									if (dayParts[0].indexOf("-") > -1) {	// e.g. 1-6
-										System.out.println("openingtimes::day::[0]::option1");
-										String[] start_and_end = dayParts[0].split("[-]");
-										int start = Integer.parseInt(start_and_end[0]);
-										int end = Integer.parseInt(start_and_end[1]);
-										for (int tempday=start; tempday <= end; tempday++) {
-											System.out.println("openingtimes::day::[0]::option1::tempday="+tempday);
-											pl.opening_times[tempday].open_in = dayParts[1];
-											pl.opening_times[tempday].open_out = dayParts[2];
-											pl.opening_times[tempday].close_in = dayParts[3];
-											pl.opening_times[tempday].close_out = dayParts[4];
-										}
-										
-									} else if (dayParts[0].indexOf(",") > -1) {	// 2,3
-										System.out.println("openingtimes::day::[0]::option2");
-										String[] listOfDays = dayParts[0].split("[,]");
-										for (String tempday_str : listOfDays) {
-											int tempday = Integer.parseInt(tempday_str);
-											System.out.println("openingtimes::day::[0]::option2::tempday="+tempday);
-											pl.opening_times[tempday].open_in = dayParts[1];
-											pl.opening_times[tempday].open_out = dayParts[2];
-											pl.opening_times[tempday].close_in = dayParts[3];
-											pl.opening_times[tempday].close_out = dayParts[4];
-											
-										}
-
-									} else if (dayParts[0] != null && dayParts[0].trim().length() > 0) {	// 3
-										System.out.println("openingtimes::day::[0]::option3");
-										int tempday = Integer.parseInt(dayParts[0]);
-										System.out.println("openingtimes::day::[0]::option3::tempday="+tempday);
-										pl.opening_times[tempday].open_in = dayParts[1];
-										pl.opening_times[tempday].open_out = dayParts[2];
-										pl.opening_times[tempday].close_in = dayParts[3];
-										pl.opening_times[tempday].close_out = dayParts[4];
+							String tariff_raw = garage.optString("tariff_raw");
+							if (tariff_raw != null) {
+								// 0000-9999 2 21
+								String[] tariff_raws = tariff_raw.split("[|]");
+								if (tariff_raws.length == 1) {
+									String[] tariff_rawsp = tariff_raws[0].split("[ ]");
+									if (tariff_rawsp.length == 3) {
+										try {
+											pl.price_per_time_unit = Double.parseDouble(tariff_rawsp[1]);
+											pl.time_unit_minutes = Integer.parseInt(tariff_rawsp[2]);
+										} catch (Exception E) { E.printStackTrace(System.out);}
 									}
+								} else if (tariff_raws.length == 2) {
+									pl.pt = new PayTimes();
+									pl.pt.first.combination = "y";
+	
+									String[] tariff_rawsp = tariff_raws[1].split("[ ]");
+									if (tariff_rawsp.length == 3) {
+										try {
+											pl.pt.first.hrs = Integer.parseInt(tariff_rawsp[0].split("[-]")[1])/60;
+											pl.pt.first.price = Double.parseDouble(tariff_rawsp[1]);
+										} catch (Exception E) { E.printStackTrace(System.out);}
+									}
+	
+									tariff_rawsp = tariff_raws[1].split("[ ]");
+									if (tariff_rawsp.length == 3) {
+										try {
+											pl.price_per_time_unit = Double.parseDouble(tariff_rawsp[1]);
+											pl.pt.first.price2 = Double.parseDouble(tariff_rawsp[1]);
+											pl.time_unit_minutes = Integer.parseInt(tariff_rawsp[2]);
+											pl.pt.first.hrs = Integer.parseInt(tariff_rawsp[0].split("[-]")[1])/60;
+										} catch (Exception E) { E.printStackTrace(System.out);}
+									}
+									
 								}
 							}
+							
+							
+							for (int d=0; d < 7; d++) {
+								pl.opening_times[d] = new PlaceParkingGarageOpeningTimes();
+								pl.opening_times[d].dayOfWeek= d;
+							}
+							try {
+								// opening_times: "0 0930 0930 1930 1930|1-6 0730 0730 2130 2130",
+								//				  "0 0930 0930 1930 1930|1-6 0730 0730 2130 2130"	
+	
+								
+								if (pl.opening_times_raw != null && pl.opening_times_raw.trim().length() > 0) {
+									System.out.println("openingtimes::"+pl.opening_times_raw);
+									String[] days = pl.opening_times_raw.split("[|]");
+									nextday:
+									for (String day : days) {	// e.g. 0 0930 0930 1930 1930
+										System.out.println("openingtimes::day::"+day);
+										if (day == null || day.trim().length() == 0) continue nextday;
+										String[] dayParts = day.split("[ ]");	// e.g. [0, 0930, 0930, 1930, 1930]
+										System.out.println("openingtimes::day::len="+dayParts.length);
+										if (dayParts.length != 5) continue nextday;
+	
+										System.out.println("openingtimes::day::[0]="+dayParts[0]);
+										if (dayParts[0].indexOf("-") > -1) {	// e.g. 1-6
+											System.out.println("openingtimes::day::[0]::option1");
+											String[] start_and_end = dayParts[0].split("[-]");
+											int start = Integer.parseInt(start_and_end[0]);
+											int end = Integer.parseInt(start_and_end[1]);
+											for (int tempday=start; tempday <= end; tempday++) {
+												System.out.println("openingtimes::day::[0]::option1::tempday="+tempday);
+												pl.opening_times[tempday].open_in = dayParts[1];
+												pl.opening_times[tempday].open_out = dayParts[2];
+												pl.opening_times[tempday].close_in = dayParts[3];
+												pl.opening_times[tempday].close_out = dayParts[4];
+											}
+											
+										} else if (dayParts[0].indexOf(",") > -1) {	// 2,3
+											System.out.println("openingtimes::day::[0]::option2");
+											String[] listOfDays = dayParts[0].split("[,]");
+											for (String tempday_str : listOfDays) {
+												int tempday = Integer.parseInt(tempday_str);
+												System.out.println("openingtimes::day::[0]::option2::tempday="+tempday);
+												pl.opening_times[tempday].open_in = dayParts[1];
+												pl.opening_times[tempday].open_out = dayParts[2];
+												pl.opening_times[tempday].close_in = dayParts[3];
+												pl.opening_times[tempday].close_out = dayParts[4];
+												
+											}
+	
+										} else if (dayParts[0] != null && dayParts[0].trim().length() > 0) {	// 3
+											System.out.println("openingtimes::day::[0]::option3");
+											int tempday = Integer.parseInt(dayParts[0]);
+											System.out.println("openingtimes::day::[0]::option3::tempday="+tempday);
+											pl.opening_times[tempday].open_in = dayParts[1];
+											pl.opening_times[tempday].open_out = dayParts[2];
+											pl.opening_times[tempday].close_in = dayParts[3];
+											pl.opening_times[tempday].close_out = dayParts[4];
+										}
+									}
+								}
+							} catch (Exception E) {
+								E.printStackTrace(System.out);
+							}
+	
+							//	fare: "1-5 04:00 10:00 8 24 | 1-5 10:00 04:00 1 24 | 6-0 0:00 0:00 1 24",
+							if (pl.ams_pr_fare != null && pl.ams_pr_fare.trim().length() > 0) {
+								Vector<PlaceParkingGarageAmsterdamPrVariation> vect1 = new Vector<PlaceParkingGarageAmsterdamPrVariation>();
+								String[] vects = pl.ams_pr_fare.trim().split("[|]");
+								for (int j = 0; j < vects.length; j++) {
+									String[] parts = vects[j].trim().split("[ ]");
+									if (parts.length == 5) {
+										String[] dayparts = parts[0].trim().split("[-]");
+										int day_low = Integer.parseInt(dayparts[0]);
+										int day_high = Integer.parseInt(dayparts[1]);
+										int hour_start = Integer.parseInt(parts[1].split("[:]")[0]);
+										int hour_end = Integer.parseInt(parts[2].split("[:]")[0]);
+										double dayrate = Double.parseDouble(parts[3]);
+										int maxstay = Integer.parseInt(parts[4]);
+										if (day_low < day_high) {
+											if (hour_start == 0 && hour_end == 0) {
+												PlaceParkingGarageAmsterdamPrVariation pv = new PlaceParkingGarageAmsterdamPrVariation();
+												pv.dayOfWeek_start = day_low;
+												pv.dayOfWeek_end = day_high;
+												pv.entry_start = 0;
+												pv.entry_end = 24;
+												pv.price_day = dayrate;
+												vect1.add(pv);
+											} else if (hour_start < hour_end) {
+												PlaceParkingGarageAmsterdamPrVariation pv = new PlaceParkingGarageAmsterdamPrVariation();
+												pv.dayOfWeek_start = day_low;
+												pv.dayOfWeek_end = day_high;
+												pv.entry_start = hour_start;
+												pv.entry_end = hour_end;
+												pv.price_day = dayrate;
+												vect1.add(pv);
+											} else {
+												PlaceParkingGarageAmsterdamPrVariation pv = new PlaceParkingGarageAmsterdamPrVariation();
+												pv.dayOfWeek_start = day_low;
+												pv.dayOfWeek_end = day_high;
+												pv.entry_start = 0;
+												pv.entry_end = hour_start;
+												pv.price_day = dayrate;
+												vect1.add(pv);
+	
+												PlaceParkingGarageAmsterdamPrVariation pv1 = new PlaceParkingGarageAmsterdamPrVariation();
+												pv1.dayOfWeek_start = day_low;
+												pv1.dayOfWeek_end = day_high;
+												pv1.entry_start = hour_end;
+												pv1.entry_end = 24;
+												pv1.price_day = dayrate;
+												vect1.add(pv1);
+												
+											}
+											
+											
+										} else {
+											if (hour_start == 0 && hour_end == 0) {
+												PlaceParkingGarageAmsterdamPrVariation pv = new PlaceParkingGarageAmsterdamPrVariation();
+												pv.dayOfWeek_start = day_low;
+												pv.dayOfWeek_end = day_low;
+												pv.entry_start = 0;
+												pv.entry_end = 24;
+												pv.price_day = dayrate;
+												vect1.add(pv);
+												
+												PlaceParkingGarageAmsterdamPrVariation pv1 = new PlaceParkingGarageAmsterdamPrVariation();
+												pv1.dayOfWeek_start = day_high;
+												pv1.dayOfWeek_end = day_high;
+												pv1.entry_start = 0;
+												pv1.entry_end = 24;
+												pv1.price_day = dayrate;
+												vect1.add(pv1);
+											} else if (hour_start < hour_end) {
+												PlaceParkingGarageAmsterdamPrVariation pv = new PlaceParkingGarageAmsterdamPrVariation();
+												pv.dayOfWeek_start = day_low;
+												pv.dayOfWeek_end = day_low;
+												pv.entry_start = hour_start;
+												pv.entry_end = hour_end;
+												pv.price_day = dayrate;
+												vect1.add(pv);
+												
+												PlaceParkingGarageAmsterdamPrVariation pv1 = new PlaceParkingGarageAmsterdamPrVariation();
+												pv1.dayOfWeek_start = day_high;
+												pv1.dayOfWeek_end = day_high;
+												pv.entry_start = hour_start;
+												pv.entry_end = hour_end;
+												pv1.price_day = dayrate;
+												vect1.add(pv1);
+											} else {
+												PlaceParkingGarageAmsterdamPrVariation pv = new PlaceParkingGarageAmsterdamPrVariation();
+												pv.dayOfWeek_start = day_low;
+												pv.dayOfWeek_end = day_low;
+												pv.entry_start = 0;
+												pv.entry_end = hour_start;
+												pv.price_day = dayrate;
+												vect1.add(pv);
+												
+												PlaceParkingGarageAmsterdamPrVariation pv1 = new PlaceParkingGarageAmsterdamPrVariation();
+												pv1.dayOfWeek_start = day_high;
+												pv1.dayOfWeek_end = day_high;
+												pv1.entry_start = 0;
+												pv1.entry_end = hour_start;
+												pv1.price_day = dayrate;
+												vect1.add(pv1);
+	
+												PlaceParkingGarageAmsterdamPrVariation pv2 = new PlaceParkingGarageAmsterdamPrVariation();
+												pv2.dayOfWeek_start = day_low;
+												pv2.dayOfWeek_end = day_low;
+												pv2.entry_start = hour_end;
+												pv2.entry_end = 24;
+												pv2.price_day = dayrate;
+												vect1.add(pv2);
+												
+												PlaceParkingGarageAmsterdamPrVariation pv3 = new PlaceParkingGarageAmsterdamPrVariation();
+												pv3.dayOfWeek_start = day_high;
+												pv3.dayOfWeek_end = day_high;
+												pv3.entry_start = hour_end;
+												pv3.entry_end = 24;
+												pv3.price_day = dayrate;
+												vect1.add(pv3);
+											}
+										}
+										
+										
+										
+									}
+								}
+	
+								
+								Object result[] = new PlaceParkingGarageAmsterdamPrVariation[vect1.size()];
+								vect1.copyInto(result);
+								pl.ams_pr_fares = (PlaceParkingGarageAmsterdamPrVariation[])result;
+							}
+							if (pl.type.equalsIgnoreCase("park-and-ride")) {
+								pl.displaytype = "park-and-ride";
+							}
+							// vect.add(pl);
+							if (pl.type.equalsIgnoreCase("park-and-ride")) {
+								PlaceParkingGarage plcopy = (PlaceParkingGarage)pl.clone();
+								plcopy.type = "garage";
+								plcopy.displaytype = "park-and-ride";
+								vect.add(plcopy);
+								_importlog.add("ADD:"+GARAGESORMETERS+":(ADDITIONAL GARAGES):ADDED:"+pl.nprid+":"+pl.name);
+							} else {
+								_importlog.add("ADD:"+GARAGESORMETERS+":(ADDITIONAL GARAGES):ADDED-NOT-PR:"+pl.nprid+":"+pl.name);
+								vect.add(pl);
+							}
+							
 						} catch (Exception E) {
-							E.printStackTrace(System.out);
-						}
-
-						//	fare: "1-5 04:00 10:00 8 24 | 1-5 10:00 04:00 1 24 | 6-0 0:00 0:00 1 24",
-						if (pl.ams_pr_fare != null && pl.ams_pr_fare.trim().length() > 0) {
-							Vector<PlaceParkingGarageAmsterdamPrVariation> vect1 = new Vector<PlaceParkingGarageAmsterdamPrVariation>();
-							String[] vects = pl.ams_pr_fare.trim().split("[|]");
-							for (int j = 0; j < vects.length; j++) {
-								String[] parts = vects[j].trim().split("[ ]");
-								if (parts.length == 5) {
-									String[] dayparts = parts[0].trim().split("[-]");
-									int day_low = Integer.parseInt(dayparts[0]);
-									int day_high = Integer.parseInt(dayparts[1]);
-									int hour_start = Integer.parseInt(parts[1].split("[:]")[0]);
-									int hour_end = Integer.parseInt(parts[2].split("[:]")[0]);
-									double dayrate = Double.parseDouble(parts[3]);
-									int maxstay = Integer.parseInt(parts[4]);
-									if (day_low < day_high) {
-										if (hour_start == 0 && hour_end == 0) {
-											PlaceParkingGarageAmsterdamPrVariation pv = new PlaceParkingGarageAmsterdamPrVariation();
-											pv.dayOfWeek_start = day_low;
-											pv.dayOfWeek_end = day_high;
-											pv.entry_start = 0;
-											pv.entry_end = 24;
-											pv.price_day = dayrate;
-											vect1.add(pv);
-										} else if (hour_start < hour_end) {
-											PlaceParkingGarageAmsterdamPrVariation pv = new PlaceParkingGarageAmsterdamPrVariation();
-											pv.dayOfWeek_start = day_low;
-											pv.dayOfWeek_end = day_high;
-											pv.entry_start = hour_start;
-											pv.entry_end = hour_end;
-											pv.price_day = dayrate;
-											vect1.add(pv);
-										} else {
-											PlaceParkingGarageAmsterdamPrVariation pv = new PlaceParkingGarageAmsterdamPrVariation();
-											pv.dayOfWeek_start = day_low;
-											pv.dayOfWeek_end = day_high;
-											pv.entry_start = 0;
-											pv.entry_end = hour_start;
-											pv.price_day = dayrate;
-											vect1.add(pv);
-
-											PlaceParkingGarageAmsterdamPrVariation pv1 = new PlaceParkingGarageAmsterdamPrVariation();
-											pv1.dayOfWeek_start = day_low;
-											pv1.dayOfWeek_end = day_high;
-											pv1.entry_start = hour_end;
-											pv1.entry_end = 24;
-											pv1.price_day = dayrate;
-											vect1.add(pv1);
-											
-										}
-										
-										
-									} else {
-										if (hour_start == 0 && hour_end == 0) {
-											PlaceParkingGarageAmsterdamPrVariation pv = new PlaceParkingGarageAmsterdamPrVariation();
-											pv.dayOfWeek_start = day_low;
-											pv.dayOfWeek_end = day_low;
-											pv.entry_start = 0;
-											pv.entry_end = 24;
-											pv.price_day = dayrate;
-											vect1.add(pv);
-											
-											PlaceParkingGarageAmsterdamPrVariation pv1 = new PlaceParkingGarageAmsterdamPrVariation();
-											pv1.dayOfWeek_start = day_high;
-											pv1.dayOfWeek_end = day_high;
-											pv1.entry_start = 0;
-											pv1.entry_end = 24;
-											pv1.price_day = dayrate;
-											vect1.add(pv1);
-										} else if (hour_start < hour_end) {
-											PlaceParkingGarageAmsterdamPrVariation pv = new PlaceParkingGarageAmsterdamPrVariation();
-											pv.dayOfWeek_start = day_low;
-											pv.dayOfWeek_end = day_low;
-											pv.entry_start = hour_start;
-											pv.entry_end = hour_end;
-											pv.price_day = dayrate;
-											vect1.add(pv);
-											
-											PlaceParkingGarageAmsterdamPrVariation pv1 = new PlaceParkingGarageAmsterdamPrVariation();
-											pv1.dayOfWeek_start = day_high;
-											pv1.dayOfWeek_end = day_high;
-											pv.entry_start = hour_start;
-											pv.entry_end = hour_end;
-											pv1.price_day = dayrate;
-											vect1.add(pv1);
-										} else {
-											PlaceParkingGarageAmsterdamPrVariation pv = new PlaceParkingGarageAmsterdamPrVariation();
-											pv.dayOfWeek_start = day_low;
-											pv.dayOfWeek_end = day_low;
-											pv.entry_start = 0;
-											pv.entry_end = hour_start;
-											pv.price_day = dayrate;
-											vect1.add(pv);
-											
-											PlaceParkingGarageAmsterdamPrVariation pv1 = new PlaceParkingGarageAmsterdamPrVariation();
-											pv1.dayOfWeek_start = day_high;
-											pv1.dayOfWeek_end = day_high;
-											pv1.entry_start = 0;
-											pv1.entry_end = hour_start;
-											pv1.price_day = dayrate;
-											vect1.add(pv1);
-
-											PlaceParkingGarageAmsterdamPrVariation pv2 = new PlaceParkingGarageAmsterdamPrVariation();
-											pv2.dayOfWeek_start = day_low;
-											pv2.dayOfWeek_end = day_low;
-											pv2.entry_start = hour_end;
-											pv2.entry_end = 24;
-											pv2.price_day = dayrate;
-											vect1.add(pv2);
-											
-											PlaceParkingGarageAmsterdamPrVariation pv3 = new PlaceParkingGarageAmsterdamPrVariation();
-											pv3.dayOfWeek_start = day_high;
-											pv3.dayOfWeek_end = day_high;
-											pv3.entry_start = hour_end;
-											pv3.entry_end = 24;
-											pv3.price_day = dayrate;
-											vect1.add(pv3);
-										}
-									}
-									
-									
-									
-								}
-							}
-
-							
-							Object result[] = new PlaceParkingGarageAmsterdamPrVariation[vect1.size()];
-							vect1.copyInto(result);
-							pl.ams_pr_fares = (PlaceParkingGarageAmsterdamPrVariation[])result;
-						}
-						if (pl.type.equalsIgnoreCase("park-and-ride")) {
-							pl.displaytype = "park-and-ride";
-						}
-						// vect.add(pl);
-						if (pl.type.equalsIgnoreCase("park-and-ride")) {
-							PlaceParkingGarage plcopy = (PlaceParkingGarage)pl.clone();
-							plcopy.type = "garage";
-							plcopy.displaytype = "park-and-ride";
-							vect.add(plcopy);
+							_importerrors.add(E);
+							_importlog.add("ADD:"+GARAGESORMETERS+":(ADDITIONAL GARAGES):ERROR"+E.getLocalizedMessage());
 						}
 					}
 				}
