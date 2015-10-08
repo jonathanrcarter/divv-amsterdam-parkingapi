@@ -1433,6 +1433,10 @@ public class Amsterdam {
 								/* replace the type */
 								if (garage.optString("type",null) != null) {
 									vect.get(gi).type  = garage.optString("type",vect.get(gi).type);
+									if (vect.get(gi).type.equalsIgnoreCase("p-and-r")) {
+										vect.get(gi).type = "garage";
+										vect.get(gi).displaytype = "park-and-ride";
+									}
 								}
 								/* replace the calc_type */
 								if (garage.optString("calc_type",null) != null) {
@@ -1447,6 +1451,150 @@ public class Amsterdam {
 									vect.get(gi).places = garage.optInt("places", vect.get(gi).places);
 								}
 
+								if (garage.optString("ams_pr_fare",null) != null) {
+									vect.get(gi).ams_pr_fare = garage.optString("ams_pr_fare", vect.get(gi).ams_pr_fare);
+								try {
+								//	fare: "1-5 04:00 10:00 8 24 | 1-5 10:00 04:00 1 24 | 6-0 0:00 0:00 1 24",
+									
+								//	fare: "1-5 0400 1000 8 24 | 1-5 1000 0400 1 24 | 6-0 0000 0000 1 24",
+								if (vect.get(gi).ams_pr_fare != null && vect.get(gi).ams_pr_fare.trim().length() > 0) {
+									Vector<PlaceParkingGarageAmsterdamPrVariation> vect1 = new Vector<PlaceParkingGarageAmsterdamPrVariation>();
+									String[] vects = vect.get(gi).ams_pr_fare.trim().split("[|]");
+									for (int j = 0; j < vects.length; j++) {
+										String[] parts = vects[j].trim().split("[ ]");
+										if (parts.length == 5) {
+											String[] dayparts = parts[0].trim().split("[-]");
+											
+											int day_low = Integer.parseInt(dayparts[0]);
+											int day_high = (dayparts.length> 1) ? Integer.parseInt(dayparts[1]) : Integer.parseInt(dayparts[0]);
+											int hour_start = Integer.parseInt(parts[1].substring(0,2));
+											int hour_end = Integer.parseInt(parts[2].substring(0,2));
+											double dayrate = Double.parseDouble(parts[3]);
+											int maxstay = Integer.parseInt(parts[4]);
+											if (day_low < day_high) {
+												if (hour_start == 0 && hour_end == 0) {
+													PlaceParkingGarageAmsterdamPrVariation pv = new PlaceParkingGarageAmsterdamPrVariation();
+													pv.dayOfWeek_start = day_low;
+													pv.dayOfWeek_end = day_high;
+													pv.entry_start = 0;
+													pv.entry_end = 24;
+													pv.price_day = dayrate;
+													vect1.add(pv);
+												} else if (hour_start < hour_end) {
+													PlaceParkingGarageAmsterdamPrVariation pv = new PlaceParkingGarageAmsterdamPrVariation();
+													pv.dayOfWeek_start = day_low;
+													pv.dayOfWeek_end = day_high;
+													pv.entry_start = hour_start;
+													pv.entry_end = hour_end;
+													pv.price_day = dayrate;
+													vect1.add(pv);
+												} else {
+													PlaceParkingGarageAmsterdamPrVariation pv = new PlaceParkingGarageAmsterdamPrVariation();
+													pv.dayOfWeek_start = day_low;
+													pv.dayOfWeek_end = day_high;
+													pv.entry_start = 0;
+													pv.entry_end = hour_start;
+													pv.price_day = dayrate;
+													vect1.add(pv);
+		
+													PlaceParkingGarageAmsterdamPrVariation pv1 = new PlaceParkingGarageAmsterdamPrVariation();
+													pv1.dayOfWeek_start = day_low;
+													pv1.dayOfWeek_end = day_high;
+													pv1.entry_start = hour_end;
+													pv1.entry_end = 24;
+													pv1.price_day = dayrate;
+													vect1.add(pv1);
+													
+												}
+												
+												
+											} else {
+												if (hour_start == 0 && hour_end == 0) {
+													PlaceParkingGarageAmsterdamPrVariation pv = new PlaceParkingGarageAmsterdamPrVariation();
+													pv.dayOfWeek_start = day_low;
+													pv.dayOfWeek_end = day_low;
+													pv.entry_start = 0;
+													pv.entry_end = 24;
+													pv.price_day = dayrate;
+													vect1.add(pv);
+													
+													PlaceParkingGarageAmsterdamPrVariation pv1 = new PlaceParkingGarageAmsterdamPrVariation();
+													pv1.dayOfWeek_start = day_high;
+													pv1.dayOfWeek_end = day_high;
+													pv1.entry_start = 0;
+													pv1.entry_end = 24;
+													pv1.price_day = dayrate;
+													vect1.add(pv1);
+												} else if (hour_start < hour_end) {
+													PlaceParkingGarageAmsterdamPrVariation pv = new PlaceParkingGarageAmsterdamPrVariation();
+													pv.dayOfWeek_start = day_low;
+													pv.dayOfWeek_end = day_low;
+													pv.entry_start = hour_start;
+													pv.entry_end = hour_end;
+													pv.price_day = dayrate;
+													vect1.add(pv);
+													
+													PlaceParkingGarageAmsterdamPrVariation pv1 = new PlaceParkingGarageAmsterdamPrVariation();
+													pv1.dayOfWeek_start = day_high;
+													pv1.dayOfWeek_end = day_high;
+													pv.entry_start = hour_start;
+													pv.entry_end = hour_end;
+													pv1.price_day = dayrate;
+													vect1.add(pv1);
+												} else {
+													PlaceParkingGarageAmsterdamPrVariation pv = new PlaceParkingGarageAmsterdamPrVariation();
+													pv.dayOfWeek_start = day_low;
+													pv.dayOfWeek_end = day_low;
+													pv.entry_start = 0;
+													pv.entry_end = hour_start;
+													pv.price_day = dayrate;
+													vect1.add(pv);
+													
+													PlaceParkingGarageAmsterdamPrVariation pv1 = new PlaceParkingGarageAmsterdamPrVariation();
+													pv1.dayOfWeek_start = day_high;
+													pv1.dayOfWeek_end = day_high;
+													pv1.entry_start = 0;
+													pv1.entry_end = hour_start;
+													pv1.price_day = dayrate;
+													vect1.add(pv1);
+		
+													PlaceParkingGarageAmsterdamPrVariation pv2 = new PlaceParkingGarageAmsterdamPrVariation();
+													pv2.dayOfWeek_start = day_low;
+													pv2.dayOfWeek_end = day_low;
+													pv2.entry_start = hour_end;
+													pv2.entry_end = 24;
+													pv2.price_day = dayrate;
+													vect1.add(pv2);
+													
+													PlaceParkingGarageAmsterdamPrVariation pv3 = new PlaceParkingGarageAmsterdamPrVariation();
+													pv3.dayOfWeek_start = day_high;
+													pv3.dayOfWeek_end = day_high;
+													pv3.entry_start = hour_end;
+													pv3.entry_end = 24;
+													pv3.price_day = dayrate;
+													vect1.add(pv3);
+												}
+											}
+											
+											
+											
+										}
+									}
+		
+									
+									Object result[] = new PlaceParkingGarageAmsterdamPrVariation[vect1.size()];
+									vect1.copyInto(result);
+									vect.get(gi).ams_pr_fares = (PlaceParkingGarageAmsterdamPrVariation[])result;
+								}
+								} catch (Exception E) {
+									_importerrors.add(E);
+									_importlog.add("ERROR:(ADDITIONAL GARAGES):ERROR"+E.getMessage());
+									System.out.println("EEEEEEEEEEEEEEE");
+									E.printStackTrace(System.out);
+								}
+								}
+								
+								// price_day, tariff_raw, includes_public_transport and ams_pr_far
 							}
 						}
 					}
@@ -1592,9 +1740,9 @@ public class Amsterdam {
 									if (parts.length == 5) {
 										String[] dayparts = parts[0].trim().split("[-]");
 										int day_low = Integer.parseInt(dayparts[0]);
-										int day_high = Integer.parseInt(dayparts[1]);
-										int hour_start = Integer.parseInt(parts[1].split("[:]")[0]);
-										int hour_end = Integer.parseInt(parts[2].split("[:]")[0]);
+										int day_high = (dayparts.length> 1) ? Integer.parseInt(dayparts[1]) : Integer.parseInt(dayparts[0]);
+										int hour_start = Integer.parseInt(parts[1].substring(0,2));
+										int hour_end = Integer.parseInt(parts[2].substring(0,2));
 										double dayrate = Double.parseDouble(parts[3]);
 										int maxstay = Integer.parseInt(parts[4]);
 										if (day_low < day_high) {
