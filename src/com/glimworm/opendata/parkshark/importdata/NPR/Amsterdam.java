@@ -1451,6 +1451,58 @@ public class Amsterdam {
 									vect.get(gi).places = garage.optInt("places", vect.get(gi).places);
 								}
 
+								/* replace the price_day */
+								if (garage.optString("price_day",null) != null) {
+									vect.get(gi).price_day = garage.optDouble("price_day", vect.get(gi).price_day);
+								}
+
+								/* replace the includes_public_transport */
+								if (garage.optString("includes_public_transport",null) != null) {
+									vect.get(gi).includes_public_transport = garage.optString("includes_public_transport", vect.get(gi).includes_public_transport);
+								}
+
+								/* replace the includes_public_transport */
+								if (garage.optString("tariff_raw",null) != null) {
+									String tariff_raw = garage.optString("tariff_raw");
+									if (tariff_raw != null) {
+										// 0000-9999 2 21
+										String[] tariff_raws = tariff_raw.split("[|]");
+										if (tariff_raws.length == 1) {
+											String[] tariff_rawsp = tariff_raws[0].split("[ ]");
+											if (tariff_rawsp.length == 3) {
+												try {
+													vect.get(gi).price_per_time_unit = Double.parseDouble(tariff_rawsp[1]);
+													vect.get(gi).time_unit_minutes = Integer.parseInt(tariff_rawsp[2]);
+												} catch (Exception E) { E.printStackTrace(System.out);}
+											}
+										} else if (tariff_raws.length == 2) {
+											vect.get(gi).pt = new PayTimes();
+											vect.get(gi).pt.first.combination = "y";
+			
+											String[] tariff_rawsp = tariff_raws[1].split("[ ]");
+											if (tariff_rawsp.length == 3) {
+												try {
+													vect.get(gi).pt.first.hrs = Integer.parseInt(tariff_rawsp[0].split("[-]")[1])/60;
+													vect.get(gi).pt.first.price = Double.parseDouble(tariff_rawsp[1]);
+												} catch (Exception E) { E.printStackTrace(System.out);}
+											}
+			
+											tariff_rawsp = tariff_raws[1].split("[ ]");
+											if (tariff_rawsp.length == 3) {
+												try {
+													vect.get(gi).price_per_time_unit = Double.parseDouble(tariff_rawsp[1]);
+													vect.get(gi).pt.first.price2 = Double.parseDouble(tariff_rawsp[1]);
+													vect.get(gi).time_unit_minutes = Integer.parseInt(tariff_rawsp[2]);
+													vect.get(gi).pt.first.hrs = Integer.parseInt(tariff_rawsp[0].split("[-]")[1])/60;
+												} catch (Exception E) { E.printStackTrace(System.out);}
+											}
+										}
+									}
+								}
+								
+								
+								
+								
 								if (garage.optString("ams_pr_fare",null) != null) {
 									vect.get(gi).ams_pr_fare = garage.optString("ams_pr_fare", vect.get(gi).ams_pr_fare);
 								try {
@@ -1594,7 +1646,7 @@ public class Amsterdam {
 								}
 								}
 								
-								// price_day, tariff_raw, includes_public_transport and ams_pr_far
+								// , tariff_raw,  
 							}
 						}
 					}
