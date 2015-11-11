@@ -758,6 +758,25 @@ public class CalcParking {
 	public static boolean costsmap_loaded = false;
 	public static boolean populate_costmap_lock = false;
 
+	public static String getSignature(Meter meter) {
+		String rv = meter.costs.getSignature();
+		if (meter.costsA != null && meter.costsA.length > 0) {
+			System.out.println("WAS SIG ["+rv+"] len_("+meter.costsA.length+")");
+			rv = "";
+			for (int i=0; i < meter.costsA.length; i++) {
+				String _sig = meter.costsA[i].getSignature();
+				rv += "|c|"+_sig;
+			}
+			System.out.println("WILL BE SIG WITH COSTS ["+rv+"]");
+		}
+		if (meter.exclusions != null && meter.exclusions.length > 0) {
+			for (int i=0; i < meter.exclusions.length; i++) {
+				rv += "|e|"+meter.exclusions[i].getSignature();
+			}
+			System.out.println("WILL BE SIG WITH EXCLUSIONS ["+rv+"]");
+		}
+		return rv;
+	}
 
 		
 	public static void populate_costmap() {
@@ -767,7 +786,8 @@ public class CalcParking {
 
 		for (int i=0; i < smeters.length; i++) {
 			if (smeters[i].costs != null) {
-				String sig = smeters[i].costs.getSignature();
+//				String sig = smeters[i].costs.getSignature();
+				String sig = getSignature(smeters[i]);
 				if (costsmap.containsKey(sig) == false) {
 					costsmap.put(sig, new Integer(i));
 				}
@@ -870,6 +890,8 @@ public class CalcParking {
 			private javolution.util.FastMap<String, Double> costmap;
 			private javolution.util.FastMap<String, String> dbgmap;
 			private boolean isInAmsterdamCentrum = true;
+			private int total_parking_minutes = 0;
+			private int match = 1;
 			
 			@Override
 			public Integer call() throws Exception {
@@ -911,77 +933,140 @@ public class CalcParking {
 					}
 	
 					PayTimes costs = smeters[i].costs;
-	
-					if (costs.cost < 0) {
-						return new Integer(0);
+					PayTimes[] costsA = smeters[i].costsA;
+					PayTimes[] exclusions = smeters[i].exclusions;
+					
+					if (exclusions != null) {
+						for (int ii=0; ii < exclusions.length; ii++) {
+							nextday:
+							for (int j=0; j < days.size(); j++) {
+								
+								// we have to clone the array
+								Days day = new Days();
+								day.day = days.get(j).day;
+								day.start = days.get(j).start;
+								day.end = days.get(j).end;
+								
+								PayTime cday = exclusions[ii].days[day.day];
+								
+								if (cday.start == 0 && cday.end == 0) continue nextday;	// no restriction!
+								if (day.start < cday.start) day.start = cday.start;
+								if (day.end > cday.end) day.end = cday.end;
+								double dayhours = (day.end - day.start);
+								double daymins = dayhours*60;
+								
+								if (dayhours > 0) {
+									if (exclusions[ii].parkingProhibited == true) {
+										costmap.put(sig, new Double(-2));
+										dbgmap.put(sig, "(EXCLUDED_BY_EXCLUSION_"+exclusions[ii].NPRtariffDescription+"_PROHIBITED_DAYNUM_"+day.day+"_CDAY_"+cday.start+"-"+cday.end+"_DAY_"+day.start+"-"+day.end+")");
+										return -2;
+									}
+									if (exclusions[ii].durationRestriction == true && daymins > exclusions[ii].maximumDuration) {
+										costmap.put(sig, new Double(-3));
+										dbgmap.put(sig, "(EXCLUDED_BY_EXCLUSION_"+exclusions[ii].NPRtariffDescription+"_DAYHOURS_"+dayhours+"_GREATER_THAN_"+exclusions[ii].maximumDuration+")");
+										return -3;
+									}
+								}
+							}
+						}
 					}
-	
+					
+					if (costsA == null) costsA = new PayTimes[] {costs};
+
+					
 					double val = 0;
 					String dbg = "";
-					
-					for (int j=0; j < days.size(); j++) {
-	
-						// we have to clone the array
-						Days day = new Days();
-						day.day = days.get(j).day;
-						day.start = days.get(j).start;
-						day.end = days.get(j).end;
+
+					for (int ii=0; ii < costsA.length; ii++) {
+						costs = costsA[ii];
 						
-						PayTime cday = costs.days[day.day];
-						
-						if (DBG) dbg += "[xj:"+j+"/s:"+dp2(day.start)+"/e:"+dp2(day.end)+"/c:"+costs.cost+"/d.d:"+day.day+"]\n";
-						if (DBG) dbg += "[xj:"+j+"/gc:"+costs.geb_code+"/fc:"+costs.first.combination+"/fh:"+costs.first.hrs+"/fp:"+costs.first.price+"]\n";
-						if (DBG) dbg += "[xj:"+j+"/s:"+cday.start+"/e:"+cday.end+"]\n";
-						if (cday.start == 0 && cday.end == 0) continue;
-						if (DBG) dbg += "a";
-						if (day.start > cday.end) continue;
-						if (DBG) dbg += "b";
-						if (day.end < cday.start) continue;
-						if (DBG) dbg += "c";
-						if (day.start < cday.start) day.start = cday.start;
-						if (DBG) dbg += "d";
-						if (day.end > cday.end) day.end = cday.end;
-						if (DBG) dbg += "e";
-						double dayhours = (day.end - day.start);
-			
-						if (dayhours > 9) {
-							// you never pay more than 9 hours
-							dayhours = 9;
-						} else if (cday.start == 9 && cday.end == 24 && day.start == 9 && day.end == 19) {
-							// day card = 6h
-							dayhours = 6;
-						} else if (cday.start == 9 && cday.end == 24 && day.start == 19 && day.end == 24) {
-							// evening card = 4h
-							dayhours = 4;
-						} else if (cday.start == 12 && cday.end == 24 && dayhours > 7.2) {
-							// sundaycard = 7.2h
-							dayhours = 7.2;
+						if (costs.cost < 0) {
+							continue;
+							//return new Integer(0);
 						}
-			
-						int el = 0;
-						if (costs.first.combination.equalsIgnoreCase("y") && j == 0) {
-							if (dayhours <= costs.first.hrs) {
-								val += (dayhours * costs.first.price);
-								if (DBG) dbg += "f\n";
-								if (DBG) dbg += "[yj:"+j+"/s:"+day.start+"/e:"+day.end+"/c:"+costs.cost+"/hrs:"+dayhours+"(all in first hours),val="+val+"]\n";
-							} else {
-								val += (costs.first.hrs * costs.first.price);
-								val += ((dayhours - costs.first.hrs) * costs.cost);
-			
-								if (DBG) dbg += "f\n";
-								if (DBG) dbg += "[yj:"+j+"/s:"+day.start+"/e:"+day.end+"/c:"+costs.cost+"/hrs:"+dayhours+"(some in first hours),val="+val+"]\n";
+		
+						
+						for (int j=0; j < days.size(); j++) {
+		
+							// we have to clone the array
+							Days day = new Days();
+							day.day = days.get(j).day;
+							day.start = days.get(j).start;
+							day.end = days.get(j).end;
+							
+							PayTime cday = costs.days[day.day];
+							
+							if (DBG) dbg += "(day_"+j+"_start_"+dp2(day.start)+"_end_"+dp2(day.end)+"_costs_"+costs.cost+"_dday_"+day.day+")\n\r";
+							if (DBG) dbg += "(day_"+j+"_gebcode_"+costs.geb_code+"_firstcombination_"+costs.first.combination+"_firsthour_"+costs.first.hrs+"_firstprice_"+costs.first.price+")\n\r";
+							if (DBG) dbg += "(day_"+j+"_cday_start_"+cday.start+"_cday_end_"+cday.end+")\n\r";
+							if (cday.start == 0 && cday.end == 0) continue;
+							if (DBG) dbg += "(cday_start_and_end_non_zero)";
+							if (day.start > cday.end) continue;
+							if (DBG) dbg += "(day_start_greater_than_cday_start)";
+							if (day.end < cday.start) continue;
+							if (DBG) dbg += "(day_end_less_than_cday_end)";
+							if (day.start < cday.start) {
+								day.start = cday.start;
+								if (DBG) dbg += "(day_start_WAS_less_than_cday_start)";
 							}
-						} else {
-							val += (dayhours * costs.cost);
-							if (DBG) dbg += "f\n";
-							if (DBG) dbg += "[yj:"+j+"/s:"+day.start+"/e:"+day.end+"/c:"+costs.cost+"/hrs:"+dayhours+"(none in first hours),val="+val+"]\n";
+							if (day.end > cday.end) {
+								day.end = cday.end;
+								if (DBG) dbg += "(day_end_WAS_more_than_cday_end)";
+							}
+							double dayhours = (day.end - day.start);
+							if (DBG) dbg += "(day_hours:"+dayhours+")";
+				
+							if (dayhours > 9) {
+								// you never pay more than 9 hours
+								dayhours = 9;
+								if (DBG) dbg += "(dayhours_WAS_more_than_9)";
+							} else if (cday.start == 9 && cday.end == 24 && day.start == 9 && day.end == 19) {
+								// day card = 6h
+								dayhours = 6;
+								if (DBG) dbg += "(cday_9_to_24_and_day_WAS_9_to_19_NOW_6h_daycard)";
+							} else if (cday.start == 9 && cday.end == 24 && day.start == 19 && day.end == 24) {
+								// evening card = 4h
+								dayhours = 4;
+								if (DBG) dbg += "(cday_9_to_24_and_day_WAS_19_to_24_NOW_4h_eveningcard)";
+							} else if (cday.start == 12 && cday.end == 24 && dayhours > 7.2) {
+								// sundaycard = 7.2h
+								dayhours = 7.2;
+								if (DBG) dbg += "(sunday_and_cday_12_to_24_and_dayhours_WAS_greater_than_7.2_NOW_7.2_sunday_card)";
+							}
+				
+							int el = 0;
+							if (costs.first.combination.equalsIgnoreCase("y") && j == 0) {
+								if (dayhours <= costs.first.hrs) {
+									val += (dayhours * costs.first.price);
+									if (DBG) dbg += "f\n";
+									if (DBG) dbg += "(combination_"+(dayhours * costs.first.price)+"_added_to_val[yj:"+j+"/s:"+day.start+"/e:"+day.end+"/c:"+costs.cost+"/hrs:"+dayhours+"(all in first hours),val="+val+"])\n";
+								} else {
+									val += (costs.first.hrs * costs.first.price);
+									val += ((dayhours - costs.first.hrs) * costs.cost);
+				
+									if (DBG) dbg += "f\n";
+									if (DBG) dbg += "(combination_"+(costs.first.hrs * costs.first.price)+"_and_"+((dayhours - costs.first.hrs) * costs.cost)+"_added_to_val[yj:"+j+"/s:"+day.start+"/e:"+day.end+"/c:"+costs.cost+"/hrs:"+dayhours+"(some in first hours),val="+val+"])\n";
+								}
+							} else {
+								val += (dayhours * costs.cost);
+								if (DBG) dbg += "f\n";
+								if (DBG) dbg += "(costs_"+(dayhours * costs.cost)+"_added_to_val[yj:"+j+"/s:"+day.start+"/e:"+day.end+"/c:"+costs.cost+"/hrs:"+dayhours+"(none in first hours),val="+val+"]\n";
+							}
+							
+							if (costs.max > 0 && total_parking_minutes > costs.max) {
+								if (DBG) dbg += "(COSTSMAX_"+costs.NPRtariffDescription+"_"+(costs.max)+"_GREATER_THAN_TOTALMINS_"+total_parking_minutes+"_THEREFORE_EXCLUDED)\n";
+								match = 0;
+							}
+							
+							
+							
 						}
-						
-						
 					}
 	
-					if (DBG) dbg += ("[val="+val+"]");
+					if (DBG) dbg += ("(end_value_[val="+val+"])");
 					if (DBG) dbg += ("[val(converted)="+new Double(val).toString()+"]");
+					
+					if (match == 0) val = -1;
 					
 					costmap.put(sig, new Double(val));
 					dbgmap.put(sig, dbg);
@@ -990,7 +1075,9 @@ public class CalcParking {
 				}
 				return new Integer(0);
 			}
-			public calculate_cost(int I, String SIG, boolean _DBG, javolution.util.FastMap<String, Double> COSTMAP, javolution.util.FastMap<String, String> DBGMAP, ArrayList<Days> DAYS, boolean isInAmsterdamCentrum) {
+			
+			
+			public calculate_cost(int I, String SIG, boolean _DBG, javolution.util.FastMap<String, Double> COSTMAP, javolution.util.FastMap<String, String> DBGMAP, ArrayList<Days> DAYS, boolean isInAmsterdamCentrum, int total_parking_minutesP) {
 				this.i = I;
 				this.sig = SIG;
 				this.DBG = _DBG;
@@ -998,6 +1085,7 @@ public class CalcParking {
 				this.dbgmap = DBGMAP;
 				this.days = DAYS;
 				this.isInAmsterdamCentrum = isInAmsterdamCentrum;
+				this.total_parking_minutes = total_parking_minutesP;
 			}
 		}		
 		
@@ -1095,7 +1183,7 @@ public class CalcParking {
 			int i = e.getValue().intValue();
 			String sig = e.getKey();
 			
-	    	Callable<Integer> worker = (Callable<Integer>) new calculate_cost(i, sig, DBG, costmap, dbgmap, days, isInAmsterdamCentrum);
+	    	Callable<Integer> worker = (Callable<Integer>) new calculate_cost(i, sig, DBG, costmap, dbgmap, days, isInAmsterdamCentrum,total_parking_minutes);
 	    	
 	    	Future<Integer> submit = executor.submit(worker);
 	    	list.add(submit);
@@ -1311,14 +1399,16 @@ public class CalcParking {
 			}
 			meters[i].max = costs.max;
 			
-			String sig = costs.getSignature();
+//			String sig = costs.getSignature();
+			String sig = getSignature(smeters[i]);
+			
 			meters[i].costsignature = sig;
 			if (costsmap.containsKey(sig) && costmap.get(sig) != null) {
 				double val = costmap.get(sig).doubleValue();
 				String _dbg = dbgmap.get(sig);
 				meters[i].cost = val;
 				meters[i].totalcost = val;
-				meters[i].dbg = "sig "+sig + _dbg;
+				meters[i].dbg = "sig :"+sig + "\ndebug : "+ _dbg;
 			}
 			
 		}
@@ -1447,7 +1537,7 @@ public class CalcParking {
 					}
 				}
 			} else {
-				if (meters[i].match > 0) {
+				if (meters[i].match > 0) { // here is the match
 					boolean _local_add_to_resultset = false;
 					boolean isPandR = (sgarages[smeters[I].garageid].type.equalsIgnoreCase("p-and-r") || sgarages[smeters[I].garageid].type.equalsIgnoreCase("park-and-ride"));
 					

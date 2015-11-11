@@ -415,8 +415,21 @@ public class Amsterdam {
 							retval.geb_code = "";				//jc todo
 							retval.max = 0;						//jc todo
 							retval.maxdaycost = area.price_day;
-							_meter.costs = retval;
 
+							_meter.costs = retval;
+							if (area.ptA == null) {
+								_meter.costsA = null;
+							} else {
+								_meter.costsA = area.ptA.toArray(new PayTimes[area.ptA.size()]);
+							}
+
+							if (area.ptEexclusions == null) {
+								_meter.exclusions = null;
+							} else {
+								_meter.exclusions = area.ptEexclusions.toArray(new PayTimes[area.ptEexclusions.size()]);
+							}
+							
+							
 							_meter.type = "on-street-meter";
 							try {
 								_meter.isInNorth = isInNorth(_meter.lat,_meter.lon);
@@ -1102,6 +1115,8 @@ public class Amsterdam {
 				pt.maxdaycost = 0;
 				pt.t_code = "";
 //				pt.days[0] = new Py
+				
+				ArrayList<PayTimes> ptA = new ArrayList<PayTimes>();
 
 				org.json.JSONArray tarrifs = jsob1.optJSONArray("tariffs");
 				for (int j = 0; j < tarrifs.length(); j++) {
@@ -1177,8 +1192,38 @@ public class Amsterdam {
 												areas.get(i).usage += " "+durationType+" ";
 												areas.get(i).usage += " "+durationFrom+" ";
 												areas.get(i).usage += " "+durationUntil+" ";
+
+												int ptA_i = 0;
+												boolean ptA_found = false;
+												ptA_loop:
+												for (ptA_i = 0; ptA_i < ptA.size(); ptA_i++) {
+													if (ptA.get(ptA_i).NPRtariffDescription.equalsIgnoreCase(tariffDescription) 
+															&& ptA.get(ptA_i).days[daynum] == null) {
+														ptA_found = true;
+														break ptA_loop;
+													}
+												}
+												
+												
+												if (ptA_found == false) {
+													PayTimes pta = new PayTimes();
+													pta.cost = 0;
+													pta.first = new First();
+													pta.geb_code = "";
+													pta.max = 0;
+													pta.maxdaycost = 0;
+													pta.t_code = "";
+													pta.NPRtariffDescription = tariffDescription;
+													ptA.add(pta);
+													ptA_i = ptA.size()-1;
+												}
 												
 												if (charge> 0) {
+													
+													ptA.get(ptA_i).days[daynum] = new PayTime();
+													ptA.get(ptA_i).days[daynum].start = validityFromTime_h;
+													ptA.get(ptA_i).days[daynum].end = validityUntilTime_h;
+													
 													if (pt.days[daynum] == null) {
 														/*
 														 * if this is the first encountered data for this day
@@ -1197,6 +1242,8 @@ public class Amsterdam {
 														if (validityUntilTime_h > pt.days[daynum].end) pt.days[daynum].end = validityUntilTime_h;
 													}
 												}
+
+												
 												
 												/*
 												 * get the smallest time period
@@ -1205,16 +1252,21 @@ public class Amsterdam {
 												if (pl.time_unit_minutes == 0 || chargePeriod < pl.time_unit_minutes) {
 													pl.time_unit_minutes = chargePeriod;
 													pl.price_per_time_unit = charge;
+													
 													/* 
 													 * I want it in euro / hour for meters
 													 */
-													if (tariffDescription.indexOf("combi") > -1){
+													if (tariffDescription.indexOf("combi") > -1 || tariffDescription.indexOf("10 cent") > -1) {
 														if (intervalRates.length() > 1 && k == 0) {
 															// this is the first of a combi zone
 															pt.first.combination = "y";
-															pt.first.hrs = (durationUntil/60);
+															pt.first.hrs = (chargePeriod/60);
+//															pt.first.hrs = (durationUntil/60);
+															
 															pt.first.price = (60/chargePeriod) * charge;
 															pt.first.price2 = (60/chargePeriod) * charge;
+															
+															
 														}
 														if (intervalRates.length() > 1 && k == 1) {
 															// this is the first of a combi zone
@@ -1226,11 +1278,40 @@ public class Amsterdam {
 													} else {
 														if (((60/chargePeriod) * charge) > pt.cost) {
 															pt.cost = (60/chargePeriod) * charge;
+															
 														}
 													}
 													
 												}
-											
+												/* 
+												 * I want it in euro / hour for meters - for the Array
+												 */
+												if (tariffDescription.indexOf("combi") > -1) {
+													if (intervalRates.length() > 1 && k == 0) {
+														// this is the first of a combi zone
+														ptA.get(ptA_i).first.combination = "y";
+														ptA.get(ptA_i).first.hrs = (durationUntil/60);
+														ptA.get(ptA_i).first.hrs = (chargePeriod/60);
+														ptA.get(ptA_i).first.price = (60/chargePeriod) * charge;
+														ptA.get(ptA_i).first.price2 = (60/chargePeriod) * charge;
+														
+														
+													}
+													if (intervalRates.length() > 1 && k == 1) {
+														// this is the first of a combi zone
+
+														ptA.get(ptA_i).first.hrs2 = (durationUntil/60);
+														ptA.get(ptA_i).first.price2 = (60/chargePeriod) * charge;
+														ptA.get(ptA_i).cost = (60/chargePeriod) * charge;
+													}
+													
+												} else {
+													ptA.get(ptA_i).cost = (60/chargePeriod) * charge;
+												}
+//												if (tariffDescription.indexOf("10 cent") > -1) {
+//													ptA.get(ptA_i).max = 60;
+//												}
+												
 											}
 											/*
 											 * more than 1400 mins are  "day cards"
@@ -1251,6 +1332,7 @@ public class Amsterdam {
 					}
 					
 				}
+				
 				/*
 				 * fill up remaing days with zero
 				 */
@@ -1261,8 +1343,95 @@ public class Amsterdam {
 						pt.days[pi].end = 0;
 					}
 				}
-				pl.pt = pt;
+				pl.pt = pt;		// Assign pt = the calculated pt
+
+				/*
+				 * fill up remaing days with zero
+				 */
+				for (int piA=0; piA < ptA.size(); piA++) {
+					for (int pi=0; pi < ptA.get(piA).days.length; pi++) {
+						if (ptA.get(piA).days[pi] == null) {
+							ptA.get(piA).days[pi] = new PayTime();
+							ptA.get(piA).days[pi].start = 0;
+							ptA.get(piA).days[pi].end = 0;
+						}
+					}
+					
+				}
+				pl.ptA = ptA;
 //				pl.name += "|"+areas.get(i).usage;
+
+				
+				ArrayList<PayTimes> ptE = new ArrayList<PayTimes>();
+				
+				org.json.JSONArray parkingRestrictions = jsob1.optJSONArray("parkingRestrictions");
+				for (int j = 0; j < parkingRestrictions.length(); j++) {
+					org.json.JSONObject jsobjt = parkingRestrictions.getJSONObject(j);
+
+					boolean parkingProhibited = jsobjt.optBoolean("parkingProhibited", false);
+					boolean durationRestriction = jsobjt.optBoolean("durationRestriction", false);
+					int maximumDuration = jsobjt.optInt("maximumDuration", 0);
+					int minimumParkingInterruption = jsobjt.optInt("minimumParkingInterruption", 0);
+					long startOfPeriod = jsobjt.optLong("startOfPeriod");
+					long endOfPeriod = jsobjt.optLong("endOfPeriod");
+
+					if (now > startOfPeriod && (endOfPeriod == 0 || now < endOfPeriod)) {
+						
+						org.json.JSONArray validitydays = jsobjt.optJSONArray("validityDays");
+						if (validitydays != null) {
+							for (int k1 = 0; k1 < validitydays.length(); k1++) {
+								String day = validitydays.getString(k1);
+								
+								int daynum = 0;
+								if (day.equalsIgnoreCase("mon")) daynum = 1;
+								if (day.equalsIgnoreCase("tue")) daynum = 2;
+								if (day.equalsIgnoreCase("wed")) daynum = 3;
+								if (day.equalsIgnoreCase("thu")) daynum = 4;
+								if (day.equalsIgnoreCase("fri")) daynum = 5;
+								if (day.equalsIgnoreCase("sat")) daynum = 6;
+								if (day.equalsIgnoreCase("sun")) daynum = 0;
+
+								// this is a valid tarrif
+								int validityFromTime_h = jsobjt.getJSONObject("validityFromTime").getInt("h");
+								int validityFromTime_m = jsobjt.getJSONObject("validityFromTime").getInt("m");
+								int validityFromTime_s = jsobjt.getJSONObject("validityFromTime").getInt("s");
+
+								// this is a valid tarrif
+								int validityUntilTime_h = jsobjt.getJSONObject("validityUntilTime").getInt("h");
+								int validityUntilTime_m = jsobjt.getJSONObject("validityUntilTime").getInt("m");
+								int validityUntilTime_s = jsobjt.getJSONObject("validityUntilTime").getInt("s");
+								
+								if (validityUntilTime_m > 45 && validityUntilTime_h < 24) validityUntilTime_h++;
+								
+								PayTimes _pt = new PayTimes();
+								_pt.maximumDuration = maximumDuration;
+								_pt.durationRestriction = durationRestriction;
+								_pt.parkingProhibited = parkingProhibited;
+								_pt.minimumParkingInterruption = minimumParkingInterruption;
+								
+								_pt.days[daynum] = new PayTime();
+								_pt.days[daynum].start = validityFromTime_h;
+								_pt.days[daynum].end = validityUntilTime_h;
+
+								ptE.add(_pt);
+
+							}
+						}
+					}
+				}
+				
+				for (int piA=0; piA < ptE.size(); piA++) {
+					for (int pi=0; pi < ptE.get(piA).days.length; pi++) {
+						if (ptE.get(piA).days[pi] == null) {
+							ptE.get(piA).days[pi] = new PayTime();
+							ptE.get(piA).days[pi].start = 0;
+							ptE.get(piA).days[pi].end = 0;
+						}
+					}
+					
+				}
+				pl.ptEexclusions = ptE;
+				
 				
 				org.json.JSONArray openingTimes = jsob1.optJSONArray("openingTimes");
 				if (openingTimes != null) {

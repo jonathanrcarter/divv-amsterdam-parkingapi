@@ -17,7 +17,9 @@ public class Meter implements Cloneable {
 	public String dbg = "";
 	
 	public BetWijze bw = new BetWijze();	// payment types
-	public PayTimes costs = new PayTimes();	
+	public PayTimes costs = new PayTimes();	// array
+	public PayTimes[] costsA = null;
+	public PayTimes[] exclusions = null;
 	
 	public String csdkid = "";
 	public String csdkzone = "";
@@ -65,7 +67,6 @@ public class Meter implements Cloneable {
 	public String costsignature = "";
 	public int garageid = -1;
 	
-
     public Object clone() {
         try {
             return super.clone();

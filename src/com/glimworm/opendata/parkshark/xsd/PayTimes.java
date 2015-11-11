@@ -10,9 +10,15 @@ public class PayTimes implements Cloneable {
 	public double max = 0;	
 	public double maxdaycost = 0;
 	public int error = 0;
+	public String NPRtariffDescription = "";
+	public boolean parkingProhibited = false;
+	public boolean durationRestriction = false;
+	public int maximumDuration = 0;
+	public int minimumParkingInterruption = 0;
+	
 
 	public String getSignature() {
-		return geb_code + "|" + 
+		String rv = geb_code + "|" + 
 			days[0].getSignature() + "|" +
 			days[1].getSignature() + "|" +
 			days[2].getSignature() + "|" +
@@ -24,7 +30,14 @@ public class PayTimes implements Cloneable {
 			first.getSignature() + "|" +
 			cost + "|" +
 			max + "|" +
-			maxdaycost;
+			maxdaycost + "|" +
+			NPRtariffDescription + "|" +
+			((parkingProhibited)?"parkingProhibited":"") + "|" +
+			((durationRestriction)?"durationRestriction":"") + "|" +
+			maximumDuration + "|" +
+			minimumParkingInterruption;
+		return rv;
+		
 	}
 	public Object clone() {
 		try {

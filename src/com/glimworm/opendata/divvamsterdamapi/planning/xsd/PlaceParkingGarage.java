@@ -33,6 +33,8 @@ public class PlaceParkingGarage  extends Place implements Cloneable {
 	public PlaceParkingGarageAmsterdamPrVariation[] ams_pr_fares = null;
 	public Polygon[] polys = null;
 	public PayTimes pt = null;
+	public ArrayList<PayTimes> ptA = null;
+	public ArrayList<PayTimes> ptEexclusions = null;
 	
 	public PlaceParkingGarage() {
 	}
