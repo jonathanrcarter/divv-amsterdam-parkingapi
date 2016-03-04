@@ -142,6 +142,7 @@ public class RestInterface {
 			@QueryParam("yy") @DefaultValue("2015") String yy,
 			@QueryParam("to_lon") @DefaultValue("4.856208655327167") String to_lon,
 			@QueryParam("to_lat") @DefaultValue("52.368104267594056") String to_lat,
+			@QueryParam("opt_include_unmatched") @DefaultValue("n") String opt_include_unmatched,
 			@QueryParam("debug") @DefaultValue("n") String debug) {
 
 		
@@ -201,6 +202,7 @@ public class RestInterface {
 		req.opt_metercount = opt_metercount;
 		req.opt_prcount = opt_prcount;
 		req.opt_maxresults = opt_maxresults;
+		req.opt_include_unmatched = opt_include_unmatched;
 		
 		
 		com.glimworm.opendata.parkshark.xsd.ParkSharkCalcReturn prv = com.glimworm.opendata.parkshark.CalcParking.calcv2(req);

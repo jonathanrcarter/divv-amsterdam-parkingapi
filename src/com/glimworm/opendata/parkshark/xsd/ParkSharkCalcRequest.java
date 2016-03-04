@@ -11,6 +11,7 @@ public class ParkSharkCalcRequest {
 	public int fmt = 0;
 	public String log = "n";	// log to sysylog for server debugging
 	public String dbg = "n";	// return debug information
+	public String opt_include_unmatched = "";
 	public String opt_metercount = "";
 	public String opt_garagecount = "";
 	public String opt_prcount = "";

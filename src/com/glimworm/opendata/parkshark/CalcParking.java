@@ -1409,6 +1409,7 @@ public class CalcParking {
 				meters[i].cost = val;
 				meters[i].totalcost = val;
 				meters[i].dbg = "sig :"+sig + "\ndebug : "+ _dbg;
+				if (val < -1) meters[i].match = 0;	// if -2 or -3 is the valuse from the calculation then exclude from results
 			}
 			
 		}
@@ -1511,33 +1512,35 @@ public class CalcParking {
 			
 			if (meters[i].type.equalsIgnoreCase("on-street-meter")) {
 				if (found_signatures.contains(meters[i].costsignature) == false) {
-					if (metersmax < 0 || metersfound < metersmax) {
-						metersfound++;
-						totalfound++;
-						ParkSharkCalcReturnReccommendation newa = new ParkSharkCalcReturnReccommendation();
-						newa.automat_number = smeters[I].belnummer;
-						newa.dist_in_meters = meters[i].dist;
-	//					newa.cost = meters[i].cost;
-						newa.cost = (double)(Math.round(meters[i].cost*100))/100;
-						newa.address = smeters[I].adres;
-						newa.lat = smeters[I].lat;
-						newa.lon = smeters[I].lon;
-						newa.type = smeters[I].type;
-						newa.displaytype = smeters[I].displaytype;
-						newa.match = meters[i].match;
-						newa.dbg = meters[i].dbg;
-						newa.chance_weekday = smeters[I].chance_weekday;
-						newa.chance_sat = smeters[I].chance_sat;
-						newa.chance_sun = smeters[I].chance_sun;
-						newa.name = smeters[I].name;
-						newa.expected_occupancy = meters[i].expected_occupancy;
-						al.add(newa);
-						ret.timings.add("calc : reccommendations found : " +i+" ("+meters[i].type+") : "+ new Long(new Date().getTime() - _exdt));
-						found_signatures.add(meters[i].costsignature);
+					if (req.opt_include_unmatched.equalsIgnoreCase("y") == true || meters[i].match > 0) {
+						if (metersmax < 0 || metersfound < metersmax) {
+							metersfound++;
+							totalfound++;
+							ParkSharkCalcReturnReccommendation newa = new ParkSharkCalcReturnReccommendation();
+							newa.automat_number = smeters[I].belnummer;
+							newa.dist_in_meters = meters[i].dist;
+		//					newa.cost = meters[i].cost;
+							newa.cost = (double)(Math.round(meters[i].cost*100))/100;
+							newa.address = smeters[I].adres;
+							newa.lat = smeters[I].lat;
+							newa.lon = smeters[I].lon;
+							newa.type = smeters[I].type;
+							newa.displaytype = smeters[I].displaytype;
+							newa.match = meters[i].match;
+							newa.dbg = meters[i].dbg;
+							newa.chance_weekday = smeters[I].chance_weekday;
+							newa.chance_sat = smeters[I].chance_sat;
+							newa.chance_sun = smeters[I].chance_sun;
+							newa.name = smeters[I].name;
+							newa.expected_occupancy = meters[i].expected_occupancy;
+							al.add(newa);
+							ret.timings.add("calc : reccommendations found : " +i+" ("+meters[i].type+") : "+ new Long(new Date().getTime() - _exdt));
+							found_signatures.add(meters[i].costsignature);
+						}
 					}
 				}
 			} else {
-				if (meters[i].match > 0) { // here is the match
+				if (req.opt_include_unmatched.equalsIgnoreCase("y") == true || meters[i].match > 0) {
 					boolean _local_add_to_resultset = false;
 					boolean isPandR = (sgarages[smeters[I].garageid].type.equalsIgnoreCase("p-and-r") || sgarages[smeters[I].garageid].type.equalsIgnoreCase("park-and-ride"));
 					

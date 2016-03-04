@@ -39,11 +39,11 @@
 	String debug = gwdb.gwUtils.get(request,"debug","n");
 	String callback = gwdb.gwUtils.get(request,"callback","");
 
-	
 	String opt_metercount = gwdb.gwUtils.get(request,"opt_metercount","");
 	String opt_garagecount = gwdb.gwUtils.get(request,"opt_garagecount","");
 	String opt_prcount = gwdb.gwUtils.get(request,"opt_prcount","");
 	String opt_maxresults = gwdb.gwUtils.get(request,"opt_maxresults","");
+	String opt_include_unmatched = gwdb.gwUtils.get(request,"opt_include_unmatched","");
 
 	
 	String id = gwdb.gwUtils.get(request,"id","");
@@ -310,6 +310,7 @@
 	req.opt_metercount = opt_metercount;
 	req.opt_maxresults = opt_maxresults;
 	req.opt_prcount = opt_prcount;
+	req.opt_include_unmatched = opt_include_unmatched;
 	
 	
 	com.glimworm.opendata.parkshark.xsd.ParkSharkCalcReturn prv = com.glimworm.opendata.parkshark.CalcParking.calcv2(req);
