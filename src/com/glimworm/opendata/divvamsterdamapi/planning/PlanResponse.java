@@ -45,7 +45,11 @@ public class PlanResponse {
 	
 	
 	public String toString() {
-		return this.distance+" dates: "+this.startTime.toString()+" - "+this.endTime.toString() +" // "+this.startAddress.toString()+ " // "+this.endAddress.toString();
+		return this.distance+" dates: "+
+		((this.startTime == null) ? "" : this.startTime.toString()) +" - "+
+		((this.endTime == null) ? "" : this.endTime.toString()) +" // "+
+		((this.startAddress == null) ? "" : this.startAddress.toString())+ " // "+
+		((this.endAddress == null) ? "" : this.endAddress.toString());
 	}
 	
 }

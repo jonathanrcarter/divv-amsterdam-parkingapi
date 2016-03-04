@@ -70,6 +70,9 @@ public class PlanOtp extends Plan {
 			
 			com.glimworm.opendata.divvamsterdamapi.planning.net.xsd.curlResponse cr =  com.glimworm.opendata.divvamsterdamapi.planning.net.CurlUtils.getCURL(URL, PARAMS, null, null, null, null, null,request.timeout);
 			
+			System.out.println("--- start otp api status ---");
+			System.out.println(cr.status);
+			System.out.println("--- end otp api status ---");
 			System.out.println("--- start otp api response ---");
 			System.out.println(cr.text);
 			System.out.println("--- end otp api response ---");

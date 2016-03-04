@@ -41,13 +41,19 @@ public class ParallelPlanCallable implements Callable<PlanResponse>{
 		reccommended_pt_route.url = pr.url;
 		reccommended_pt_route.legs = pr.legs;
 		reccommended_pt_route.type = pr.type;
-		reccommended_pt_route.startTime = pr.startTime.toString();
-		reccommended_pt_route.endTime = pr.endTime.toString();
+		reccommended_pt_route.startTime = (pr.startTime != null) ? pr.startTime.toString() : "";
+		reccommended_pt_route.endTime = (pr.endTime != null) ? pr.endTime.toString() : "";
 		int mms = 0;
+		if (pr.error_text != null && pr.error_text.length() > 0) {
+			// there was an error in the planning
+			return;
+		}
 		PRICE1:
 		for (int i=0; i < pr.legs.size(); i++) {
 			if (pr.legs.get(i).mode.equalsIgnoreCase(TransitInfo.LEG_TYPE_TRAIN)) {
-				reccommended_pt_route.cost = -1;
+				reccommended_pt_route.cost = 2.2;
+				if (reccommended_pt_route.distance > 8000) reccommended_pt_route.cost = 2.4;
+				if (reccommended_pt_route.distance > 9000) reccommended_pt_route.cost = 2.6;
 				break PRICE1;
 			} else if (pr.legs.get(i).mode.equalsIgnoreCase(TransitInfo.LEG_TYPE_TRAM)) {
 				// add distance
