@@ -8,6 +8,7 @@ import java.util.List;
 import java.util.Vector;
 
 import org.json.JSONObject;
+import org.w3c.dom.NamedNodeMap;
 
 import com.glimworm.opendata.divvamsterdamapi.planning.xsd.PlaceParkingGarage;
 import com.glimworm.opendata.divvamsterdamapi.planning.xsd.PlaceParkingGarageAmsterdamPrVariation;
@@ -62,6 +63,10 @@ public class Amsterdam {
 
 		Vector<Coordinate> vectc = new Vector<Coordinate>();
 		Coordinate cor0 = null;
+		
+//		while (coordset.length() == 1) {
+//			coordset = coordset.optJSONArray(0);
+//		}
 		
 		for (int j=0; j < coordset.length(); j++) {
 		
@@ -259,7 +264,7 @@ public class Amsterdam {
 				item.SellingPointDesc = cols[4];
 				try {
 					/*
-					 * get position frmo the string format (51,4.8)
+					 * get position from the string format (51,4.8)
 					 */
 					item.lat = Double.parseDouble(cols[5].replace('(',' ').replace('"',' ').trim());
 					item.lon = Double.parseDouble(cols[6].replace(')',' ').replace('"',' ').trim());
@@ -485,10 +490,13 @@ public class Amsterdam {
 				}
 			} else {
 				if (a.name.length() > 20) {
+					coords.append("/* no .polys found for "+a.name.substring(0,20)+"... */\n");
 					System.out.println(a.name.substring(0,20));
 				} else {
+					coords.append("/* no .polys found for "+a.name+"*/\n");
 					System.out.println(a.name);
 				}
+				coords.append("/* no .polys found for url "+a.nprurl+"*/\n");
 				System.out.println(a.nprurl);
 			}
 		}
@@ -548,7 +556,8 @@ public class Amsterdam {
 			ali.areamanagerid = cols[0];
 			ali.areaId = cols[1];
 
-			if (ali.areamanagerid.equalsIgnoreCase("363") == false && ali.areaId.startsWith("363_") == false) continue nextline;
+			if (ali.areamanagerid.equalsIgnoreCase("363") == false && ali.areaId.startsWith("363_") == false && 
+					ali.areamanagerid.equalsIgnoreCase("344") == false && ali.areaId.startsWith("344_") == false) continue nextline;
 
 			
 			
@@ -630,6 +639,8 @@ public class Amsterdam {
 		String FNKML = "/opt/tmp/rdw/download.kml";
 		com.glimworm.opendata.divvamsterdamapi.planning.net.FileUtils.writeFile(FNKML, reskml.text);
 
+		System.out.println("XXXJC poly check for for download");
+
 		try {
 		
 			DocumentBuilderFactory factory = DocumentBuilderFactory.newInstance();
@@ -637,8 +648,25 @@ public class Amsterdam {
 			org.w3c.dom.Document document = builder.parse(new File(FNKML));		
 			
 			org.w3c.dom.NodeList nodeList = document.getDocumentElement().getChildNodes().item(1).getChildNodes();
+
+			/* find the root node called "folder" */
+			
 			for (int i = 0; i < nodeList.getLength(); i++) {
 				org.w3c.dom.Node node = nodeList.item(i);
+				if (node.getNodeName().equalsIgnoreCase("Folder")) {
+			
+					/* re assign the node list to the node "Folder" */
+					
+					nodeList = node.getChildNodes();
+					break;
+				}
+			}
+			
+			/* we are dealing now with a node list comtaining placemarks with multi polygons */
+
+			for (int i = 0; i < nodeList.getLength(); i++) {
+				org.w3c.dom.Node node = nodeList.item(i);
+				System.out.println("XXXJC poly check for for node" + node.getNodeName());
 				if (node.getNodeName().equalsIgnoreCase("Placemark")) {
 
 					org.w3c.dom.NodeList placelist = node.getChildNodes();
@@ -646,11 +674,39 @@ public class Amsterdam {
 					String AreaManId = "";
 					List<String> poly = new ArrayList<String>();
 					AreaListItem ali = new AreaListItem();
+					int polycount = 0;
+					System.out.println("XXXJC poly check for for placemark");
 
 					nextline:
 					for (int j = 0; j < placelist.getLength(); j++) {
 						org.w3c.dom.Node nodep = placelist.item(j);
 
+						if (nodep.getNodeName().equalsIgnoreCase("ExtendedData")) {
+							
+							org.w3c.dom.Node etendeddata = nodep;	
+							if (etendeddata != null) {
+								List<org.w3c.dom.Node> data_elements = getnodes(etendeddata,"Data");
+								for (org.w3c.dom.Node data_element : data_elements) {
+									if (data_element != null) {
+										org.w3c.dom.Element e = (org.w3c.dom.Element)data_element;
+										if (e != null && e.hasAttribute("name")) {
+											if (e.getAttribute("name").equalsIgnoreCase("areamanid")) {
+												List<org.w3c.dom.Node> data_values = getnodes(data_element,"value");
+												if (data_values != null && data_values.size() > 0) {
+													AreaManId = data_values.get(0).getTextContent();
+												}
+											}
+											if (e.getAttribute("name").equalsIgnoreCase("areaid")) {
+												List<org.w3c.dom.Node> data_values = getnodes(data_element,"value");
+												if (data_values != null && data_values.size() > 0) {
+													AreaId = data_values.get(0).getTextContent();
+												}
+											}
+										}
+									}
+								}
+							}
+						}
 						if (nodep.getNodeName().equalsIgnoreCase("Description")) {
 //							System.out.println(j+")"+nodep.getChildNodes().item(0).getNodeValue());
 							String S1 = nodep.getChildNodes().item(0).getNodeValue();
@@ -681,7 +737,10 @@ public class Amsterdam {
 						ali.areamanagerid = AreaManId;
 						ali.areaId = AreaId;
 
-						if (ali.areamanagerid.equalsIgnoreCase("363") == false && ali.areaId.startsWith("363_") == false) continue nextline;
+						System.out.println("XXXJC poly check for for "+ali.areamanagerid+" "+ali.areaId+" POLY "+polycount);
+
+						if (ali.areamanagerid.equalsIgnoreCase("363") == false && ali.areaId.startsWith("363_") == false &&
+						ali.areamanagerid.equalsIgnoreCase("344") == false && ali.areaId.startsWith("344_") == false) continue nextline;
 						
 						
 						if (nodep.getNodeName().equalsIgnoreCase("MultiGeometry")) {
@@ -698,6 +757,8 @@ public class Amsterdam {
 											List<org.w3c.dom.Node> coordinatess = getnodes(LinearRing,"coordinates");
 											for (org.w3c.dom.Node coordinates : coordinatess) {
 												poly.add(coordinates.getChildNodes().item(0).getNodeValue());
+												System.out.println("XXXJC Adding poly for "+ali.areamanagerid+" "+ali.areaId+" POLY "+polycount);
+												polycount++;
 											}
 										}
 									}
@@ -761,6 +822,7 @@ public class Amsterdam {
 			
 			
 		} catch (Exception E) {
+			System.out.println("XXXJC poly check for for ERROR");
 			E.printStackTrace(System.out);
 		}
 		
@@ -793,6 +855,8 @@ public class Amsterdam {
 				item.uuid = cols[2];
 				if (item.areamanagerid.equalsIgnoreCase("363") || item.areaId.startsWith("363_")) {
 					areas.add(item);
+				} else if (item.areamanagerid.equalsIgnoreCase("344") || item.areaId.startsWith("344_")) {
+						areas.add(item);
 				} else {
 //					_importlog.add("AREAS:"+GARAGESORMETERS+":(areas loop):SKIPPED-NOT-363:"+item.areamanagerid+":"+item.areaId);
 				}
@@ -2253,6 +2317,9 @@ public class Amsterdam {
 				item.areaId = cols[1];
 				item.uuid = cols[2];
 				if (item.areamanagerid.equalsIgnoreCase("363") || item.areaId.startsWith("363_")) {
+					areas.add(item);
+				}
+				if (item.areamanagerid.equalsIgnoreCase("344") || item.areaId.startsWith("344_")) {
 					areas.add(item);
 				}
 			}
